@@ -1,0 +1,2 @@
+# gloriousfuture
+a school website
