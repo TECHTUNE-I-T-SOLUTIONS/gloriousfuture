@@ -9,9 +9,19 @@ const supabase = createClient(
 
 // 🟢 GET: Fetch all blog posts
 export async function GET() {
-  const { data, error } = await supabase.from("blogs").select("*");
+  const { data, error } = await supabase.from("blogs").select("id, title, content, author_name, author_role, image_url");
+
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data, { status: 200 });
+
+  // Ensure image URLs are properly formatted
+  const formattedData = data.map((post) => ({
+    ...post,
+    image_url: post.image_url
+      ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/blog/${post.image_url}`
+      : null,
+  }));
+
+  return NextResponse.json(formattedData, { status: 200 });
 }
  
 // 🟢 POST: Create a new blog post with an optional image
