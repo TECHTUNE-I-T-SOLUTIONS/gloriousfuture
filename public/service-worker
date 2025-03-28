@@ -1,0 +1,62 @@
+const CACHE_NAME = "static-cache-v1";
+const OFFLINE_URL = "/offline";
+const CACHE_ASSETS = [
+  "/",
+  OFFLINE_URL,
+  "/images/gallery/learning.jpg",
+  "/images/gallery/games.jpg",
+  "/images/gallery/computer-training.jpg",
+  "/images/gallery/study.jpg",
+  "/images/gallery/sports.jpg",
+  "/images/gallery/classroom.jpg",
+  "/images/gallery/library.jpg",
+  "/images/gallery/reading.jpg",
+  "/images/gallery/writing.jpg",
+  "/images/gallery/music.jpg",
+  "/images/gallery/art.jpg",
+  "/images/gallery/science-lab.jpg",
+  "/images/gallery/coding-class.jpg",
+  "/images/gallery/mathematics.jpg",
+  "/images/gallery/geography.jpg",
+  "/images/gallery/history.jpg",
+  "/images/gallery/chemistry.jpg",
+  "/images/gallery/physics.jpg",
+  "/images/gallery/biology.jpg",
+  "/images/gallery/group-study.jpg",
+];
+
+// Install service worker and cache necessary files
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(CACHE_ASSETS);
+    })
+  );
+  self.skipWaiting();
+});
+
+// Activate service worker and remove old caches
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => caches.delete(name))
+      );
+    })
+  );
+  self.clients.claim();
+});
+
+// Fetch event: Serve cached files if available
+self.addEventListener("fetch", (event) => {
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      return (
+        cachedResponse ||
+        fetch(event.request).catch(() => caches.match(OFFLINE_URL))
+      );
+    })
+  );
+});
