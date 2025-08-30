@@ -20,6 +20,8 @@ import {
   Copy,
   AlertCircle,
 } from "lucide-react"
+import CustomHeader from "@/components/CustomHeader"
+import CustomFooter from "@/components/CustomFooter"
 
 const classOptions = [
   "Creche",
@@ -167,6 +169,8 @@ export default function PupilSignupPage() {
   }
 
   return (
+    <>
+    <CustomHeader />
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center p-4">
       {/* Alert */}
       {alert && (
@@ -579,5 +583,7 @@ export default function PupilSignupPage() {
         </div>
       </div>
     </div>
+    <CustomFooter />
+    </>
   )
 }

@@ -262,7 +262,7 @@ export default function About() {
             <div className="relative mb-8">
               <div className="w-32 h-32 md:w-40 md:h-40 mx-auto relative">
                 <Image
-                  src="/proprietress.jpg"
+                  src="/proprietress.png"
                   alt="Mrs. Alade - Proprietress"
                   fill
                   className="rounded-full object-cover shadow-lg"
@@ -291,7 +291,7 @@ export default function About() {
                 <FiExternalLink className="w-4 h-4" />
               </Link>
               <Link
-                href="mailto:info@gloriousfuture.edu"
+                href="mailto:christgloriousfuture@gmail.com"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-secondary hover:bg-secondary/90 text-secondary-foreground rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 <FiMail className="w-4 h-4" />
@@ -314,14 +314,14 @@ export default function About() {
               viewport={{ once: true }}
             >
               <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">Visit Us</h2>
-              <div className="bg-gray-400/80 backdrop-blur-sm rounded-2xl p-8 border border-border shadow-lg">
+              <div className="bg-gray-100/80 backdrop-blur-sm rounded-2xl p-8 border border-border shadow-lg">
                 <div className="flex items-center justify-center lg:justify-start mb-4">
                   <div className="p-3 bg-gradient-to-br from-secondary to-accent rounded-xl text-white mr-4">
                     <FiMapPin className="w-6 h-6" />
                   </div>
                   <h3 className="text-xl font-bold text-primary">Our Location</h3>
                 </div>
-                <p className="text-lg text-gray-500">Iba Village, Oro, Kwara State, Nigeria</p>
+                <p className="text-lg text-gray-900">Iba Village, Oro, Kwara State, Nigeria</p>
               </div>
             </motion.div>
 
@@ -334,7 +334,7 @@ export default function About() {
               viewport={{ once: true }}
             >
               <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">Quick Links</h2>
-              <div className="bg-gray-400/80 backdrop-blur-sm rounded-2xl p-8 border border-border shadow-lg">
+              <div className="bg-gray-100/80 backdrop-blur-sm rounded-2xl p-8 border border-border shadow-lg">
                 <div className="grid grid-cols-2 gap-4">
                   {[
                     { href: "/", label: "Home" },
@@ -342,12 +342,11 @@ export default function About() {
                     { href: "/teacher", label: "Teachers" },
                     { href: "/blog", label: "Blog" },
                     { href: "/about", label: "About Us" },
-                    { href: "/contact", label: "Contact" },
                   ].map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}
-                      className="flex items-center gap-2 p-3 text-gray-500 hover:text-accent hover:bg-accent/10 rounded-lg transition-all duration-200"
+                      className="flex items-center gap-2 p-3 text-gray-900 hover:text-accent hover:bg-accent/10 rounded-lg transition-all duration-200"
                     >
                       <div className="w-2 h-2 bg-secondary rounded-full" />
                       {link.label}

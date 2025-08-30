@@ -6,6 +6,8 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Eye, EyeOff, User, Lock, GraduationCap, AlertCircle } from "lucide-react"
+import CustomHeader from "@/components/CustomHeader"
+import CustomFooter from "@/components/CustomFooter"
 
 export default function PupilLoginPage() {
   const [uin, setUIN] = useState("")
@@ -62,7 +64,9 @@ export default function PupilLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center p-4">
+    <>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-indigo-500/30 to-indigo-900 flex items-center justify-center p-4">
+      <CustomHeader />
       {/* Alert */}
       {alert && (
         <div className="fixed top-4 right-4 z-50 max-w-sm">
@@ -191,6 +195,8 @@ export default function PupilLoginPage() {
           </p>
         </div>
       </div>
-    </div>
+      </div>
+      <CustomFooter />
+    </>
   )
 }

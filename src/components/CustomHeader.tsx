@@ -46,7 +46,7 @@ const CustomHeader = () => {
 
   const contactLinks = [
     { href: "tel:+2348035770623", label: "Call", icon: <FiPhone className="w-4 h-4 text-indigo-900" /> },
-    { href: "mailto:info@gloriousfuture.edu", label: "Email", icon: <FiMail className="w-4 h-4 text-indigo-900" /> },
+    { href: "mailto:christgloriousfuture@gmail.com", label: "Email", icon: <FiMail className="w-4 h-4 text-indigo-900" /> },
   ]
 
   return (
