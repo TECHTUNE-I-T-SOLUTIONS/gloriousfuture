@@ -1,132 +1,368 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { 
-  FaHome, FaBook, FaCalendarAlt, FaFileAlt, FaUser, 
-  FaLaptopCode, FaClipboardCheck, FaSignOutAlt, FaEdit, FaBell 
-} from "react-icons/fa";
-import { motion } from "framer-motion";
+import type React from "react"
 
-export default function TeacherSidebar({ setActivePage, isSidebarOpen, setIsSidebarOpen }: { setActivePage: (page: string) => void, isSidebarOpen: boolean, setIsSidebarOpen: (isOpen: boolean) => void }) {
-  const [isOpen, setIsOpen] = useState(true);  
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const router = useRouter();
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { motion, AnimatePresence } from "framer-motion"
+import {
+  Home,
+  BookOpen,
+  Calendar,
+  FileText,
+  User,
+  Laptop,
+  ClipboardCheck,
+  LogOut,
+  Edit,
+  Bell,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react"
 
-  // Detect screen width to adjust sidebar on smaller screens
+interface SidebarProps {
+  setActivePage: (page: string) => void
+  isSidebarOpen: boolean
+  setIsSidebarOpen: (isOpen: boolean) => void
+  activePage?: string
+}
+
+export default function TeacherSidebar({ setActivePage, isSidebarOpen, setIsSidebarOpen, activePage = "dashboard" }: SidebarProps) {
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+  // Sidebar is now controlled by parent via setActivePage; parent should pass current active page state via calls
+  // We'll derive active state by asking parent to set it; keep no internal activePage state to avoid desync
+  const router = useRouter()
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
-        setIsOpen(false);  // Close sidebar on small screens
-        setIsSidebarOpen(false);
+        setIsSidebarOpen(false)
       } else {
-        setIsOpen(true);   // Open sidebar on larger screens
-        setIsSidebarOpen(true);
+        setIsSidebarOpen(true)
       }
-    };
+    }
 
-    handleResize(); // Run on mount
-    window.addEventListener("resize", handleResize);
+    handleResize()
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [setIsSidebarOpen])
 
-    return () => window.removeEventListener("resize", handleResize);
-  }, [setIsSidebarOpen]);
-
-  const handleToggle = () => {
-    setIsOpen(!isOpen);
-    setIsSidebarOpen(!isOpen);
-  };
+  const handlePageChange = (page: string) => {
+    setActivePage(page)
+    // Close sidebar on mobile after selection
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(false)
+    }
+  }
 
   const handleLogout = async () => {
     try {
       const response = await fetch("/api/teacher/logout", {
         method: "POST",
         credentials: "include",
-      });
+      })
 
       if (response.ok) {
-        router.push("/teacher");
+        router.push("/teacher")
       } else {
-        console.error("Logout failed");
+        console.error("Logout failed")
       }
     } catch (error) {
-      console.error("Error logging out:", error);
+      console.error("Error logging out:", error)
     }
-  };
+  }
+
+  const sidebarItems = [
+    { id: "dashboard", icon: Home, label: "Dashboard" },
+    { id: "assignments", icon: BookOpen, label: "Assignments" },
+    { id: "timetable", icon: Calendar, label: "Timetable" },
+    { id: "exam-results", icon: FileText, label: "Results" },
+    { id: "profile", icon: User, label: "Profile" },
+    { id: "cbt-exams", icon: Laptop, label: "CBT Exams" },
+    { id: "tests", icon: ClipboardCheck, label: "Tests & Quizzes" },
+    { id: "create-blog", icon: Edit, label: "Create Blog" },
+    { id: "create-alert", icon: Bell, label: "Create Alert" },
+  ]
 
   return (
     <>
-      <motion.div
-        animate={{ width: isSidebarOpen ? "250px" : "70px" }}
-        className="h-full mt-20 bg-green-700 text-white p-2 shadow-2xl transition-all duration-300 flex flex-col"
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setIsSidebarOpen(false)} />
+      )}
+
+      {/* Sidebar */}
+      <motion.aside
+        initial={false}
+        animate={{
+          width: isSidebarOpen ? "280px" : "80px",
+          x: isSidebarOpen || window.innerWidth >= 768 ? 0 : -280,
+        }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className="fixed left-0 top-20 h-[calc(100vh-5rem)] bg-sidebar border-r border-sidebar-border shadow-lg z-50 flex flex-col"
       >
-        {/* Sidebar Toggle Button */}
-        <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="mb-2 self-end text-sm focus:outline-none">
-          {isSidebarOpen ? "❌" : "☰"}
-        </button>
+        {/* Toggle Button */}
+        <div className="p-4 border-b border-sidebar-border">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="w-full flex items-center justify-center p-2 rounded-lg bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+          >
+            {isSidebarOpen ? (
+              <>
+                <ChevronLeft className="w-5 h-5 mr-2" />
+                <span className="text-sm font-medium">Collapse</span>
+              </>
+            ) : (
+              <ChevronRight className="w-5 h-5" />
+            )}
+          </motion.button>
+        </div>
 
-        {/* Sidebar Navigation */}
-        <nav className="flex flex-col space-y-1">
-          <SidebarItem icon={<FaHome />} label="Dashboard" isOpen={isSidebarOpen} onClick={() => setActivePage("dashboard")} />
-          <SidebarItem icon={<FaBook />} label="Assignments" isOpen={isSidebarOpen} onClick={() => setActivePage("assignments")} />
-          <SidebarItem icon={<FaCalendarAlt />} label="Timetable" isOpen={isSidebarOpen} onClick={() => setActivePage("timetable")} />
-          <SidebarItem icon={<FaFileAlt />} label="Results" isOpen={isSidebarOpen} onClick={() => setActivePage("exam-results")} />
-          <SidebarItem icon={<FaUser />} label="Profile" isOpen={isSidebarOpen} onClick={() => setActivePage("profile")} />
-          <SidebarItem icon={<FaLaptopCode />} label="CBT Exams" isOpen={isSidebarOpen} onClick={() => setActivePage("cbt-exams")} />
-          <SidebarItem icon={<FaClipboardCheck />} label="Tests & Quizzes" isOpen={isSidebarOpen} onClick={() => setActivePage("tests")} />
+        {/* Navigation Items */}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+          {sidebarItems.map((item) => (
+            <SidebarItem
+              key={item.id}
+              icon={item.icon}
+              label={item.label}
+              isOpen={isSidebarOpen}
+              isActive={activePage === item.id}
+              onClick={() => handlePageChange(item.id)}
+            />
+          ))}
 
-          {/* New Sidebar Items */}
-          <SidebarItem icon={<FaEdit />} label="Create Blog" isOpen={isSidebarOpen} onClick={() => setActivePage("create-blog")} />
-          <SidebarItem icon={<FaBell />} label="Create Message Alert" isOpen={isSidebarOpen} onClick={() => setActivePage("create-alert")} />
-
-          {/* Logout Button Styled Like SidebarItem */}
-          <SidebarItem 
-            icon={<FaSignOutAlt />} 
-            label="Logout" 
-            isOpen={isSidebarOpen} 
-            onClick={() => setShowLogoutModal(true)} 
-            customClass="hover:bg-red-600"
+          {/* Logout Button */}
+          <SidebarItem
+            icon={LogOut}
+            label="Logout"
+            isOpen={isSidebarOpen}
+            isActive={false}
+            onClick={() => setShowLogoutModal(true)}
+            variant="danger"
           />
         </nav>
-      </motion.div>
 
-      {showLogoutModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg text-center">
-            <h2 className="text-lg font-semibold mb-4">Are you sure you want to log out?</h2>
-            <div className="flex justify-center space-x-4">
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-              >
-                Yes, Logout
-              </button>
-              <button
-                onClick={() => setShowLogoutModal(false)}
-                className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        {/* Footer */}
+        {isSidebarOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 border-t border-sidebar-border">
+            <p className="text-xs text-sidebar-foreground/60 text-center">Teacher Dashboard v2.0</p>
+          </motion.div>
+        )}
+      </motion.aside>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-popover border border-border rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl"
+            >
+              <div className="text-center space-y-4">
+                <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
+                  <LogOut className="w-6 h-6 text-destructive" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground">Confirm Logout</h3>
+                <p className="text-gray-500">Are you sure you want to log out of your account?</p>
+                <div className="flex space-x-3 pt-2">
+                  <button
+                    onClick={() => setShowLogoutModal(false)}
+                    className="flex-1 py-2 px-4 border border-border rounded-lg text-foreground hover:bg-muted transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="flex-1 py-2 px-4 bg-destructive text-destructive-foreground rounded-lg hover:opacity-90 transition-opacity"
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
-  );
+  )
 }
 
-function SidebarItem({ icon, label, isOpen, onClick }: { icon: JSX.Element, label: string, isOpen: boolean, onClick: () => void }) {
+interface SidebarItemProps {
+  icon: React.ElementType
+  label: string
+  isOpen: boolean
+  isActive: boolean
+  onClick: () => void
+  variant?: "default" | "danger"
+}
+
+function SidebarItem({ icon: Icon, label, isOpen, isActive, onClick, variant = "default" }: SidebarItemProps) {
+  const baseClasses = "w-full flex items-center p-3 rounded-lg transition-all duration-200 relative group"
+  const variantClasses = {
+    default: isActive
+      ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+      : "text-sidebar-foreground hover:bg-sidebar-primary hover:text-sidebar-primary-foreground",
+    danger: "text-destructive hover:bg-destructive/10 hover:text-destructive",
+  }
+
   return (
-    <button
+    <motion.button
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="flex items-center space-x-3 hover:bg-green-800 p-2 rounded-md transition-all w-full text-left relative group"
+      className={`${baseClasses} ${variantClasses[variant]}`}
     >
-      {icon}
-      {isOpen && <span>{label}</span>}
+      <Icon className="w-5 h-5 flex-shrink-0" />
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.span
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            className="ml-3 font-medium text-sm"
+          >
+            {label}
+          </motion.span>
+        )}
+      </AnimatePresence>
+      {/* Tooltip for collapsed state */}
       {!isOpen && (
-        <span className="absolute left-12 bg-gray-800 text-white text-xs rounded px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          {label}
-        </span>
+        <>
+          {/* overlay to capture hover/focus across the whole button */}
+          <span
+        className="absolute inset-0"
+        aria-hidden="true"
+        onMouseEnter={(e) => {
+          // remove any existing tooltip first
+          const removeTooltip = () => {
+            const old = document.querySelector('div[data-sidebar-tooltip="1"]')
+            if (!old) return
+            const cleanup = (old as HTMLElement & { __sidebarTooltipCleanup?: () => void }).__sidebarTooltipCleanup
+            if (cleanup) {
+          window.removeEventListener("scroll", cleanup, true)
+          window.removeEventListener("resize", cleanup)
+            }
+            old.remove()
+          }
+
+          removeTooltip()
+
+          const target = e.currentTarget as HTMLElement
+          const rect = target.getBoundingClientRect()
+          const tip = document.createElement("div")
+          tip.setAttribute("data-sidebar-tooltip", "1")
+          tip.textContent = label
+
+          Object.assign(tip.style, {
+            position: "fixed",
+            top: `${rect.top + rect.height / 2}px`, // center vertically
+            left: `${rect.right + 8}px`, // gap to the right
+            transform: "translateY(-50%)",
+            background: "var(--popover)", // uses design tokens if available
+            color: "var(--popover-foreground)",
+            padding: "6px 8px",
+            borderRadius: "6px",
+            border: "1px solid var(--border)",
+            fontSize: "12px",
+            whiteSpace: "nowrap",
+            zIndex: "9999",
+            pointerEvents: "none",
+            transition: "opacity 120ms ease",
+            opacity: "1",
+            boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+          })
+
+          // cleanup on scroll/resize (use capture for scroll so it fires reliably)
+          const cleanup = () => removeTooltip()
+          ;(tip as HTMLElement & { __sidebarTooltipCleanup?: () => void }).__sidebarTooltipCleanup = cleanup
+          window.addEventListener("scroll", cleanup, true)
+          window.addEventListener("resize", cleanup)
+
+          document.body.appendChild(tip)
+        }}
+        onMouseLeave={() => {
+          const old = document.querySelector('div[data-sidebar-tooltip="1"]')
+          if (!old) return
+          const cleanup = (old as HTMLElement & { __sidebarTooltipCleanup?: () => void }).__sidebarTooltipCleanup
+          if (cleanup) {
+            window.removeEventListener("scroll", cleanup, true)
+            window.removeEventListener("resize", cleanup)
+          }
+          old.remove()
+        }}
+        onFocus={(e) => {
+          // mimic hover behavior for keyboard focus
+          const target = e.currentTarget as HTMLElement
+          const rect = target.getBoundingClientRect()
+          const removeTooltip = () => {
+            const old = document.querySelector('div[data-sidebar-tooltip="1"]')
+            if (!old) return
+            const cleanup = (old as HTMLElement & { __sidebarTooltipCleanup?: () => void }).__sidebarTooltipCleanup
+            if (cleanup) {
+          window.removeEventListener("scroll", cleanup, true)
+          window.removeEventListener("resize", cleanup)
+            }
+            old.remove()
+          }
+          removeTooltip()
+
+          const tip = document.createElement("div")
+          tip.setAttribute("data-sidebar-tooltip", "1")
+          tip.textContent = label
+          Object.assign(tip.style, {
+            position: "fixed",
+            top: `${rect.top + rect.height / 2}px`,
+            left: `${rect.right + 8}px`,
+            transform: "translateY(-50%)",
+            background: "var(--popover)",
+            color: "var(--popover-foreground)",
+            padding: "6px 8px",
+            borderRadius: "6px",
+            border: "1px solid var(--border)",
+            fontSize: "12px",
+            whiteSpace: "nowrap",
+            zIndex: "9999",
+            pointerEvents: "none",
+            opacity: "1",
+            boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+          })
+          const cleanup = () => removeTooltip()
+          ;(tip as HTMLElement & { __sidebarTooltipCleanup?: () => void }).__sidebarTooltipCleanup = cleanup
+          window.addEventListener("scroll", cleanup, true)
+          window.addEventListener("resize", cleanup)
+          document.body.appendChild(tip)
+        }}
+        onBlur={() => {
+          const old = document.querySelector('div[data-sidebar-tooltip="1"]')
+          if (!old) return
+          const cleanup = (old as HTMLElement & { __sidebarTooltipCleanup?: () => void }).__sidebarTooltipCleanup
+          if (cleanup) {
+            window.removeEventListener("scroll", cleanup, true)
+            window.removeEventListener("resize", cleanup)
+          }
+          old.remove()
+        }}
+          />
+        </>
       )}
-    </button>
-  );
+
+      {/* Active indicator */}
+      {isActive && (
+        <motion.div
+          layoutId="activeIndicator"
+          className="absolute right-2 w-2 h-2 bg-sidebar-accent-foreground rounded-full"
+        />
+      )}
+    </motion.button>
+  )
 }

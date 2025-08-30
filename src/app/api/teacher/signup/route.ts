@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const password = formData.get("password")?.toString();
     const class_taught = formData.get("class_taught")?.toString().trim();
     const years_of_experience = parseInt(formData.get("years_of_experience") as string);
-    const profile_picture = formData.get("profile_picture") as File | null;
+  const profile_picture = formData.get("profile_picture") as File | null;
 
     if (!full_name || !username || !email || !password || !class_taught || isNaN(years_of_experience)) {
       return NextResponse.json({ message: "All fields are required" }, { status: 400 });
@@ -33,20 +33,22 @@ export async function POST(req: Request) {
       const fileExt = profile_picture.name.split(".").pop();
       const filePath = `profiles/${uin}.${fileExt}`;
 
-      const { data, error } = await supabase.storage
+      // Convert File to Blob/ArrayBuffer for upload
+      const blob = new Blob([await profile_picture.arrayBuffer()], { type: profile_picture.type });
+
+  const { error: uploadError } = await supabase.storage
         .from("teachers-profile")
-        .upload(filePath, profile_picture, {
+        .upload(filePath, blob, {
           cacheControl: "3600",
           upsert: true,
           contentType: profile_picture.type,
         });
 
-      if (error) {
-        console.error("Upload error:", error);
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
         return NextResponse.json({ message: "Profile picture upload failed" }, { status: 500 });
       }
 
-      // ✅ Correctly retrieve the public URL
       const { data: urlData } = supabase.storage.from("teachers-profile").getPublicUrl(filePath);
       profile_picture_url = urlData.publicUrl;
     }
@@ -59,21 +61,26 @@ export async function POST(req: Request) {
 
     if (userInsertError) throw userInsertError;
 
-    await supabase
-      .from("teachers")
-      .insert([{ 
-        user_id: user.id, 
-        class_taught, 
-        years_of_experience, 
-        email, 
-        password: hashedPassword, 
-        username, 
-        full_name, 
+    const { error: teacherInsertError } = await supabase.from("teachers").insert([
+      {
+        user_id: user.id,
+        class_taught,
+        years_of_experience: isNaN(years_of_experience) ? 0 : years_of_experience,
+        email,
+        password: hashedPassword,
+        username,
+        full_name,
         uin,
-        profile_picture: profile_picture_url 
-      }]);
+        profile_picture: profile_picture_url,
+      },
+    ]);
 
-    return NextResponse.json({ message: "Signup successful", user, uin }, { status: 201 });
+    if (teacherInsertError) {
+      console.error("Insert teacher error:", teacherInsertError);
+      return NextResponse.json({ message: "Failed to create teacher record" }, { status: 500 });
+    }
+
+    return NextResponse.json({ message: "Signup successful", uin }, { status: 201 });
   } catch (error) {
     console.error("Server error:", error);
     return NextResponse.json({ message: "Server error" }, { status: 500 });

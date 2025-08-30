@@ -8,9 +8,11 @@ const supabase = createClient(
 );
 
 // 🟢 GET: Fetch a single blog post by ID
-export async function GET(req: Request, context: { params: { id: string } }) {
-  const params = await context.params; // ✅ Await the params
-  const id = params?.id; // Now params is properly awaited
+export async function GET(req: Request) {
+  // parse id from the request URL to avoid using the second 'context' parameter
+  const url = new URL(req.url)
+  const parts = url.pathname.split("/").filter(Boolean)
+  const id = parts[parts.length - 1]
 
   if (!id) {
     return NextResponse.json({ error: "Blog ID is required" }, { status: 400 });

@@ -6,11 +6,18 @@ const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env
 // POST: Create CBT Exam
 export async function POST(req: Request) {
   try {
-    const { examTitle, subject, classId, teacherId, questions } = await req.json();
+  const body = await req.json();
+  const exam_title = body.exam_title ?? body.examTitle;
+  const subject = body.subject;
+  const class_id = body.class_id ?? body.classId;
+  const teacher_id = body.teacher_id ?? body.teacherId;
+  const questions = body.questions;
+  const duration = typeof body.duration !== 'undefined' ? body.duration : undefined;
 
-    const { data, error } = await supabase
-      .from("cbt_exams")
-      .insert([{ exam_title: examTitle, subject, class_id: classId, teacher_id: teacherId, questions }]);
+  const insertRow: Record<string, unknown> = { exam_title, subject, class_id, teacher_id, questions };
+  if (typeof duration !== "undefined") insertRow.duration = duration;
+
+  const { data, error } = await supabase.from("cbt_exams").insert([insertRow]);
 
     if (error) throw error;
 
@@ -34,8 +41,15 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-  const { id, exam_title, subject, questions } = await req.json();
-  await supabase.from("cbt_exams").update({ exam_title, subject, questions }).eq("id", id);
+  const body = await req.json();
+  const id = body.id ?? body.examId;
+  const exam_title = body.exam_title ?? body.examTitle;
+  const subject = body.subject;
+  const questions = body.questions;
+  const duration = typeof body.duration !== 'undefined' ? body.duration : undefined;
+  const payload: Record<string, unknown> = { exam_title, subject, questions };
+  if (typeof duration !== "undefined") payload.duration = duration;
+  await supabase.from("cbt_exams").update(payload).eq("id", id);
   return NextResponse.json({ success: true });
 }
 

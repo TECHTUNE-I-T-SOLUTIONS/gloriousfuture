@@ -1,87 +1,89 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
-import { FaBookOpen, FaUpload, FaEdit, FaSave, FaTimes } from "react-icons/fa";
+import type React from "react"
 
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
-import "react-quill/dist/quill.snow.css";
+import { useEffect, useState } from "react"
+import CustomAlert from "@/components/CustomAlert"
+import { FaBookOpen, FaSave, FaTimes } from "react-icons/fa"
 
 interface Assignment {
-  id: string;
-  title: string;
-  subject: string;
-  due_date: string;
-  description: string;
-  submission_text?: string;
-  submission_file?: string;
+  id: string
+  title: string
+  subject: string
+  due_date: string
+  description: string
+  submission_text?: string
+  submission_file?: string
 }
 
 export default function Assignments() {
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null);
-  const [submissionText, setSubmissionText] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [assignments, setAssignments] = useState<Assignment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | null>(null)
+  const [submissionText, setSubmissionText] = useState("")
+  const [file, setFile] = useState<File | null>(null)
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" | "warning" } | null>(null)
 
   useEffect(() => {
     const fetchAssignments = async () => {
       try {
-        const res = await fetch("/api/pupils/assignments");
+        const res = await fetch("/api/pupils/assignments")
         if (res.ok) {
-          const data = await res.json();
-          setAssignments(data);
+          const data = await res.json()
+          setAssignments(data)
         }
       } catch (error) {
-        console.error("Error fetching assignments:", error);
+        console.error("Error fetching assignments:", error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchAssignments();
-  }, []);
+    fetchAssignments()
+  }, [])
 
   const handleOpenAssignment = (assignment: Assignment) => {
-    setSelectedAssignment(assignment);
-    setSubmissionText(assignment.submission_text || "");
-  };
+    setSelectedAssignment(assignment)
+    setSubmissionText(assignment.submission_text || "")
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setFile(e.target.files[0]);
+      setFile(e.target.files[0])
     }
-  };
+  }
 
   const handleSubmitAssignment = async () => {
-    if (!selectedAssignment) return;
+    if (!selectedAssignment) return
 
-    const formData = new FormData();
-    formData.append("assignment_id", selectedAssignment.id);
-    formData.append("submission_text", submissionText);
+    const formData = new FormData()
+    formData.append("assignment_id", selectedAssignment.id)
+    formData.append("submission_text", submissionText)
     if (file) {
-      formData.append("file", file);
+      formData.append("file", file)
     }
 
     try {
       const res = await fetch("/api/pupils/assignments/submit", {
         method: "POST",
         body: formData,
-      });
+      })
 
       if (res.ok) {
-        alert("Assignment submitted successfully!");
-        setSelectedAssignment(null);
-        setFile(null);
-        setSubmissionText("");
+        setToast({ message: "Assignment submitted successfully!", type: "success" })
+        setSelectedAssignment(null)
+        setFile(null)
+        setSubmissionText("")
       }
     } catch (error) {
-      console.error("Error submitting assignment:", error);
+      console.error("Error submitting assignment:", error)
     }
-  };
+  }
 
   return (
-    <div className="p-6">
+    <>
+      {toast && <CustomAlert message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      <div className="p-6">
       <h1 className="text-2xl font-semibold mb-4 flex items-center">
         <FaBookOpen className="mr-2 text-green-500" /> Assignments
       </h1>
@@ -97,7 +99,9 @@ export default function Assignments() {
               onClick={() => handleOpenAssignment(assignment)}
             >
               <h2 className="font-bold text-lg">{assignment.title}</h2>
-              <p className="text-gray-600">{assignment.subject} - Due: {assignment.due_date}</p>
+              <p className="text-gray-600">
+                {assignment.subject} - Due: {assignment.due_date}
+              </p>
             </li>
           ))}
         </ul>
@@ -112,28 +116,37 @@ export default function Assignments() {
             <h2 className="text-xl font-semibold">{selectedAssignment.title}</h2>
             <p className="text-gray-600">{selectedAssignment.description}</p>
 
-            {/* Rich Text Editor */}
+            {/* Rich Text Editor (simple textarea used to avoid ReactQuill findDOMNode issues) */}
             <div className="mt-4">
-              <ReactQuill value={submissionText} onChange={setSubmissionText} />
+              <label htmlFor="submission_text" className="sr-only">Submission text</label>
+              <textarea id="submission_text" value={submissionText} onChange={(e) => setSubmissionText(e.target.value)} className="w-full border p-2 rounded h-40" />
             </div>
 
             {/* File Upload */}
             <div className="mt-4">
-              <input type="file" onChange={handleFileChange} className="border p-2 w-full rounded-md" />
+              <label htmlFor="submission_file" className="sr-only">Upload file</label>
+              <input id="submission_file" type="file" onChange={handleFileChange} className="border p-2 w-full rounded-md" />
             </div>
 
             {/* Buttons */}
             <div className="mt-4 flex space-x-2">
-              <button onClick={handleSubmitAssignment} className="bg-green-500 text-white px-4 py-2 rounded flex items-center">
+              <button
+                onClick={handleSubmitAssignment}
+                className="bg-green-500 text-white px-4 py-2 rounded flex items-center"
+              >
                 <FaSave className="mr-2" /> Submit
               </button>
-              <button onClick={() => setSelectedAssignment(null)} className="bg-gray-500 text-white px-4 py-2 rounded flex items-center">
+              <button
+                onClick={() => setSelectedAssignment(null)}
+                className="bg-gray-500 text-white px-4 py-2 rounded flex items-center"
+              >
                 <FaTimes className="mr-2" /> Cancel
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
-  );
+      </div>
+    </>
+  )
 }

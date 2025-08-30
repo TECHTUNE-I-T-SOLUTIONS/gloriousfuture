@@ -106,6 +106,7 @@ export async function PUT(req: Request) {
 
   if (file) {
     const filePath = `blog/${Date.now()}-${file.name}`;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from("blog")
       .upload(filePath, file);

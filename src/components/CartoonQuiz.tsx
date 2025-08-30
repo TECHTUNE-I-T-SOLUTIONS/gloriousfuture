@@ -131,7 +131,7 @@ export default function CartoonQuiz() {
         className="bg-gray-600 text-white p-3 rounded-lg mt-4 hover:bg-gray-800 transition"
         onClick={handleIDontKnow}
       >
-        I Don't Know
+        I Don&apos;t Know
       </button>
 
       {/* Feedback */}

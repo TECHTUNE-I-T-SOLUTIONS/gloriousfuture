@@ -65,6 +65,7 @@ export async function PUT(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("server error:", error);
     return NextResponse.json({ error: "Server error!" }, { status: 500 });
   }
 }

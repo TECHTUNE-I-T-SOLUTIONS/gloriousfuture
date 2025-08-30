@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
+// types intentionally omitted to avoid deep tsparticles type mismatch; runtime shape is trusted
 
 export default function ParticlesBg() {
   const [init, setInit] = useState(false);
@@ -27,7 +28,7 @@ export default function ParticlesBg() {
           repulse: { distance: 200, duration: 0.4 },
         },
       },
-      particles: {
+    particles: {
         color: { value: "#ffffff" },
         links: {
           color: "#ffffff",
@@ -38,7 +39,7 @@ export default function ParticlesBg() {
         },
         move: {
           enable: true,
-          outModes: { default: "out" },
+      outModes: "out",
           random: false,
           speed: 2,
           straight: false,
@@ -49,7 +50,7 @@ export default function ParticlesBg() {
         size: { value: { min: 1, max: 5 } },
       },
       detectRetina: true,
-    }),
+  }) as unknown as Record<string, unknown>,
     []
   );
 
@@ -59,7 +60,7 @@ export default function ParticlesBg() {
         <Particles
           id="particles-bg"
           options={particlesOptions}
-          className="absolute top-0 left-0 w-full h-full z-5"
+          className="absolute top-0 left-0 w-full h-full -z-10"
         />
       )}
     </>

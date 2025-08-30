@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parse } from "cookie";
+// parse is not needed here
 
 export async function GET(req: NextRequest) {
   const sessionCookie = req.cookies.get("session")?.value;

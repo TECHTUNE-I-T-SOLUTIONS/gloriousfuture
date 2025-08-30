@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { parse } from "cookie";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { getSupabaseClient } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   try {
@@ -26,22 +21,28 @@ export async function POST(req: Request) {
     const fileName = `${uin}-profile.${fileExt}`;
     const filePath = `profile_pictures/${fileName}`;
 
-    // Upload file to Supabase storage
-    const { data, error } = await supabase.storage.from("profile-pictures").upload(filePath, file, {
+  // Upload file to Supabase storage
+  const supabase = getSupabaseClient()
+  if (!supabase) return NextResponse.json({ error: "Supabase not configured" }, { status: 500 })
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { data, error } = await supabase.storage.from("profile-pictures").upload(filePath, file as unknown as Blob, {
       cacheControl: "3600",
       upsert: true,
     });
 
-    if (error) return NextResponse.json({ error });
+  if (error) return NextResponse.json({ error: String(error.message || error) }, { status: 500 })
 
-    // Get public URL
-    const { publicURL } = supabase.storage.from("profile-pictures").getPublicUrl(filePath);
+  // Get public URL
+  const { data: publicUrlData } = supabase.storage.from("profile-pictures").getPublicUrl(filePath)
+  const publicURL = (publicUrlData as { publicUrl?: string })?.publicUrl ?? ""
 
-    // Update teacher profile with new image URL
-    await supabase.from("teachers").update({ profile_picture: publicURL }).eq("uin", uin);
+  // Update teacher profile with new image URL
+  await supabase.from("teachers").update({ profile_picture: publicURL }).eq("uin", uin)
 
-    return NextResponse.json({ success: true, url: publicURL });
+  return NextResponse.json({ success: true, url: publicURL })
   } catch (error) {
+    console.error("server error:", error);
     return NextResponse.json({ error: "Server error!" }, { status: 500 });
   }
 }

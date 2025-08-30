@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
       // Convert File to Blob
       const profileBlob = new Blob([await profile_picture.arrayBuffer()], { type: profile_picture.type });
 
-      const { data: uploadData, error: uploadError } = await supabase.storage
+  const { error: uploadError } = await supabase.storage
         .from("pupil-profiles")
         .upload(filePath, profileBlob, {
           cacheControl: "3600",
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Insert pupil record and link to user ID
-    const { data: pupilData, error: pupilError } = await supabase.from("pupils").insert([
+  const { error: pupilError } = await supabase.from("pupils").insert([
       {
         user_id: userId, // Link user to pupil
         full_name,
@@ -141,6 +141,7 @@ export async function POST(req: NextRequest) {
 
   } catch (err) {
     console.error("Error:", err);
-    return NextResponse.json({ error: "Something went wrong.", details: err.message }, { status: 500 });
+    const details = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: "Something went wrong.", details }, { status: 500 });
   }
 }

@@ -1,7 +1,17 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { FaUserEdit, FaTrashAlt, FaSave, FaTimes, FaCamera } from "react-icons/fa";
+import type React from "react"
+
+import { useEffect, useState } from "react"
+import CustomAlert from "@/components/CustomAlert"
+import { User, Mail, BookOpen, Camera, Save, X, Trash2, Edit3, Shield, Award } from "lucide-react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 
 export default function TeacherProfile() {
   const [profile, setProfile] = useState({
@@ -12,218 +22,363 @@ export default function TeacherProfile() {
     years_of_experience: "",
     uin: "",
     profile_picture: "",
-  });
+  })
 
-  const [editing, setEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [editing, setEditing] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [classes, setClasses] = useState<{ id: string; name: string }[]>([])
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" | "warning" } | null>(null)
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    fetchProfile()
+    // fetch classes for dropdown
+    ;(async () => {
+      try {
+        const res = await fetch("/api/teacher/classes", { credentials: "include" })
+        if (res.ok) {
+          const data = await res.json()
+          setClasses(data || [])
+        }
+      } catch (err) {
+        console.error("Failed to load classes", err)
+      }
+    })()
+  }, [])
 
   const fetchProfile = async () => {
     try {
       const res = await fetch("/api/teacher/profile", {
         method: "GET",
         credentials: "include",
-      });
+      })
 
       if (res.ok) {
-        const data = await res.json();
-
-        setProfile(() => ({ ...data })); // ✅ Force state update
+        const data = await res.json()
+        setProfile(() => ({ ...data }))
       } else {
-        console.error("Failed to fetch profile:", await res.json());
+        console.error("Failed to fetch profile:", await res.json())
       }
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      console.error("Error fetching profile:", error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setProfile((prev) => ({ ...prev, [e.target.full_name]: e.target.value }));
-  };
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const target = e.target as HTMLInputElement | HTMLSelectElement
+    setProfile((prev) => ({ ...prev, [target.name]: target.value }))
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+      setSelectedFile(e.target.files[0])
     }
-  };
+  }
 
   const uploadProfilePicture = async () => {
-    if (!selectedFile) return;
-    setUploading(true);
+    if (!selectedFile) return
+    setUploading(true)
 
-    const formData = new FormData();
-    formData.append("file", selectedFile);
+    const formData = new FormData()
+    formData.append("file", selectedFile)
 
     try {
       const res = await fetch("/api/teacher/upload-profile-picture", {
         method: "POST",
         body: formData,
-      });
+        credentials: "include",
+      })
 
-      const data = await res.json();
+      const data = await res.json()
       if (res.ok) {
-        setProfile((prev) => ({ ...prev, profile_picture: data.url })); // ✅ Ensures UI updates
+        setProfile((prev) => ({ ...prev, profile_picture: data.url }))
+        setSelectedFile(null)
       }
     } catch (error) {
-      console.error("Error uploading picture:", error);
+      console.error("Error uploading picture:", error)
     } finally {
-      setUploading(false);
+      setUploading(false)
     }
-  };
+  }
 
   const saveChanges = async () => {
+    setSaving(true)
     try {
       const res = await fetch("/api/teacher/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),
-      });
+        credentials: "include",
+      })
 
       if (res.ok) {
-        setEditing(false);
-        fetchProfile(); // ✅ Ensures UI updates with latest data
+        setEditing(false)
+        fetchProfile()
       }
     } catch (error) {
-      console.error("Error updating profile:", error);
+      console.error("Error updating profile:", error)
+    } finally {
+      setSaving(false)
     }
-  };
+  }
 
   const deleteAccount = async () => {
-    const confirmDelete = confirm("Are you sure you want to delete your account? This action is irreversible.");
-    if (!confirmDelete) return;
+    const confirmDelete = window.confirm("Are you sure you want to delete your account? This action is irreversible.")
+    if (!confirmDelete) return
 
     try {
-      await fetch("/api/teacher/profile", { method: "DELETE" });
-      alert("Account deleted successfully!");
-      window.location.href = "/";
+      await fetch("/api/teacher/profile", { method: "DELETE", credentials: "include" })
+      setToast({ message: "Account deleted successfully!", type: "success" })
+      setTimeout(() => (window.location.href = "/"), 800)
     } catch (error) {
-      console.error("Error deleting account:", error);
+      console.error("Error deleting account:", error)
+      setToast({ message: "Error deleting account.", type: "error" })
     }
-  };
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-semibold text-gray-700 flex items-center">
-        <FaUserEdit className="mr-2 text-blue-500" /> Teacher Profile
-      </h2>
-      <p className="text-gray-600 mt-2">Manage your profile settings.</p>
-
-      {loading ? (
-        <p className="mt-4 text-gray-500">Loading profile...</p>
-      ) : (
-        <div className="mt-6 space-y-4">
-          {/* Profile Picture Section */}
-          <div className="flex flex-col items-center">
-            <img
-              src={profile.profile_picture || "/default-profile.png"}
-              alt="Profile"
-              className="w-24 h-24 rounded-full border-2 border-gray-300"
-            />
-            <label className="mt-2 flex items-center space-x-2 cursor-pointer">
-              <FaCamera className="text-blue-500" />
-              <span className="text-sm text-blue-500">Change Picture</span>
-              <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-            </label>
-            {selectedFile && (
-              <button
-                onClick={uploadProfilePicture}
-                className="mt-2 bg-green-500 text-white px-4 py-1 rounded"
-                disabled={uploading}
-              >
-                {uploading ? "Uploading..." : "Upload"}
-              </button>
-            )}
-          </div>
-
-          {/* Profile Details */}
-          <div>
-            <label className="block text-gray-700 font-medium">Full Name</label>
-            <input
-              type="text"
-              name="full_name"
-              value={profile.full_name || ""}
-              disabled={!editing}
-              onChange={handleChange}
-              className="w-full text-black p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={profile.email || ""}
-              disabled={!editing}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium">Class Taught</label>
-            <input
-              type="text"
-              name="class_taught"
-              value={profile.class_taught || ""}
-              disabled={!editing}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium">Years of Experience</label>
-            <input
-              type="text"
-              name="years_of_experience"
-              value={profile.years_of_experience || ""}
-              disabled={!editing}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium">Unique Identification Number (UIN)</label>
-            <input
-              type="text"
-              name="uin"
-              value={profile.uin || ""}
-              disabled
-              className="w-full p-2 border rounded-md bg-gray-100 cursor-not-allowed"
-            />
-          </div>
-
-          {/* Buttons */}
-          <div className="flex space-x-4 mt-6">
-            {editing ? (
-              <>
-                <button onClick={saveChanges} className="bg-green-500 text-white px-4 py-2 rounded flex items-center">
-                  <FaSave className="mr-2" /> Save
-                </button>
-                <button onClick={() => setEditing(false)} className="bg-gray-500 text-white px-4 py-2 rounded flex items-center">
-                  <FaTimes className="mr-2" /> Cancel
-                </button>
-              </>
-            ) : (
-              <button onClick={() => setEditing(true)} className="bg-blue-500 text-white px-4 py-2 rounded flex items-center">
-                <FaUserEdit className="mr-2" /> Edit Profile
-              </button>
-            )}
-            <button onClick={deleteAccount} className="bg-red-500 text-white px-4 py-2 rounded flex items-center">
-              <FaTrashAlt className="mr-2" /> Delete Account
-            </button>
-          </div>
+    <div className="max-w-4xl mx-auto space-y-8 animate-fade-in-up">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+            <User className="h-8 w-8 text-primary" />
+            Teacher Profile
+          </h1>
+          <p className="text-gray-500 mt-2">Manage your profile information and settings</p>
         </div>
-      )}
+        <Badge variant="secondary" className="flex items-center gap-2">
+          <Shield className="h-4 w-4" />
+          Verified Teacher
+        </Badge>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Profile Picture Section */}
+        <Card className="lg:col-span-1 hover-lift border-border bg-card">
+          <CardHeader className="text-center">
+            <CardTitle className="text-card-foreground">Profile Picture</CardTitle>
+            <CardDescription>Update your profile photo</CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-6">
+            <div className="relative inline-block">
+              <Avatar className="w-32 h-32 mx-auto border-4 border-border overflow-hidden">
+                {profile.profile_picture ? (
+                  <AvatarImage
+                    src={profile.profile_picture}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+                    {profile.full_name?.charAt(0) || "T"}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <div className="absolute -bottom-2 -right-2 bg-primary rounded-full p-2">
+                <Camera className="h-4 w-4 text-primary-foreground" />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <Label htmlFor="profile-upload" className="cursor-pointer">
+                <div className="flex items-center justify-center gap-2 p-3 border-2 border-dashed border-border rounded-lg hover:border-primary transition-colors">
+                  <Camera className="h-5 w-5 text-gray-500" />
+                  <span className="text-sm text-gray-500">Choose new photo</span>
+                </div>
+                <Input
+                  id="profile-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </Label>
+
+              {selectedFile && (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-500">Selected: {selectedFile.name}</p>
+                  <Button onClick={uploadProfilePicture} disabled={uploading} className="w-full" size="sm">
+                    {uploading ? "Uploading..." : "Upload Photo"}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+      {toast && <CustomAlert message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+        {/* Profile Information */}
+        <Card className="lg:col-span-2 hover-lift border-border bg-stone-200 p-2">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-card-foreground flex items-center gap-2">
+                <Edit3 className="h-5 w-5" />
+                Profile Information
+              </CardTitle>
+              <CardDescription>Update your personal and professional details</CardDescription>
+            </div>
+            {!editing ? (
+              <Button onClick={() => setEditing(true)} variant="outline" size="sm">
+                <Edit3 className="h-4 w-4 mr-2" />
+                Edit Profile
+              </Button>
+            ) : (
+              <div className="flex gap-2">
+                <Button onClick={saveChanges} disabled={saving} size="sm">
+                  <Save className="h-4 w-4 mr-2" />
+                  {saving ? "Saving..." : "Save"}
+                </Button>
+                <Button onClick={() => setEditing(false)} variant="outline" size="sm">
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+              </div>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-6 p-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="full_name" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Full Name
+                </Label>
+                <Input
+                  id="full_name"
+                  name="full_name"
+                  value={profile.full_name || ""}
+                  disabled={!editing}
+                  onChange={handleChange}
+                  className="bg-input border-border"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email Address
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={profile.email || ""}
+                  disabled={!editing}
+                  onChange={handleChange}
+                  className="bg-input border-border"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="class_taught" className="flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  Class Taught
+                </Label>
+                {!editing ? (
+                  // Show the human-friendly class name when not editing. If classes haven't loaded or
+                  // the stored value doesn't match an id, fall back to the raw value.
+                  <Input
+                    id="class_taught"
+                    name="class_taught"
+                    value={
+                      (classes.find((c) => c.id === profile.class_taught)?.name as string) ||
+                      profile.class_taught ||
+                      ""
+                    }
+                    disabled
+                    className="bg-input border-border"
+                  />
+                ) : (
+                  <select
+                    aria-label="Class Taught"
+                    id="class_taught"
+                    name="class_taught"
+                    value={profile.class_taught || ""}
+                    onChange={handleChange}
+                    className="w-full p-2 border border-border rounded-md bg-input"
+                  >
+                    <option value="">Select class</option>
+                    {classes.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="years_of_experience" className="flex items-center gap-2">
+                  <Award className="h-4 w-4" />
+                  Years of Experience
+                </Label>
+                <Input
+                  id="years_of_experience"
+                  name="years_of_experience"
+                  value={profile.years_of_experience || ""}
+                  disabled={!editing}
+                  onChange={handleChange}
+                  className="bg-input border-border"
+                />
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="uin" className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Unique Identification Number (UIN)
+                </Label>
+                <Input
+                  id="uin"
+                  name="uin"
+                  value={profile.uin || ""}
+                  disabled
+                  className="bg-muted cursor-not-allowed border-border"
+                />
+                <p className="text-xs text-gray-500">Your UIN cannot be changed for security reasons</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Danger Zone */}
+      <Card className="border-destructive/20 bg-destructive/5">
+        <CardHeader>
+          <CardTitle className="text-destructive flex items-center gap-2">
+            <Trash2 className="h-5 w-5" />
+            Danger Zone
+          </CardTitle>
+          <CardDescription>Irreversible actions that will permanently affect your account</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Separator className="mb-4" />
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-medium text-foreground">Delete Account</h4>
+              <p className="text-sm text-gray-500">
+                Permanently delete your teacher account and all associated data
+              </p>
+            </div>
+            <Button onClick={deleteAccount} variant="destructive" size="sm" className="flex items-center gap-2">
+              <Trash2 className="h-4 w-4" />
+              Delete Account
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
-  );
+  )
 }

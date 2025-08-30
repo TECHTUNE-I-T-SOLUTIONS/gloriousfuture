@@ -2,6 +2,8 @@ import { motion } from "framer-motion";
 import { IoClose } from "react-icons/io5";
 import { FaWhatsapp, FaFacebook, FaLink } from "react-icons/fa";
 import Image from "next/image";
+import { useState } from "react";
+import CustomAlert from "@/components/CustomAlert";
 
 interface BlogModalProps {
   blog: {
@@ -18,9 +20,11 @@ interface BlogModalProps {
 export default function BlogModal({ blog, onClose }: BlogModalProps) {
   const shareUrl = typeof window !== "undefined" ? window.location.origin + `/blog/${blog.id}` : "";
 
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" | "warning" } | null>(null)
+
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareUrl);
-    alert("Link copied to clipboard!");
+    setToast({ message: "Link copied to clipboard!", type: "info" })
   };
 
   return (
@@ -69,6 +73,7 @@ export default function BlogModal({ blog, onClose }: BlogModalProps) {
           </a>
         </div>
       </motion.div>
+  {toast && <CustomAlert message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

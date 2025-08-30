@@ -1,12 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
 
+interface Question { question: string; options: string[] | { a?: string; b?: string; c?: string; d?: string }; correctAnswer?: string }
+
 interface Exam {
   id: string;
   exam_title: string;
   subject: string;
   class_id: string;
-  questions: any[];
+  questions: Question[];
 }
 
 interface CBTExamModalProps {
@@ -24,7 +26,13 @@ export default function CBTExamModal({ exam, onClose, onSave }: CBTExamModalProp
     if (exam) {
       setExamTitle(exam.exam_title);
       setSubject(exam.subject);
-      setQuestions(exam.questions);
+      // normalize incoming questions so options is string[]
+      const normalized = (exam.questions || []).map((q) => {
+        if (Array.isArray(q.options)) return { question: q.question, options: q.options, correctAnswer: q.correctAnswer || "" }
+        const optsObj = (q.options || {}) as { a?: string; b?: string; c?: string; d?: string }
+        return { question: q.question, options: [optsObj.a || "", optsObj.b || "", optsObj.c || "", optsObj.d || ""], correctAnswer: q.correctAnswer || "" }
+      })
+      setQuestions(normalized)
     }
   }, [exam]);
 
@@ -53,8 +61,14 @@ export default function CBTExamModal({ exam, onClose, onSave }: CBTExamModalProp
     <div className="modal-overlay">
       <div className="modal-content">
         <h2 className="text-xl font-semibold">Modify Exam</h2>
-        <input type="text" value={examTitle} onChange={(e) => setExamTitle(e.target.value)} className="border p-2 w-full mt-2" />
-        <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} className="border p-2 w-full mt-2" />
+        <div className="mt-2">
+          <label htmlFor="examTitle" className="sr-only">Exam title</label>
+          <input id="examTitle" placeholder="Enter exam title" type="text" value={examTitle} onChange={(e) => setExamTitle(e.target.value)} className="border p-2 w-full" />
+        </div>
+        <div className="mt-2">
+          <label htmlFor="subject" className="sr-only">Subject</label>
+          <input id="subject" placeholder="Enter subject" type="text" value={subject} onChange={(e) => setSubject(e.target.value)} className="border p-2 w-full" />
+        </div>
 
         <h3 className="mt-4 text-lg font-semibold">Questions</h3>
         {questions.map((q, index) => (
