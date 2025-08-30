@@ -6,6 +6,8 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Eye, EyeOff, User, Lock, BookOpen, AlertCircle } from "lucide-react"
+import CustomHeader from "@/components/CustomHeader"
+import CustomFooter from "@/components/CustomFooter"
 
 export default function TeacherLoginPage() {
   const [uin, setUIN] = useState("")
@@ -80,6 +82,8 @@ export default function TeacherLoginPage() {
   }
 
   return (
+    <>
+    <CustomHeader />
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center p-4">
       {/* Alert */}
       {alert && (
@@ -210,5 +214,7 @@ export default function TeacherLoginPage() {
         </div>
       </div>
     </div>
+    <CustomFooter />
+    </>
   )
 }
