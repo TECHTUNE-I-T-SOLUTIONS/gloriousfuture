@@ -4,7 +4,7 @@ import Image from "next/image"
 export default function CustomFooter() {
 
 return(
-<footer className="relative bg-primary text-primary-foreground py-12 z-10">
+<footer className="relative bg-indigo-900 text-primary-foreground py-10 z-10">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

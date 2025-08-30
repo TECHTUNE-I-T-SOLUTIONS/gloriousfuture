@@ -80,7 +80,7 @@ const CustomHeader = () => {
         <div className="hidden sm:block">
           <h1 className="text-lg lg:text-xl font-bold text-primary leading-tight">
           Glorious Future
-          <span className="block text-sm lg:text-base font-medium text-orange-900">Academy</span>
+          <span className="block text-sm lg:text-base font-bold text-indigo-900">Academy</span>
           </h1>
         </div>
         </motion.div>

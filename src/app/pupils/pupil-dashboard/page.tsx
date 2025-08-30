@@ -78,7 +78,7 @@ function ResponsiveDashboard({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
-        <div className="max-w-7xl mx-auto">{renderPage()}</div>
+        <div className="max-w-7xl mx-auto mt-10 sm:mt-10 md:mt-10">{renderPage()}</div>
       </motion.div>
     </div>
   )
@@ -173,7 +173,7 @@ export default function PupilDashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
-              <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-6">Dashboard Overview</h2>
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-800 mb-6 mt-5 md:mt-5 sm:mt-20">Dashboard Overview</h2>
 
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-8">
                 {[

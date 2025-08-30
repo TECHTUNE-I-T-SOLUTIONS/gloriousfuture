@@ -20,6 +20,8 @@ import {
   Copy,
   AlertCircle,
 } from "lucide-react"
+import CustomHeader from "@/components/CustomHeader"
+import CustomFooter from "@/components/CustomFooter"
 
 export default function TeacherSignupPage() {
   const [step, setStep] = useState(1)
@@ -144,7 +146,9 @@ export default function TeacherSignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center p-4">
+    <>
+      <CustomHeader />   
+    <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-indigo-600/80 to-indigo-900 flex items-center justify-center p-4">
       {/* Alert */}
       {alert && (
         <div className="fixed top-4 right-4 z-50 max-w-sm">
@@ -186,7 +190,7 @@ export default function TeacherSignupPage() {
               <BookOpen className="w-8 h-8 text-primary-foreground" />
             </div>
             <h1 className="text-2xl font-bold text-card-foreground mb-2">Teacher Registration</h1>
-            <p className="text-gray-500">Join our educational platform</p>
+            <p className="text-gray-500">Join our School&apos;s platform</p>
           </div>
 
           {/* Progress Indicator */}
@@ -483,9 +487,9 @@ export default function TeacherSignupPage() {
         {/* Already have account link */}
         {step < 5 && (
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-100">
               Already have an account?{" "}
-              <Link href="/teacher/login" className="text-primary hover:text-primary/80 font-medium transition-colors">
+              <Link href="/teacher/login" className="text-gray-100 hover:text-gray-300 font-medium transition-colors">
                 Sign in here
               </Link>
             </p>
@@ -494,12 +498,14 @@ export default function TeacherSignupPage() {
 
         {/* Trust Badge */}
         <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
+          <p className="text-xs text-gray-100 flex items-center justify-center gap-1">
             <Lock className="w-3 h-3" />
             Your information is secure and protected
           </p>
         </div>
       </div>
     </div>
+    <CustomFooter />
+    </>
   )
 }

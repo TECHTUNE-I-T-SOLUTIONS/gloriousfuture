@@ -45,6 +45,13 @@ export default function TeacherLoginPage() {
       return
     }
 
+    // Validate UIN format strictly (expect GFA-T-<digits> or similar)
+    const teacherPattern = /^GFA-T-\d{3,}$/i
+    if (!teacherPattern.test(uin.trim())) {
+      setAlert({ message: "Please enter a valid Teacher UIN (e.g. GFA-T-1759).", type: "warning" })
+      return
+    }
+
     setLoading(true)
     try {
       const res = await fetch("/api/teacher/login", {
@@ -56,7 +63,15 @@ export default function TeacherLoginPage() {
       if (res.ok) {
         const body = await res.json().catch(() => ({}))
         const returnedUin = body?.uin || body?.user?.uin
-        if (typeof returnedUin === "string" && returnedUin.startsWith("GFA-T-")) {
+        // After server login, verify active session role matches
+        const sessionRes = await fetch('/api/auth/session', { credentials: 'include' })
+        if (!sessionRes.ok) {
+          setAlert({ message: 'Login succeeded but session verification failed.', type: 'warning' })
+          return
+        }
+        const sessionBody = await sessionRes.json().catch(() => ({}))
+        const sessionUin = sessionBody?.session?.uin
+        if (typeof sessionUin === 'string' && sessionUin.startsWith('GFA-T-')) {
           setAlert({ message: "Login Successful!", type: "success" })
           setTimeout(() => {
             router.push("/teacher/teacher-dashboard")
@@ -84,7 +99,7 @@ export default function TeacherLoginPage() {
   return (
     <>
     <CustomHeader />
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-indigo-600/80 to-indigo-900 flex items-center justify-center p-4">
       {/* Alert */}
       {alert && (
         <div className="fixed top-4 right-4 z-50 max-w-sm">
@@ -207,7 +222,7 @@ export default function TeacherLoginPage() {
 
         {/* Trust Badge */}
         <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
+          <p className="text-xs text-gray-100 flex items-center justify-center gap-1">
             <Lock className="w-3 h-3" />
             Your information is secure and protected
           </p>

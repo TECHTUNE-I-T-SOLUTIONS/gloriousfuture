@@ -26,6 +26,7 @@ import TeacherTestsQuizzes from "./TestsQuizzes/page"
 import TeacherProfile from "./Profile/page"
 import Teacherblog from "./Teacherblog/page"
 import Teacheralert from "./Teacheralert/page"
+import TeacherNotifications from "./notifications/page"
 import CustomAlert from "@/components/CustomAlert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -233,7 +234,13 @@ export default function TeacherDashboard() {
           icon={<CheckCircle className="h-6 w-6" />}
           onClick={() => setActivePage("tests")}
         />
-      </div>
+         <TeacherDashboardCard
+           title="Notifications"
+           icon={<MessageSquare className="h-6 w-6" />}
+           onClick={() => setActivePage('notifications')}
+         />
+       </div>
+
 
       {/* Recent Activity */}
       <Card className="border-border bg-card">
@@ -272,6 +279,8 @@ export default function TeacherDashboard() {
 
   const renderPage = () => {
     switch (activePage) {
+      case "notifications":
+        return <TeacherNotifications setActivePageProp={setActivePage} />
       case "assignments":
         return <TeacherAssignments />
       case "timetable":

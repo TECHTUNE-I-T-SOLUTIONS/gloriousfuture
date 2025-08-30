@@ -5,6 +5,8 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { Mail, ArrowLeft, Lock, AlertCircle, CheckCircle } from "lucide-react"
+import CustomHeader from "@/components/CustomHeader"
+import CustomFooter from "@/components/CustomFooter"
 
 export default function TeacherForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -50,7 +52,9 @@ export default function TeacherForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center p-4">
+    <>
+      <CustomHeader />
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-indigo-600/80 to-indigo-900 flex items-center justify-center p-4">
       {/* Alert */}
       {alert && (
         <div className="fixed top-4 right-4 z-50 max-w-sm">
@@ -171,12 +175,14 @@ export default function TeacherForgotPasswordPage() {
 
         {/* Trust Badge */}
         <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
+          <p className="text-xs text-gray-100 flex items-center justify-center gap-1">
             <Lock className="w-3 h-3" />
             Your information is secure and protected
           </p>
         </div>
       </div>
     </div>
+    <CustomFooter />
+    </>
   )
 }

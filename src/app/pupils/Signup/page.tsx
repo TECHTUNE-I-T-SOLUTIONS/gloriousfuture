@@ -171,7 +171,7 @@ export default function PupilSignupPage() {
   return (
     <>
     <CustomHeader />
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-indigo-600/80 to-indigo-900 flex items-center justify-center p-4">
       {/* Alert */}
       {alert && (
         <div className="fixed top-4 right-4 z-50 max-w-sm">
@@ -206,14 +206,14 @@ export default function PupilSignupPage() {
       )}
 
       <div className="w-full max-w-md">
-        <div className="bg-card/80 backdrop-blur-sm rounded-2xl shadow-xl border border-border/50 p-8">
+        <div className="bg-stone-300/80 backdrop-blur-sm rounded-2xl shadow-xl border border-border/50 p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
               <GraduationCap className="w-8 h-8 text-primary-foreground" />
             </div>
             <h1 className="text-2xl font-bold text-card-foreground mb-2">Pupil Registration</h1>
-            <p className="text-gray-500">Join Glorious Future Academy learning platform</p>
+            <p className="text-gray-900">Join Glorious Future Academy learning platform</p>
           </div>
 
           {/* Progress Indicator */}
@@ -223,7 +223,7 @@ export default function PupilSignupPage() {
                 <div
                   key={s}
                   className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    step >= s ? "bg-primary" : "bg-border"
+                    step >= s ? "bg-gray-900" : "bg-gray-100"
                   }`}
                 />
               ))}
@@ -565,7 +565,7 @@ export default function PupilSignupPage() {
         {/* Already have account link */}
         {step < 7 && (
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-100">
               Already have an account?{" "}
               <Link href="/pupils/login" className="text-primary hover:text-primary/80 font-medium transition-colors">
                 Sign in here
@@ -576,7 +576,7 @@ export default function PupilSignupPage() {
 
         {/* Trust Badge */}
         <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
+          <p className="text-xs text-gray-100 flex items-center justify-center gap-1">
             <Lock className="w-3 h-3" />
             Your information is secure and protected
           </p>

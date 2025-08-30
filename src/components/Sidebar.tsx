@@ -7,6 +7,7 @@ import ConfirmModal from "@/components/ConfirmModal"
 import {
   FaHome,
   FaBook,
+  FaBell,
   FaCalendarAlt,
   FaFileAlt,
   FaUser,
@@ -105,6 +106,7 @@ export default function Sidebar({ setActivePage, onToggle }: SidebarProps) {
   const menuItems = [
     { id: "dashboard", icon: FaHome, label: "Dashboard", color: "text-blue-600" },
     { id: "assignments", icon: FaBook, label: "Assignments", color: "text-green-600" },
+  { id: "notifications", icon: FaBell, label: "Notifications", color: "text-pink-600" },
     { id: "timetable", icon: FaCalendarAlt, label: "Timetable", color: "text-yellow-600" },
     { id: "exam-results", icon: FaFileAlt, label: "Exam Results", color: "text-purple-600" },
     { id: "profile", icon: FaUser, label: "Profile", color: "text-gray-600" },

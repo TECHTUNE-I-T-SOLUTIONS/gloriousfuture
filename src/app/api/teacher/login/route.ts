@@ -48,7 +48,9 @@ export async function POST(req: NextRequest) {
 
     const response = new NextResponse(JSON.stringify({
       message: "Login successful!",
-      teacher: { id: data.id, name: data.name, email: data.email },
+      uin: data.uin,
+      user: { id: data.id, name: data.name, email: data.email },
+      role: "teacher",
     }), {
       status: 200,
       headers: {

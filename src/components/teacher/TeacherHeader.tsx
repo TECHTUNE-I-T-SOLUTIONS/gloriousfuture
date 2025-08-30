@@ -15,9 +15,10 @@ export default function TeacherHeader({
   const [profilePicture, setProfilePicture] = useState("/default-profile.png")
   const [uin, setUIN] = useState("N/A")
   const [showDropdown, setShowDropdown] = useState(false)
+  const [unreadCount, setUnreadCount] = useState<number>(0)
 
   useEffect(() => {
-    const fetchSessionAndTeacherDetails = async () => {
+  const fetchSessionAndTeacherDetails = async () => {
       try {
   const sessionRes = await fetch("/api/auth/session", { credentials: "include" })
         if (!sessionRes.ok) throw new Error("Unauthorized session")
@@ -36,12 +37,31 @@ export default function TeacherHeader({
           setUIN(teacherData.uin || "N/A")
           setProfilePicture(teacherData.profile_picture || "/default-profile.png")
         }
+        // fetch unread notifications count
+        try {
+          const notifRes = await fetch('/api/notifications', { credentials: 'include' })
+          if (notifRes.ok) {
+            const nb = await notifRes.json()
+            setUnreadCount(nb.unread_count || 0)
+          }
+        } catch {}
       } catch (error) {
         console.error("Error fetching teacher details:", error)
       }
     }
 
     fetchSessionAndTeacherDetails()
+    // listen for optimistic mark-read events to update unread count immediately
+    const handler = (e: Event) => {
+      try {
+        const detail = (e as CustomEvent).detail
+        if (detail && Array.isArray(detail.ids)) {
+          setUnreadCount((c) => Math.max(0, c - detail.ids.length))
+        }
+  } catch { }
+    }
+    window.addEventListener('notifications-mark-read', handler)
+    return () => window.removeEventListener('notifications-mark-read', handler)
   }, [])
 
   return (
@@ -79,10 +99,13 @@ export default function TeacherHeader({
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
+            onClick={() => window.location.href = '/teacher/teacher-dashboard/notifications'}
             className="relative p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
           >
             <Bell className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full"></span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-2 -right-2 min-w-[18px] h-4 px-1 bg-destructive text-white text-xs rounded-full flex items-center justify-center">{unreadCount}</span>
+            )}
           </motion.button>
 
           {/* User Profile Dropdown */}

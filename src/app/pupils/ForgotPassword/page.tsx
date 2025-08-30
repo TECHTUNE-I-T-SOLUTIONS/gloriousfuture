@@ -54,7 +54,7 @@ export default function PupilForgotPasswordPage() {
   return (
     <>
     <CustomHeader />
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-indigo-600/80 to-indigo-900 flex items-center justify-center p-4">
       {/* Alert */}
       {alert && (
         <div className="fixed top-4 right-4 z-50 max-w-sm">
@@ -89,7 +89,7 @@ export default function PupilForgotPasswordPage() {
       )}
 
       <div className="w-full max-w-md">
-        <div className="bg-card/80 backdrop-blur-sm rounded-2xl shadow-xl border border-border/50 p-8">
+        <div className="bg-stone-300/80 backdrop-blur-sm rounded-2xl shadow-xl border border-border/50 p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
@@ -165,7 +165,7 @@ export default function PupilForgotPasswordPage() {
           <div className="mt-6 text-center">
             <Link
               href="/pupils/login"
-              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors"
+              className="inline-flex items-center gap-2 text-sm text-gray-800 hover:text-primary transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Login
@@ -175,7 +175,7 @@ export default function PupilForgotPasswordPage() {
 
         {/* Trust Badge */}
         <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
+          <p className="text-xs text-gray-100 flex items-center justify-center gap-1">
             <Lock className="w-3 h-3" />
             Your information is secure and protected
           </p>

@@ -36,6 +36,13 @@ export default function PupilLoginPage() {
       return
     }
 
+    // Validate pupil UIN format
+    const pupilPattern = /^GFA-P-\d{3,}$/i
+    if (!pupilPattern.test(uin.trim())) {
+      setAlert({ message: "Please enter a valid Pupil UIN (e.g. GFA-P-0123).", type: "warning" })
+      return
+    }
+
     setLoading(true)
     try {
       const res = await fetch("/api/pupils/login", {
@@ -45,8 +52,24 @@ export default function PupilLoginPage() {
       })
 
       if (res.ok) {
-        setAlert({ message: "Login successful!", type: "success" })
-        setTimeout(() => router.push("/pupils/pupil-dashboard"), 800)
+        // Verify session role after login
+        const sessionRes = await fetch('/api/auth/session', { credentials: 'include' })
+        if (!sessionRes.ok) {
+          setAlert({ message: 'Login succeeded but session verification failed.', type: 'warning' })
+          return
+        }
+        const sessionBody = await sessionRes.json().catch(() => ({}))
+        const sessionUin = sessionBody?.session?.uin
+        if (typeof sessionUin === 'string' && sessionUin.startsWith('GFA-P-')) {
+          setAlert({ message: "Login successful!", type: "success" })
+          setTimeout(() => router.push("/pupils/pupil-dashboard"), 800)
+        } else if (typeof sessionUin === 'string' && sessionUin.startsWith('GFA-T-')) {
+          // If teacher session accidentally present, force logout and ask user to login again
+          await fetch('/api/auth/logout', { method: 'POST' })
+          setAlert({ message: 'Detected teacher session. You have been logged out. Please login with pupil credentials.', type: 'error' })
+        } else {
+          setAlert({ message: 'Login succeeded but session role mismatch.', type: 'warning' })
+        }
       } else {
         setAlert({ message: "Invalid UIN or Password", type: "error" })
       }
@@ -65,7 +88,7 @@ export default function PupilLoginPage() {
 
   return (
     <>
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-indigo-500/30 to-indigo-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-indigo-600/80 to-indigo-900 flex items-center justify-center p-4">
       <CustomHeader />
       {/* Alert */}
       {alert && (
@@ -101,14 +124,14 @@ export default function PupilLoginPage() {
       )}
 
       <div className="w-full max-w-md">
-        <div className="bg-card/80 backdrop-blur-sm rounded-2xl shadow-xl border border-border/50 p-8">
+        <div className="bg-stone-300/80 backdrop-blur-sm rounded-2xl shadow-xl border border-border/50 p-8">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
               <GraduationCap className="w-8 h-8 text-primary-foreground" />
             </div>
             <h1 className="text-2xl font-bold text-card-foreground mb-2">Pupil Login</h1>
-            <p className="text-gray-500">Access your learning dashboard</p>
+            <p className="text-gray-900">Access your learning dashboard</p>
           </div>
 
           {/* Form */}
@@ -170,15 +193,15 @@ export default function PupilLoginPage() {
             <div className="space-y-3 text-center">
               <Link
                 href="/pupils/forgotpassword"
-                className="block text-sm text-gray-500 hover:text-primary transition-colors"
+                className="block text-sm text-gray-900 hover:text-primary transition-colors"
               >
                 Forgot your password?
               </Link>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-900">
                 Don&apos;t have an account?{" "}
                 <Link
                   href="/pupils/signup"
-                  className="text-primary hover:text-primary/80 font-medium transition-colors"
+                  className="text-gray-900 hover:text-primary/80 font-medium transition-colors"
                 >
                   Sign up here
                 </Link>
@@ -189,7 +212,7 @@ export default function PupilLoginPage() {
 
         {/* Trust Badge */}
         <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500 flex items-center justify-center gap-1">
+          <p className="text-xs text-gray-100 flex items-center justify-center gap-1">
             <Lock className="w-3 h-3" />
             Your information is secure and protected
           </p>

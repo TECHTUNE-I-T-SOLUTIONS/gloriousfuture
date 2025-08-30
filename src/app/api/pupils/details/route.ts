@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { parse } from "cookie";
+import { parse, serialize } from "cookie";
 
 // Initialize Supabase with Service Role Key for storage access
 const supabase = createClient(
@@ -41,6 +41,18 @@ export async function GET(req: NextRequest) {
       if (!sessionData.uin) {
         return NextResponse.json({ error: "Session missing UIN" }, { status: 400 });
       }
+        // If session UIN belongs to a teacher, invalidate session and force re-login
+        if (typeof sessionData.uin === 'string' && sessionData.uin.startsWith('GFA-T-')) {
+          // expire cookie
+          const expired = serialize("session", "", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            path: "/",
+            maxAge: 0,
+          });
+          return new NextResponse(JSON.stringify({ error: "Session role mismatch" }), { status: 401, headers: { "Set-Cookie": expired, "Content-Type": "application/json" } });
+        }
       query = supabase.from("pupils").select("full_name, profile_picture, email, class, uin").eq("uin", sessionData.uin);
     } catch {
       return NextResponse.json({ error: "Invalid session" }, { status: 400 });

@@ -48,15 +48,15 @@ export default function PupilLanding() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500/50 via-indigo-600 to-indigo-900/90">
       <CustomHeader />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+      {/* <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         <div className="mb-4">
           <button onClick={() => router.push('/')} className="text-sm text-primary hover:underline">← Back to Home</button>
         </div>
-      </div>
+      </div> */}
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-secondary/5 to-primary/5" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-22 pb-16">
           <div className="text-center">
             <div className="inline-flex items-center gap-2 bg-card border border-border rounded-full px-4 py-2 mb-8">
               <Star className="w-4 h-4 text-secondary" />

@@ -53,7 +53,9 @@ export async function POST(req: NextRequest) {
     // Prepare and send the response with cookie
     const response = new NextResponse(JSON.stringify({
       message: "Login successful!",
-      pupil: { id: data.id, name: data.name, email: data.email },
+      uin: data.uin,
+      user: { id: data.id, name: data.name, email: data.email },
+      role: "pupil",
     }), {
       status: 200,
       headers: {

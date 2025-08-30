@@ -11,15 +11,67 @@ import CustomHeader from "../components/CustomHeader"
 import CustomFooter from "@/components/CustomFooter"
 
 // Custom Alert Component
-const CustomAlert = ({ message, onClose }: { message: string; onClose: () => void }) => (
-  <div className="fixed top-5 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 items-right rounded shadow-lg z-60">
-    <button onClick={onClose} className="p-1 ml-95 text-sm font-bold">
-      X
-    </button>
-    <div> {message} </div>
-  </div>
-)
+const CustomAlert = ({ message, onClose }: { message: string; onClose: () => void }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose()
+    }, 6000) // auto-dismiss after 6s
+    return () => clearTimeout(timer)
+  }, [message, onClose])
 
+  return (
+    <div
+      role="alert"
+      aria-live="assertive"
+      className="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 w-[90%] max-w-xl"
+    >
+      <div className="flex items-start gap-4 bg-red-600/95 text-white px-4 py-3 rounded-lg shadow-lg ring-1 ring-black/10 transition-all duration-300">
+        <span className="flex-shrink-0 mt-0.5">
+          <svg
+            className="h-6 w-6 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fillRule="evenodd"
+              d="M18 10A8 8 0 11 2 10a8 8 0 0116 0zm-8-4a1 1 0 00-.993.883L9 7v4a1 1 0 001.993.117L11 11V7a1 1 0 00-1-1zm0 8a1.25 1.25 0 100-2.5A1.25 1.25 0 0010 14z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </span>
+
+        <div className="flex-1 text-sm leading-snug">
+          <strong className="block text-sm font-semibold">Notification</strong>
+          <span className="block mt-0.5">{message}</span>
+        </div>
+
+        <div className="flex items-start">
+          <button
+            onClick={onClose}
+            aria-label="Dismiss notification"
+            className="ml-3 inline-flex p-1 rounded-md text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          >
+            <svg
+              className="h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 export default function Home() {
   const [showMainContent, setShowMainContent] = useState(false)
   const [gameImages, setGameImages] = useState<string[]>([])

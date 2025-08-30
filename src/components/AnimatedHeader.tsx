@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from 'next/navigation'
 import { motion } from "framer-motion"
 import Image from "next/image"
 
@@ -12,6 +13,8 @@ export default function AnimatedHeader({ text }: AnimatedHeaderProps) {
   const [pupilName, setPupilName] = useState("")
   const [profilePicture, setProfilePicture] = useState("/default-profile.png")
   const [uin, setUIN] = useState("")
+  const [unreadCount, setUnreadCount] = useState<number>(0)
+  const router = useRouter()
 
   useEffect(() => {
     fetch("/api/pupils/details?self=1", { credentials: "include" })
@@ -22,6 +25,29 @@ export default function AnimatedHeader({ text }: AnimatedHeaderProps) {
         setUIN(data.uin || "")
       })
       .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    // fetch unread notifications count for pupil header
+    fetch('/api/notifications', { credentials: 'include' })
+      .then((res) => res.json())
+      .then((body) => {
+        if (body && typeof body.unread_count === 'number') setUnreadCount(body.unread_count)
+      })
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      try {
+        const detail = (e as CustomEvent).detail
+        if (detail && Array.isArray(detail.ids)) {
+          setUnreadCount((c) => Math.max(0, c - detail.ids.length))
+        }
+      } catch {}
+    }
+    window.addEventListener('notifications-mark-read', handler)
+    return () => window.removeEventListener('notifications-mark-read', handler)
   }, [])
 
   return (
@@ -86,6 +112,20 @@ export default function AnimatedHeader({ text }: AnimatedHeaderProps) {
             <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full opacity-60 blur-sm" />
             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full md:w-3.5 md:h-3.5" />
           </div>
+
+            {/* Notifications Bell */}
+            <button
+              aria-label="Notifications"
+              className="relative ml-2 p-2 rounded-lg hover:bg-slate-100 transition-colors"
+              onClick={() => router.push('/pupils/pupil-dashboard/notifications')}
+            >
+              <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{unreadCount > 9 ? '9+' : unreadCount}</span>
+              )}
+            </button>
 
           {/* Mobile Menu Button */}
           <button

@@ -121,7 +121,7 @@ export default function TeacherLanding() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">Why Our Teachers love Our Platform</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Why Our Teachers love Our Platform</h2>
               <div className="space-y-4">
                 {[
                   "Save 5+ hours per week on administrative tasks",
@@ -131,20 +131,20 @@ export default function TeacherLanding() {
                   "Mobile-friendly design for teaching on the go",
                 ].map((benefit, index) => (
                   <div key={index} className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
-                    <span className="text-foreground">{benefit}</span>
+                    <CheckCircle className="w-5 h-5 text-white flex-shrink-0" />
+                    <span className="text-white">{benefit}</span>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl p-8 border border-border">
+            <div className="bg-gradient-to-br from-stone-100/60 to-stone-900/40 rounded-2xl p-8 border border-border">
               <div className="text-center">
-                <div className="text-4xl font-bold text-primary mb-2">1,000+</div>
-                <div className="text-gray-900 mb-4">Active Teachers</div>
-                <div className="text-4xl font-bold text-primary mb-2">5K+</div>
-                <div className="text-gray-900 mb-4">Students Reached</div>
-                <div className="text-4xl font-bold text-primary mb-2">98%</div>
-                <div className="text-gray-900">Satisfaction Rate</div>
+                <div className="text-4xl font-bold text-white mb-2">1,000+</div>
+                <div className="text-gray-100 mb-4">Active Teachers</div>
+                <div className="text-4xl font-bold text-white mb-2">5K+</div>
+                <div className="text-gray-100 mb-4">Students Reached</div>
+                <div className="text-4xl font-bold text-white mb-2">98%</div>
+                <div className="text-gray-100">Satisfaction Rate</div>
               </div>
             </div>
           </div>
