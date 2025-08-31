@@ -62,6 +62,7 @@ export default function TeacherLoginPage() {
 
       if (res.ok) {
         const body = await res.json().catch(() => ({}))
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const returnedUin = body?.uin || body?.user?.uin
         // After server login, verify active session role matches
         const sessionRes = await fetch('/api/auth/session', { credentials: 'include' })

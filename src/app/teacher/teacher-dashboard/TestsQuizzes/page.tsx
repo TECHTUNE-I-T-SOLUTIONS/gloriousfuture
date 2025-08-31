@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import { FileText, Plus, Edit, Trash2, Save, X, Calendar, Clock, Users, CheckCircle } from "lucide-react"
+import ConfirmModal from "@/components/ConfirmModal"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -35,6 +36,9 @@ export default function TeacherTestsQuizzes() {
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [confirmTargetId, setConfirmTargetId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [submissionsOpenFor, setSubmissionsOpenFor] = useState<string | null>(null)
   const [subPage, setSubPage] = useState(0)
   const subPageSize = 10
@@ -152,16 +156,27 @@ export default function TeacherTestsQuizzes() {
   }
 
   const handleDelete = async (id?: string) => {
-    if (!id || !confirm("Are you sure you want to delete this test?")) return
+    if (!id) return
+    // show per-item inline confirm
+  setConfirmTargetId(id)
+  setConfirmOpen(true)
+  }
 
+  const confirmDelete = async () => {
+    if (!confirmTargetId) return
+    setDeletingId(confirmTargetId)
     try {
-      const res = await fetch(`/api/teacher/tests-quizzes`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }), credentials: "include" })
+      const res = await fetch(`/api/teacher/tests-quizzes`, { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: confirmTargetId }), credentials: "include" })
       if (res.ok) {
         const payload = await res.json()
-        if (payload && payload.success) setTests((prev) => prev.filter((test) => test.id !== id))
+        if (payload && payload.success) setTests((prev) => prev.filter((test) => test.id !== confirmTargetId))
       }
     } catch (error) {
       console.error("Error deleting test:", error)
+    } finally {
+      setDeletingId(null)
+      setConfirmTargetId(null)
+      setConfirmOpen(false)
     }
   }
 
@@ -186,6 +201,7 @@ export default function TeacherTestsQuizzes() {
   }
 
   return (
+    <>
     <div className="space-y-8 animate-fade-in-up">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -363,7 +379,7 @@ export default function TeacherTestsQuizzes() {
                           }
                         </CardDescription>
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 items-center">
                         <Button
                           onClick={() => { setEditingTest(test); try { setEditQuestions(((test as unknown) as { questions?: unknown[] }).questions as string[] ?? [""]) } catch { setEditQuestions([""]) } }}
                           variant="outline"
@@ -468,6 +484,17 @@ export default function TeacherTestsQuizzes() {
         />
       )}
     </div>
+      <ConfirmModal
+        open={confirmOpen}
+        title="Delete Test"
+        description="Are you sure you want to delete this test? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        busy={Boolean(deletingId)}
+        onConfirm={confirmDelete}
+        onCancel={() => { setConfirmOpen(false); setConfirmTargetId(null) }}
+      />
+    </>
   )
 }
 

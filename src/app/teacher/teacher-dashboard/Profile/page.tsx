@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useEffect, useState } from "react"
 import CustomAlert from "@/components/CustomAlert"
+import ConfirmModal from "@/components/ConfirmModal"
 import { User, Mail, BookOpen, Camera, Save, X, Trash2, Edit3, Shield, Award } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -31,6 +32,8 @@ export default function TeacherProfile() {
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" | "warning" } | null>(null)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     fetchProfile()
@@ -127,16 +130,26 @@ export default function TeacherProfile() {
   }
 
   const deleteAccount = async () => {
-    const confirmDelete = window.confirm("Are you sure you want to delete your account? This action is irreversible.")
-    if (!confirmDelete) return
+    setConfirmOpen(true)
+  }
 
+  const confirmDelete = async () => {
+    setDeleting(true)
     try {
-      await fetch("/api/teacher/profile", { method: "DELETE", credentials: "include" })
-      setToast({ message: "Account deleted successfully!", type: "success" })
-      setTimeout(() => (window.location.href = "/"), 800)
+      const res = await fetch("/api/teacher/profile", { method: "DELETE", credentials: "include" })
+      if (res.ok) {
+        setToast({ message: "Account deleted successfully!", type: "success" })
+        setTimeout(() => (window.location.href = "/"), 800)
+      } else {
+        const j = await res.json().catch(() => null)
+        setToast({ message: j?.message || "Error deleting account.", type: "error" })
+      }
     } catch (error) {
       console.error("Error deleting account:", error)
       setToast({ message: "Error deleting account.", type: "error" })
+    } finally {
+      setDeleting(false)
+      setConfirmOpen(false)
     }
   }
 
@@ -379,6 +392,23 @@ export default function TeacherProfile() {
           </div>
         </CardContent>
       </Card>
+      <ConfirmModal
+        open={confirmOpen}
+        title="Delete Account"
+        description="Are you sure you want to permanently delete your account? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        busy={deleting}
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </div>
   )
+
+  // Confirm modal
+  // NOTE: JSX above already returned; place modal at end of component by rendering it alongside main return.
+  // To keep the structure simple, we will mount modal via a small portalless render when confirmOpen is true.
+  // Because Next's app router expects a single return, ensure modal usage is included in the main returned JSX (here we cannot rework entire file layout without large changes).
 }
+
+

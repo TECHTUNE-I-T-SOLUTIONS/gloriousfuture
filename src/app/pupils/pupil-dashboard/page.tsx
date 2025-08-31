@@ -15,6 +15,7 @@ import TestsQuizzes from "./TestsQuizzes/page"
 import AlertsBlogs from "./AlertsBlogs/page"
 import Profile from "./Profile/page"
 import Payments from "./Payments/page"
+import PupilDashboardNotifications from "./notifications/page"
 import {
   FaBook,
   FaCalendarAlt,
@@ -145,6 +146,8 @@ export default function PupilDashboard() {
   // Function to dynamically load the selected page
   const renderPage = () => {
     switch (activePage) {
+      case "notifications":
+        return <PupilDashboardNotifications />
       case "assignments":
         return <Assignments />
       case "timetable":

@@ -81,8 +81,10 @@ export default function TeacherSidebar({ setActivePage, isSidebarOpen, setIsSide
     { id: "cbt-exams", icon: Laptop, label: "CBT Exams" },
     { id: "tests", icon: ClipboardCheck, label: "Tests & Quizzes" },
     { id: "create-blog", icon: Edit, label: "Create Blog" },
-  { id: "create-alert", icon: Bell, label: "Create Alert" },
+    { id: "create-alert", icon: Bell, label: "Create Alert" },
   { id: "notifications", icon: Bell, label: "Notifications" },
+  { id: "school-fees", icon: FileText, label: "School Fees" },
+  { id: "payments", icon: FileText, label: "Payments" },
   ]
 
   return (

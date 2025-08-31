@@ -10,6 +10,7 @@ import Select, { SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import CustomAlert from "@/components/CustomAlert";
+import ConfirmModal from "@/components/ConfirmModal";
 
 type ClassInfo = { id: string; name: string };
 type Question = { question: string; options: { a: string; b: string; c: string; d: string }; correctAnswer: string };
@@ -29,7 +30,8 @@ export default function TeacherCBTExams(): React.ReactElement {
   const [alert, setAlert] = useState<{ message: string; type: "success" | "error" | "warning" | "info" } | null>(null);
   const [showCreateForm, setShowCreateForm] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
-  const [deleteModalId, setDeleteModalId] = useState<string | null>(null);
+  const [confirmTargetId, setConfirmTargetId] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState<boolean>(false);
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
 
   useEffect(() => {
@@ -161,24 +163,26 @@ export default function TeacherCBTExams(): React.ReactElement {
   }
 
   const handleDelete = (id: string) => {
-    // open modal
-    setDeleteModalId(id);
+    // open shared modal
+    setConfirmTargetId(id);
+    setConfirmOpen(true);
   };
 
   const handleDeleteConfirmed = async () => {
-    if (!deleteModalId) return;
+    if (!confirmTargetId) return;
     setDeleteLoading(true);
     try {
-      const res = await fetch(`/api/teacher/cbt-exams?id=${deleteModalId}`, { method: "DELETE" });
+      const res = await fetch(`/api/teacher/cbt-exams?id=${confirmTargetId}`, { method: "DELETE" });
       const j = await res.json();
-      if (j?.success) setExams((e) => e.filter((x) => x.id !== deleteModalId));
+      if (j?.success) setExams((e) => e.filter((x) => x.id !== confirmTargetId));
       else setAlert({ message: j?.message ?? "Delete failed", type: "error" });
     } catch (err) {
       console.error(err);
       setAlert({ message: "Delete failed", type: "error" });
     } finally {
       setDeleteLoading(false);
-      setDeleteModalId(null);
+      setConfirmTargetId(null);
+      setConfirmOpen(false);
     }
   };
 
@@ -283,19 +287,16 @@ export default function TeacherCBTExams(): React.ReactElement {
           </CardContent>
         </Card>
       )}
-      {/* Delete Confirmation Modal */}
-      {deleteModalId && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-gray-500 rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-semibold mb-2">Confirm Delete</h3>
-            <p className="text-sm text-muted-foreground mb-4">Are you sure you want to delete this exam? This action cannot be undone.</p>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteModalId(null)}>Cancel</Button>
-              <Button variant="destructive" onClick={handleDeleteConfirmed} disabled={deleteLoading}>{deleteLoading ? "Deleting..." : "Delete"}</Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Delete Confirmation Modal (shared) */}
+      <ConfirmModal
+        open={confirmOpen}
+        title="Confirm Delete"
+        description="Are you sure you want to delete this exam? This action cannot be undone."
+        confirmText={deleteLoading ? "Deleting..." : "Delete"}
+        busy={deleteLoading}
+        onConfirm={handleDeleteConfirmed}
+        onCancel={() => { setConfirmOpen(false); setConfirmTargetId(null) }}
+      />
 
       <div className="space-y-6">
         {exams.length === 0 ? (

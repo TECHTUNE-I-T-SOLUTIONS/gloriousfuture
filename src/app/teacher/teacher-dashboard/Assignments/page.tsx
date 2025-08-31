@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, type ChangeEvent } from "react"
+import ConfirmModal from "@/components/ConfirmModal"
 import { BookOpen, Plus, Calendar, Users, FileText, Star, Download, Trash2 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -70,13 +71,13 @@ export default function TeacherAssignments() {
   const [assessSubs, setAssessSubs] = useState<Submission[]>([])
   const [assessIndex, setAssessIndex] = useState(0)
 
-  // delete confirmation modal
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
+  // delete confirmation modal (shared component)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [confirmTargetId, setConfirmTargetId] = useState<string | null>(null)
 
   // modal keyboard and focus handling
   useEffect(() => {
-    const anyOpen = editModalOpen || assessModalOpen || deleteModalOpen
+    const anyOpen = editModalOpen || assessModalOpen || confirmOpen
     if (!anyOpen) return
 
     const handler = (e: KeyboardEvent) => {
@@ -86,9 +87,9 @@ export default function TeacherAssignments() {
         else if (editModalOpen) {
           setEditModalOpen(false)
           setEditingAssignment(null)
-        } else if (deleteModalOpen) {
-          setDeleteModalOpen(false)
-          setDeleteTargetId(null)
+        } else if (confirmOpen) {
+          setConfirmOpen(false)
+          setConfirmTargetId(null)
         }
       }
 
@@ -119,7 +120,7 @@ export default function TeacherAssignments() {
     }, 0)
 
     return () => document.removeEventListener("keydown", handler)
-  }, [editModalOpen, assessModalOpen, deleteModalOpen])
+  }, [editModalOpen, assessModalOpen, confirmOpen])
 
   useEffect(() => {
     const fetchAssignments = async () => {
@@ -391,15 +392,15 @@ export default function TeacherAssignments() {
   }
 
   const openDeleteModal = (id: string) => {
-    setDeleteTargetId(id)
-    setDeleteModalOpen(true)
+    setConfirmTargetId(id)
+    setConfirmOpen(true)
   }
 
   const confirmDelete = async () => {
-    if (!deleteTargetId) return
-    await deleteAssignment(deleteTargetId)
-    setDeleteModalOpen(false)
-    setDeleteTargetId(null)
+    if (!confirmTargetId) return
+    await deleteAssignment(confirmTargetId)
+    setConfirmOpen(false)
+    setConfirmTargetId(null)
   }
 
   if (loading) {
@@ -941,21 +942,15 @@ export default function TeacherAssignments() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {deleteModalOpen && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <Card className="max-w-md w-full mx-4 p-4">
-            <CardHeader>
-              <CardTitle className="text-card-foreground">Confirm Delete</CardTitle>
-              <CardDescription>Are you sure you want to delete this assignment? This action cannot be undone.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex items-center justify-end gap-3">
-              <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
-              <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      {/* Delete Confirmation Modal (shared) */}
+      <ConfirmModal
+        open={confirmOpen}
+        title="Confirm Delete"
+        description="Are you sure you want to delete this assignment? This action cannot be undone."
+        confirmText="Delete"
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </div>
   )
 }

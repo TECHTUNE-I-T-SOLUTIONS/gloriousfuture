@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useCallback, useEffect, useState } from "react"
+import ConfirmModal from "@/components/ConfirmModal"
 import { Calendar, Plus, Clock, BookOpen, Trash2, Save } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -56,9 +57,9 @@ export default function TeacherTimetable() {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editingEntry, setEditingEntry] = useState<TimetableEntry | null>(null)
 
-  // delete confirm modal
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
+  // delete confirm modal (shared component)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [confirmTargetId, setConfirmTargetId] = useState<string | null>(null)
 
   const addToast = (message: string, type: "success" | "error" | "warning" | "info") => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
@@ -242,15 +243,15 @@ export default function TeacherTimetable() {
   }
 
   const openDeleteModal = (id: string) => {
-    setDeleteTargetId(id)
-    setDeleteModalOpen(true)
+    setConfirmTargetId(id)
+    setConfirmOpen(true)
   }
 
   const confirmDelete = async () => {
-    if (!deleteTargetId) return
-    await deleteEntry(deleteTargetId)
-    setDeleteModalOpen(false)
-    setDeleteTargetId(null)
+    if (!confirmTargetId) return
+    await deleteEntry(confirmTargetId)
+    setConfirmOpen(false)
+    setConfirmTargetId(null)
   }
 
   const openEditModal = (entry: TimetableEntry) => {
@@ -629,21 +630,15 @@ export default function TeacherTimetable() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {deleteModalOpen && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50">
-          <Card className="max-w-sm w-full mx-4">
-            <CardHeader>
-              <CardTitle>Confirm Delete</CardTitle>
-              <CardDescription>Are you sure you want to delete this timetable entry? This action cannot be undone.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>Cancel</Button>
-              <Button variant="destructive" onClick={confirmDelete}>Delete</Button>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      {/* Delete Confirmation Modal (shared) */}
+      <ConfirmModal
+        open={confirmOpen}
+        title="Confirm Delete"
+        description="Are you sure you want to delete this timetable entry? This action cannot be undone."
+        confirmText="Delete"
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmOpen(false)}
+      />
       {/* All classes modal (paginated by class) */}
       {allModalOpen && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 p-4">

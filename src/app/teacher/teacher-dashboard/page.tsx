@@ -27,6 +27,8 @@ import TeacherProfile from "./Profile/page"
 import Teacherblog from "./Teacherblog/page"
 import Teacheralert from "./Teacheralert/page"
 import TeacherNotifications from "./notifications/page"
+import TeacherSchoolFees from "./SchoolFees/page"
+import TeacherPayments from "./Payments/page"
 import CustomAlert from "@/components/CustomAlert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -104,6 +106,15 @@ export default function TeacherDashboard() {
     }
 
     fetchSessionAndTeacherDetails()
+    // listen for header events to open pages inside the dashboard
+    const handler = (e: Event) => {
+      try {
+        const detail = (e as CustomEvent).detail
+        if (detail && typeof detail.page === 'string') setActivePage(detail.page)
+      } catch {}
+    }
+    window.addEventListener('teacher-set-active-page', handler)
+    return () => window.removeEventListener('teacher-set-active-page', handler)
   }, [router])
 
   const fetchDashboardStats = async () => {
@@ -239,6 +250,16 @@ export default function TeacherDashboard() {
            icon={<MessageSquare className="h-6 w-6" />}
            onClick={() => setActivePage('notifications')}
          />
+        <TeacherDashboardCard
+          title="School Fees"
+          icon={<FileText className="h-6 w-6" />}
+          onClick={() => setActivePage('school-fees')}
+        />
+        <TeacherDashboardCard
+          title="Payments"
+          icon={<FileText className="h-6 w-6" />}
+          onClick={() => setActivePage('payments')}
+        />
        </div>
 
 
@@ -280,7 +301,11 @@ export default function TeacherDashboard() {
   const renderPage = () => {
     switch (activePage) {
       case "notifications":
-        return <TeacherNotifications setActivePageProp={setActivePage} />
+        return <TeacherNotifications />
+      case "school-fees":
+        return <TeacherSchoolFees />
+      case "payments":
+        return <TeacherPayments />
       case "assignments":
         return <TeacherAssignments />
       case "timetable":

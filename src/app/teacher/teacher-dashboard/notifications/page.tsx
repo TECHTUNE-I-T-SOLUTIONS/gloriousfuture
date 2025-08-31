@@ -11,7 +11,7 @@ type Notification = {
   created_at: string
 }
 
-export default function TeacherDashboardNotifications({ setActivePageProp }: { setActivePageProp?: (p: string) => void }) {
+export default function TeacherDashboardNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   // no local activePage needed; parent dashboard controls active page
   const [page, setPage] = useState(1)
@@ -19,8 +19,8 @@ export default function TeacherDashboardNotifications({ setActivePageProp }: { s
   const [total, setTotal] = useState(0)
 
   useEffect(() => {
-  // notify parent sidebar about active page if provided
-  try { if (typeof setActivePageProp === 'function') setActivePageProp('notifications') } catch {}
+    // notify parent sidebar about active page via global event
+    try { window.dispatchEvent(new CustomEvent('teacher-set-active-page', { detail: 'notifications' })) } catch {}
     const fetchNotifications = async (p = 1) => {
       try {
         const res = await fetch(`/api/notifications?page=${p}&per_page=${perPage}`, { credentials: 'include' })
@@ -35,7 +35,7 @@ export default function TeacherDashboardNotifications({ setActivePageProp }: { s
       }
     }
     fetchNotifications(page)
-  }, [page, perPage, setActivePageProp])
+  }, [page, perPage])
 
   const markRead = async (ids: string[]) => {
     // optimistic UI: mark locally and notify header

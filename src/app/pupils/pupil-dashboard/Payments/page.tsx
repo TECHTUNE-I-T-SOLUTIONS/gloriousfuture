@@ -22,6 +22,8 @@ export default function Payments() {
   const { pupil } = usePupil()
   const [payments, setPayments] = useState<Payment[]>([])
   const [loading, setLoading] = useState(true)
+  const [schoolFee, setSchoolFee] = useState<{ amount: number; id?: string } | null>(null)
+  const [currentSession, setCurrentSession] = useState<string | null>(null)
 
   useEffect(() => {
     const uin = typeof pupil?.uin === "string" ? pupil.uin : undefined
@@ -33,7 +35,11 @@ export default function Payments() {
       try {
   const res = await fetch(`/api/pupils/payments?uin=${encodeURIComponent(uin)}`, { credentials: "include" })
         if (res.ok) {
-          setPayments(await res.json())
+          const j = await res.json()
+          // { payments, schoolFee, currentSession }
+          setPayments((j.payments || []) as Payment[])
+          if (j.schoolFee && typeof j.schoolFee.amount === 'number') setSchoolFee({ amount: j.schoolFee.amount, id: j.schoolFee.id })
+          if (j.currentSession) setCurrentSession(j.currentSession)
         }
       } catch (error) {
         console.error("Error fetching payments:", error)
@@ -102,6 +108,50 @@ export default function Payments() {
 
   const getPendingAmount = () => {
     return payments.filter((p) => p.status.toLowerCase() === "pending").reduce((sum, p) => sum + p.amount, 0)
+  }
+
+  const handlePayNow = async (paymentId: string) => {
+    try {
+      const res = await fetch('/api/pupils/paystack/init', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ paymentId }) })
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        console.error('init failed', j)
+        return
+      }
+      const data = await res.json()
+      // expected: { authorization_url }
+      const url = data.authorization_url || data.url || data.authorization?.authorization_url
+      if (!url) {
+        console.error('no authorization url', data)
+        return
+      }
+      window.open(url, '_blank')
+    } catch (err) {
+      console.error('pay init error', err)
+    }
+  }
+
+  const createAndPay = async () => {
+    try {
+      if (!pupil) return
+      if (!schoolFee || !currentSession) return console.error('missing fee or session')
+      // create payment record
+      const body = {
+        uin: pupil.uin,
+        amount: schoolFee.amount,
+        class: pupil.class || undefined,
+        session: currentSession,
+      }
+      const res = await fetch('/api/pupils/payments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+      if (!res.ok) return console.error('failed to create payment')
+      const created = await res.json()
+      // now init
+      if (created && created.id) {
+        await handlePayNow(created.id)
+      }
+    } catch (err) {
+      console.error('createAndPay error', err)
+    }
   }
 
   if (loading) {
@@ -223,14 +273,64 @@ export default function Payments() {
                           {formatDate(payment.paid_at || payment.created_at)}
                         </TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                          >
-                            <FaDownload className="w-4 h-4 mr-1" />
-                            Receipt
-                          </Button>
+                          <div className="flex justify-end gap-2">
+                            {payment.status.toLowerCase() === 'pending' && (
+                              <Button size="sm" onClick={() => handlePayNow(payment.id)} className="bg-primary text-white">
+                                Pay Now
+                              </Button>
+                            )}
+
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              onClick={() => {
+                                // open printable receipt window
+                                const win = window.open('', '_blank', 'noopener,noreferrer')
+                                if (!win) return
+                                const html = `
+                                  <html>
+                                    <head>
+                                      <title>Payment Receipt</title>
+                                      <style>
+                                        body{font-family: Arial, Helvetica, sans-serif; padding:20px}
+                                        .header{display:flex;align-items:center;gap:12px}
+                                        .logo{width:80px;height:80px;object-fit:contain}
+                                        .title{font-size:18px;font-weight:700}
+                                        .muted{color:#666}
+                                        .details{margin-top:20px;border:1px solid #eee;padding:12px;border-radius:8px}
+                                        .row{display:flex;justify-content:space-between;padding:6px 0}
+                                      </style>
+                                    </head>
+                                    <body>
+                                      <div class="header">
+                                        <img src="/logo.png" class="logo" alt="School Logo" />
+                                        <div>
+                                          <div class="title">Glorious Future School</div>
+                                          <div class="muted">Payment Receipt</div>
+                                        </div>
+                                      </div>
+                                      <div class="details">
+                                        <div class="row"><div><strong>Amount</strong></div><div>${formatCurrency(payment.amount)}</div></div>
+                                        <div class="row"><div><strong>Status</strong></div><div>${payment.status}</div></div>
+                                        <div class="row"><div><strong>Method</strong></div><div>${payment.payment_method || '-'}</div></div>
+                                        <div class="row"><div><strong>Reference</strong></div><div>${payment.payment_reference || '-'}</div></div>
+                                        <div class="row"><div><strong>Paid At</strong></div><div>${payment.paid_at || payment.created_at || '-'}</div></div>
+                                      </div>
+                                      <div style="margin-top:20px;font-size:12px;color:#666">This is a system generated receipt. Contact the school for enquiries.</div>
+                                      <script>window.onload = function(){ setTimeout(()=>{ window.print(); }, 200); }</script>
+                                    </body>
+                                  </html>
+                                `
+                                win.document.open()
+                                win.document.write(html)
+                                win.document.close()
+                              }}
+                            >
+                              <FaDownload className="w-4 h-4 mr-1" />
+                              Receipt
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -241,10 +341,22 @@ export default function Payments() {
               <div className="text-center py-12">
                 <FaFileInvoiceDollar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">No Payment Records</h3>
-                <p className="text-gray-500">You haven&apos;t made any payments yet.</p>
-                <p className="text-gray-400 text-sm mt-1">
-                  Payment history will appear here once transactions are made.
-                </p>
+                {schoolFee ? (
+                  <div className="mt-4">
+                    <p className="text-gray-600">Your current session fee</p>
+                    <p className="text-2xl font-bold text-gray-900">{formatCurrency(schoolFee.amount)}</p>
+                    <div className="mt-4">
+                      <Button onClick={createAndPay} className="bg-primary text-white">Pay Now</Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-gray-500">You haven&apos;t made any payments yet.</p>
+                    <p className="text-gray-400 text-sm mt-1">
+                      Payment history will appear here once transactions are made.
+                    </p>
+                  </>
+                )}
               </div>
             )}
           </CardContent>

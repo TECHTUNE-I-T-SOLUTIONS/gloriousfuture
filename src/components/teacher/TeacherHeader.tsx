@@ -99,7 +99,15 @@ export default function TeacherHeader({
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => window.location.href = '/teacher/teacher-dashboard/notifications'}
+            onClick={() => {
+              try {
+                // dispatch event so teacher dashboard can open notifications in-dashboard
+                window.dispatchEvent(new CustomEvent('teacher-set-active-page', { detail: { page: 'notifications' } }))
+              } catch {
+                // fallback to hard navigation if event fails
+                window.location.href = '/teacher/teacher-dashboard/notifications'
+              }
+            }}
             className="relative p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
           >
             <Bell className="w-5 h-5" />
