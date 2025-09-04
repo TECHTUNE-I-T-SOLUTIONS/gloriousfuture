@@ -203,7 +203,7 @@ export default function TeacherLoginPage() {
             {/* Links */}
             <div className="space-y-3 text-center">
               <Link
-                href="/teacher/forgotpassword"
+                href="/teacher/Forgotpassword"
                 className="block text-sm text-gray-500 hover:text-primary transition-colors"
               >
                 Forgot your password?
@@ -211,7 +211,7 @@ export default function TeacherLoginPage() {
               <div className="text-sm text-gray-500">
                 Don&apos;t have an account?{" "}
                 <Link
-                  href="/teacher/signup"
+                  href="/teacher/Signup"
                   className="text-primary hover:text-primary/80 font-medium transition-colors"
                 >
                   Sign up here

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 
+
 type Payload = { [k: string]: string | number | boolean | null | undefined | Record<string, unknown> }
 type Notification = {
   id: string
@@ -60,12 +61,26 @@ export default function PupilDashboardNotifications() {
 
   const payloadMessage = (p?: Payload) => {
     if (!p) return ''
+    // pretty-format payment notifications
+    try {
+      if (typeof p['payment_id'] === 'string' || (p['terms'] && Array.isArray(p['terms']))) {
+        const amt = typeof p['amount'] === 'number' ? p['amount'] : Number(p['amount'] || 0)
+        const terms = Array.isArray(p['terms']) ? (p['terms'] as string[]) : []
+        const cls = typeof p['class'] === 'string' ? p['class'] : ''
+        const ref = typeof p['reference'] === 'string' ? p['reference'] : ''
+        const paidAt = typeof p['paid_at'] === 'string' ? p['paid_at'] : ''
+        return `${cls} — ${terms.join(', ')} — ${new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amt)}\nRef: ${ref}${paidAt ? ` — ${paidAt}` : ''}`
+      }
+    } catch (err) {
+      console.error(err)
+      // fallthrough to generic handling
+    }
     const keys = ['message', 'note', 'text'] as const
     for (const k of keys) {
       const val = p[k]
       if (typeof val === 'string') return val
     }
-    return JSON.stringify(p)
+    try { return JSON.stringify(p) } catch { return String(p) }
   }
 
   return (

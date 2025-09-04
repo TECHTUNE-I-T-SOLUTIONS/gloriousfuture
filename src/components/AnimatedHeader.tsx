@@ -28,13 +28,25 @@ export default function AnimatedHeader({ text }: AnimatedHeaderProps) {
   }, [])
 
   useEffect(() => {
-    // fetch unread notifications count for pupil header
-    fetch('/api/notifications', { credentials: 'include' })
-      .then((res) => res.json())
-      .then((body) => {
-        if (body && typeof body.unread_count === 'number') setUnreadCount(body.unread_count)
-      })
-      .catch(() => {})
+    // fetch unread notifications count for pupil header and poll periodically
+    let mounted = true
+    const fetchCount = async () => {
+      try {
+        const res = await fetch('/api/notifications', { credentials: 'include' })
+        const body = await res.json().catch(() => ({}))
+        if (!mounted) return
+        const n = body && body.unread_count != null ? Number(body.unread_count) : 0
+        if (!Number.isNaN(n) && n >= 0) setUnreadCount(n)
+      } catch {
+        // ignore network errors
+      }
+    }
+    fetchCount()
+    const id = setInterval(fetchCount, 15000)
+    return () => {
+      mounted = false
+      clearInterval(id)
+    }
   }, [])
 
   useEffect(() => {

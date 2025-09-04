@@ -136,8 +136,8 @@ export default function TeacherLogin() {
               <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleLogin} disabled={loading} className="w-full py-4 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-semibold rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed">{loading ? "Signing In..." : "Sign In"}</motion.button>
 
               <div className="text-center space-y-2">
-                <button onClick={() => router.push('/teacher/forgot')} className="text-sm text-slate-500 hover:text-slate-700 hover:underline transition-colors">Forgot your password?</button>
-                <div className="text-sm text-slate-600">Don&apos;t have an account? <button onClick={() => router.push('/teacher/signup')} className="text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors">Sign up here</button></div>
+                <button onClick={() => router.push('/teacher/Forgotpassword')} className="text-sm text-slate-500 hover:text-slate-700 hover:underline transition-colors">Forgot your password?</button>
+                <div className="text-sm text-slate-600">Don&apos;t have an account? <button onClick={() => router.push('/teacher/Signup')} className="text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors">Sign up here</button></div>
               </div>
             </div>
           </div>

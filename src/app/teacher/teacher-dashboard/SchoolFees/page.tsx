@@ -5,12 +5,34 @@ import CustomAlert from "@/components/CustomAlert"
 import ConfirmModal from "@/components/ConfirmModal"
 
 type ClassItem = { id: string; name: string }
-type Fee = { id: string; class: string; amount: number; session: string }
+type Fee = { id: string; class: string; amount: number; session: string; term1_amount?: number | null; term2_amount?: number | null; term3_amount?: number | null }
+
+// payload types for API requests
+type SchoolFeesCreatePayload = {
+  class_ids: string[]
+  session: string
+  amount?: number
+  term1_amount?: number | null
+  term2_amount?: number | null
+  term3_amount?: number | null
+}
+
+type SchoolFeesUpdatePayload = {
+  id: string
+  session: string
+  amount?: number
+  term1_amount?: number | null
+  term2_amount?: number | null
+  term3_amount?: number | null
+}
 
 export default function TeacherSchoolFees() {
   const [classes, setClasses] = useState<ClassItem[]>([])
   const [selectedClasses, setSelectedClasses] = useState<string[]>([])
   const [amount, setAmount] = useState<string>("")
+  const [term1Amount, setTerm1Amount] = useState<string>("")
+  const [term2Amount, setTerm2Amount] = useState<string>("")
+  const [term3Amount, setTerm3Amount] = useState<string>("")
   const [session, setSession] = useState<string>("2024/2025")
   const [fees, setFees] = useState<Fee[]>([])
   const [currentSessionActive, setCurrentSessionActive] = useState<string | null>(null)
@@ -77,13 +99,24 @@ export default function TeacherSchoolFees() {
   }
 
   const submit = async () => {
-    if (!amount || selectedClasses.length === 0) return setToast({ message: 'Choose class(es) and amount', type: 'error' })
+    if (selectedClasses.length === 0) return setToast({ message: 'Choose class(es)', type: 'error' })
     try {
-      const res = await fetch('/api/teacher/school-fees', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ class_ids: selectedClasses, amount: Number(amount), session }) })
+      const payload: SchoolFeesCreatePayload = { class_ids: selectedClasses, session }
+      if (term1Amount || term2Amount || term3Amount) {
+        payload.term1_amount = term1Amount ? Number(term1Amount) : 0
+        payload.term2_amount = term2Amount ? Number(term2Amount) : 0
+        payload.term3_amount = term3Amount ? Number(term3Amount) : 0
+      } else if (amount) {
+        payload.amount = Number(amount)
+      }
+      const res = await fetch('/api/teacher/school-fees', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       const body = await res.json().catch(() => ({}))
       if (res.ok && body && body.success) {
         setToast({ message: 'Saved', type: 'success' })
         setAmount('')
+        setTerm1Amount('')
+        setTerm2Amount('')
+        setTerm3Amount('')
         setSelectedClasses([])
         await fetchFees()
       } else {
@@ -119,12 +152,23 @@ export default function TeacherSchoolFees() {
   const saveEdit = async () => {
     if (!editing) return
     try {
-      const res = await fetch('/api/teacher/school-fees', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: editing.id, amount: Number(amount), session }) })
+      const payload: SchoolFeesUpdatePayload = { id: editing.id, session }
+      if (term1Amount || term2Amount || term3Amount) {
+        payload.term1_amount = term1Amount ? Number(term1Amount) : 0
+        payload.term2_amount = term2Amount ? Number(term2Amount) : 0
+        payload.term3_amount = term3Amount ? Number(term3Amount) : 0
+      } else if (amount) {
+        payload.amount = Number(amount)
+      }
+      const res = await fetch('/api/teacher/school-fees', { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       const b = await res.json().catch(() => ({}))
       if (res.ok && b && b.success) {
         setToast({ message: 'Updated', type: 'success' })
         setEditing(null)
         setAmount('')
+        setTerm1Amount('')
+        setTerm2Amount('')
+        setTerm3Amount('')
         await fetchFees()
       } else {
         setToast({ message: 'Update failed', type: 'error' })
@@ -134,11 +178,11 @@ export default function TeacherSchoolFees() {
 
   return (
     <div>
-  {toast && <CustomAlert message={toast.message} type={toast.type === 'success' ? 'success' : 'error'} onClose={() => setToast(null)} />}
+      {toast && <CustomAlert message={toast.message} type={toast.type === 'success' ? 'success' : 'error'} onClose={() => setToast(null)} />}
       <h1 className="text-2xl font-bold mb-4">School Fees</h1>
       <div className="mb-4 flex items-center space-x-4">
         <label className="text-sm">Active Session</label>
-  <select aria-label="Active session" value={currentSessionActive || session} onChange={e => setActiveSession(e.target.value)} className="border rounded p-2">
+        <select aria-label="Active session" value={currentSessionActive || session} onChange={e => setActiveSession(e.target.value)} className="border rounded p-2">
           {sessions.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
         <div className="text-sm text-gray-500">Current: {currentSessionActive || 'not set'}</div>
@@ -158,9 +202,19 @@ export default function TeacherSchoolFees() {
                 ))}
               </div>
             </div>
-            <div className="mb-2">
-              <label className="block text-sm">Amount</label>
-              <input className="border rounded p-2 w-full" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" />
+            <div className="mb-2 grid grid-cols-1 md:grid-cols-3 gap-2">
+              <div>
+                <label className="block text-sm">Term 1 Amount</label>
+                <input className="border rounded p-2 w-full" value={term1Amount} onChange={e => setTerm1Amount(e.target.value)} placeholder="0.00" />
+              </div>
+              <div>
+                <label className="block text-sm">Term 2 Amount</label>
+                <input className="border rounded p-2 w-full" value={term2Amount} onChange={e => setTerm2Amount(e.target.value)} placeholder="0.00" />
+              </div>
+              <div>
+                <label className="block text-sm">Term 3 Amount</label>
+                <input className="border rounded p-2 w-full" value={term3Amount} onChange={e => setTerm3Amount(e.target.value)} placeholder="0.00" />
+              </div>
             </div>
                 <div className="mb-2">
                     <label className="block text-sm">Session</label>
@@ -169,8 +223,11 @@ export default function TeacherSchoolFees() {
                     </select>
                   </div>
                   <div className="flex space-x-2">
-                    <button onClick={submit} className="px-4 py-2 bg-primary text-white rounded">Save Fees</button>
-                    {editing && <button onClick={saveEdit} className="px-4 py-2 bg-emerald-600 text-white rounded">Save Edit</button>}
+                    {!editing ? (
+                      <button onClick={submit} className="px-4 py-2 bg-primary text-white rounded">Create Fee</button>
+                    ) : (
+                      <button onClick={saveEdit} className="px-4 py-2 bg-emerald-600 text-white rounded">Update Fee</button>
+                    )}
                   </div>
           </div>
         </div>
@@ -184,10 +241,20 @@ export default function TeacherSchoolFees() {
                   <div key={f.id} className="flex items-center justify-between p-2 border rounded">
                     <div>
                       <p className="font-medium">{f.class}</p>
-                      <p className="text-sm text-muted">{f.session} — ₦{Number(f.amount).toFixed(2)}</p>
+                      <div className="text-sm text-muted">{f.session}</div>
+                      {f.term1_amount || f.term2_amount || f.term3_amount ? (
+                        <div className="mt-1 space-y-1 text-sm">
+                          <div>Term1: ₦{f.term1_amount ? Number(f.term1_amount).toFixed(2) : '0.00'}</div>
+                          <div>Term2: ₦{f.term2_amount ? Number(f.term2_amount).toFixed(2) : '0.00'}</div>
+                          <div>Term3: ₦{f.term3_amount ? Number(f.term3_amount).toFixed(2) : '0.00'}</div>
+                        </div>
+                      ) : (
+                        <div className="text-sm">₦{Number(f.amount).toFixed(2)}</div>
+                      )}
                     </div>
+
                     <div className="flex items-center space-x-2">
-                      <button onClick={() => { setEditing(f); setAmount(String(f.amount)); setSession(f.session) }} className="px-2 py-1 bg-yellow-500 text-white rounded">Edit</button>
+                      <button onClick={() => { setEditing(f); setAmount(String(f.amount)); setSession(f.session); setTerm1Amount(f.term1_amount ? String(f.term1_amount) : ''); setTerm2Amount(f.term2_amount ? String(f.term2_amount) : ''); setTerm3Amount(f.term3_amount ? String(f.term3_amount) : '') }} className="px-2 py-1 bg-yellow-500 text-white rounded">Edit</button>
                       <button onClick={() => handleDelete(f.id)} className="px-2 py-1 bg-red-500 text-white rounded">Delete</button>
                     </div>
                   </div>

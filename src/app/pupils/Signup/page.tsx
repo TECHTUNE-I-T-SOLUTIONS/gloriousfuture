@@ -551,7 +551,7 @@ export default function PupilSignupPage() {
                     <Copy className="w-4 h-4" /> Copy Pupil ID
                   </button>
                   <button
-                    onClick={() => router.push("/pupils/login")}
+                    onClick={() => router.push("/pupils/Login")}
                     className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg shadow-md hover:bg-primary/90 transition-colors"
                   >
                     Continue to Login
@@ -567,7 +567,7 @@ export default function PupilSignupPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-100">
               Already have an account?{" "}
-              <Link href="/pupils/login" className="text-primary hover:text-primary/80 font-medium transition-colors">
+              <Link href="/pupils/Login" className="text-primary hover:text-primary/80 font-medium transition-colors">
                 Sign in here
               </Link>
             </p>

@@ -76,12 +76,22 @@ export default function TeacherDashboardNotifications() {
   const payloadMessage = (p?: Record<string, unknown>) => {
     if (!p) return ''
     const maybe = p as Payload
+    try {
+      if (typeof maybe['payment_id'] === 'string' || (maybe['terms'] && Array.isArray(maybe['terms']))) {
+        const amt = typeof maybe['amount'] === 'number' ? maybe['amount'] : Number(maybe['amount'] || 0)
+        const terms = Array.isArray(maybe['terms']) ? (maybe['terms'] as string[]) : []
+        const cls = typeof maybe['class'] === 'string' ? maybe['class'] : ''
+        const ref = typeof maybe['reference'] === 'string' ? maybe['reference'] : ''
+        const paidAt = typeof maybe['paid_at'] === 'string' ? maybe['paid_at'] : ''
+        return `${cls} — ${terms.join(', ')} — ${new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amt)}\nRef: ${ref}${paidAt ? ` — ${paidAt}` : ''}`
+      }
+    } catch {}
     const keys = ['message', 'note', 'text'] as const
     for (const k of keys) {
       const val = maybe[k]
       if (typeof val === 'string') return val
     }
-    return JSON.stringify(p)
+    try { return JSON.stringify(p) } catch { return String(p) }
   }
 
   return (

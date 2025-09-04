@@ -192,7 +192,7 @@ export default function PupilLoginPage() {
             {/* Links */}
             <div className="space-y-3 text-center">
               <Link
-                href="/pupils/forgotpassword"
+                href="/pupils/Forgotpassword"
                 className="block text-sm text-gray-900 hover:text-primary transition-colors"
               >
                 Forgot your password?
@@ -200,7 +200,7 @@ export default function PupilLoginPage() {
               <div className="text-sm text-gray-900">
                 Don&apos;t have an account?{" "}
                 <Link
-                  href="/pupils/signup"
+                  href="/pupils/Signup"
                   className="text-gray-900 hover:text-primary/80 font-medium transition-colors"
                 >
                   Sign up here

@@ -164,7 +164,7 @@ export default function TeacherForgotPasswordPage() {
           {/* Back to Login */}
           <div className="mt-6 text-center">
             <Link
-              href="/teacher/login"
+              href="/teacher/Login"
               className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />

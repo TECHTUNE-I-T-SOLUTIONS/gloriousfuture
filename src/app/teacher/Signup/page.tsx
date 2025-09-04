@@ -473,7 +473,7 @@ export default function TeacherSignupPage() {
                     <Copy className="w-4 h-4" /> Copy Teacher ID
                   </button>
                   <button
-                    onClick={() => router.push("/teacher/login")}
+                    onClick={() => router.push("/teacher/Login")}
                     className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg shadow-md hover:bg-primary/90 transition-colors"
                   >
                     Continue to Login
@@ -489,7 +489,7 @@ export default function TeacherSignupPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-100">
               Already have an account?{" "}
-              <Link href="/teacher/login" className="text-gray-100 hover:text-gray-300 font-medium transition-colors">
+              <Link href="/teacher/Login" className="text-gray-100 hover:text-gray-300 font-medium transition-colors">
                 Sign in here
               </Link>
             </p>

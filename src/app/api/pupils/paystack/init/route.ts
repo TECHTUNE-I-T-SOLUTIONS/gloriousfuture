@@ -25,7 +25,26 @@ export async function POST(req: NextRequest) {
     const protocol = host && host.includes('localhost') ? 'http' : 'https'
     const base = process.env.NEXT_PUBLIC_SITE_URL ?? `${protocol}://${host}`
 
-    const amountKobo = Math.round(Number(payment.amount) * 100)
+    // ensure amount is present; if missing try to resolve from school_fees for the pupil class/session
+    let amountValue = typeof (payment.amount) === 'number' ? Number(payment.amount) : (payment.amount ? Number(payment.amount) : null)
+    type FeeRow = { amount?: number }
+    // If payment.row doesn't have class, try to lookup the pupil's class using uin
+    let pupilClass = payment.class
+    if (!pupilClass && uin) {
+      const { data: pRow } = await supabase.from('pupils').select('class').eq('uin', uin).limit(1).maybeSingle()
+      const p = (pRow as { class?: string }) || null
+      if (p && p.class) pupilClass = p.class
+    }
+    if ((!amountValue || amountValue <= 0) && pupilClass) {
+      const { data: sf } = await supabase.from('school_fees').select('amount, session').eq('class', pupilClass).limit(1).maybeSingle()
+      const fee = (sf as FeeRow) || null
+      if (fee && fee.amount) amountValue = Number(fee.amount)
+    }
+    if (!amountValue || Number.isNaN(amountValue) || amountValue <= 0) {
+      return NextResponse.json({ error: 'payment amount missing or invalid' }, { status: 400 })
+    }
+
+    const amountKobo = Math.round(amountValue * 100)
 
     const initRes = await fetch('https://api.paystack.co/transaction/initialize', {
       method: 'POST',
@@ -41,10 +60,21 @@ export async function POST(req: NextRequest) {
       }),
     })
 
-    const data = await initRes.json()
-    if (!data || !data.status) return NextResponse.json({ error: 'failed to init payment', details: data }, { status: 502 })
+  const data = await initRes.json()
+  if (!data || !data.status) return NextResponse.json({ error: 'failed to init payment', details: data }, { status: 502 })
 
-    return NextResponse.json(data.data)
+  // attempt to persist the returned reference on the payment row so verify can find it later
+  const reference = (data?.data?.reference) || (data?.reference) || null
+  if (reference) {
+    try {
+      await supabase.from('payments').update({ payment_reference: reference }).eq('id', paymentId)
+    } catch (e) {
+      console.error('failed to update payment reference', e)
+    }
+  }
+
+  // return the paystack response and the resolved amount so the client can rely on it
+  return NextResponse.json({ paystack: data, amount: amountValue, amountKobo, reference })
   } catch (err) {
     console.error('Paystack init error', err)
     return NextResponse.json({ error: 'server error' }, { status: 500 })

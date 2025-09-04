@@ -75,13 +75,13 @@ export default function PupilLanding() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <button
-                onClick={() => router.push("/pupils/signup")}
+                onClick={() => router.push("/pupils/Signup")}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 Join as a Pupil
               </button>
               <button
-                onClick={() => router.push("/pupils/login")}
+                onClick={() => router.push("/pupils/Login")}
                 className="bg-card hover:bg-muted text-card-foreground px-8 py-4 rounded-lg font-semibold text-lg border border-border transition-all duration-200 hover:shadow-md"
               >
                 Sign In
@@ -218,13 +218,13 @@ export default function PupilLanding() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
-              onClick={() => router.push("/pupils/signup")}
+              onClick={() => router.push("/pupils/Signup")}
               className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               Get Started Here
             </button>
             <button
-              onClick={() => router.push("/pupils/login")}
+              onClick={() => router.push("/pupils/Login")}
               className="bg-card hover:bg-muted text-card-foreground px-8 py-4 rounded-lg font-semibold text-lg border border-border transition-all duration-200 hover:shadow-md"
             >
               Sign In

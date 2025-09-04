@@ -182,7 +182,7 @@ export default function PupilSignup() {
                 {step === 6 && (
                   <div className="space-y-6 text-center">
                     <div className="p-6 bg-green-50 rounded-2xl border border-green-200"><div className="w-16 h-16 bg-green-500 rounded-full mx-auto mb-4 flex items-center justify-center"><svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg></div><h3 className="text-lg font-semibold text-green-800 mb-2">Registration Successful!</h3><p className="text-sm text-green-600 mb-4">Your Unique Identification Number (UIN):</p><div className="bg-white rounded-xl p-4 border border-green-200"><p className="text-2xl font-bold text-slate-800 font-mono">{details.uin}</p></div></div>
-                    <div className="space-y-3"><button onClick={copyUIN} className="w-full py-4 bg-blue-500 text-white rounded-xl">Copy to Clipboard</button><button onClick={() => router.push('/pupils/login')} className="w-full py-4 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl">Continue to Login</button></div>
+                    <div className="space-y-3"><button onClick={copyUIN} className="w-full py-4 bg-blue-500 text-white rounded-xl">Copy to Clipboard</button><button onClick={() => router.push('/pupils/Login')} className="w-full py-4 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl">Continue to Login</button></div>
                   </div>
                 )}
               </motion.div>

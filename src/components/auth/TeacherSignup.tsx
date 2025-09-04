@@ -320,13 +320,13 @@ export default function TeacherSignup() {
 
                 <div className="space-y-3">
                   <button onClick={copyUIN} className="teacher-button-secondary"><Copy className="w-4 h-4 mr-2" /> Copy UIN</button>
-                  <button onClick={() => router.push('/teacher/login')} className="teacher-button-primary">Continue to Login</button>
+                  <button onClick={() => router.push('/teacher/Login')} className="teacher-button-primary">Continue to Login</button>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <button aria-label="Close" onClick={() => router.push('/teacher/login')} className="absolute top-4 right-4 text-gray-500 hover:text-foreground transition-colors"><X className="w-5 h-5" /></button>
+          <button aria-label="Close" onClick={() => router.push('/teacher/Login')} className="absolute top-4 right-4 text-gray-500 hover:text-foreground transition-colors"><X className="w-5 h-5" /></button>
         </div>
       </motion.div>
     </div>

@@ -22,8 +22,8 @@ export async function POST(req: NextRequest) {
     const uin = session?.uin
     if (typeof uin !== 'string' || !uin.startsWith('GFA-T-')) return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
 
-    const { class_ids, amount, session: schoolSession } = await req.json()
-    if (!Array.isArray(class_ids) || typeof amount !== 'number' || typeof schoolSession !== 'string') return NextResponse.json({ success: false, error: 'Invalid payload' }, { status: 400 })
+  const { class_ids, amount, session: schoolSession, term1_amount, term2_amount, term3_amount } = await req.json()
+  if (!Array.isArray(class_ids) || typeof schoolSession !== 'string') return NextResponse.json({ success: false, error: 'Invalid payload' }, { status: 400 })
 
     // resolve teacher id
     const { data: t } = await supabase.from('teachers').select('id').eq('uin', uin).single()
@@ -34,7 +34,12 @@ export async function POST(req: NextRequest) {
   const classRows = classRes.data as { id: string; name: string }[] | null
   const classErr = classRes.error
   if (classErr) throw classErr
-  const inserts = (classRows || []).map((r) => ({ class: r.name, amount, session: schoolSession, created_by: teacherId }))
+  // determine stored amount: if specific term amounts supplied, compute total amount
+  const t1 = typeof term1_amount === 'number' ? term1_amount : null
+  const t2 = typeof term2_amount === 'number' ? term2_amount : null
+  const t3 = typeof term3_amount === 'number' ? term3_amount : null
+  const computedAmount = (t1 ?? 0) + (t2 ?? 0) + (t3 ?? 0)
+  const inserts = (classRows || []).map((r) => ({ class: r.name, amount: computedAmount || (typeof amount === 'number' ? amount : 0), session: schoolSession, term1_amount: t1, term2_amount: t2, term3_amount: t3, created_by: teacherId }))
   if (inserts.length === 0) return NextResponse.json({ success: false, error: 'No matching classes found' }, { status: 400 })
   const { error } = await supabase.from('school_fees').upsert(inserts, { onConflict: 'class' })
     if (error) throw error
@@ -48,10 +53,16 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json()
-    const { id, amount, session: schoolSession } = body || {}
-    if (!id || typeof amount !== 'number' || typeof schoolSession !== 'string') return NextResponse.json({ success: false, error: 'Invalid payload' }, { status: 400 })
+  const { id, amount, session: schoolSession, term1_amount, term2_amount, term3_amount } = body || {}
+  if (!id || typeof schoolSession !== 'string') return NextResponse.json({ success: false, error: 'Invalid payload' }, { status: 400 })
 
-    const { error } = await supabase.from('school_fees').update({ amount, session: schoolSession }).eq('id', id)
+  const updatePayload: Record<string, unknown> = { session: schoolSession }
+  if (typeof amount === 'number') updatePayload.amount = amount
+  if (typeof term1_amount === 'number') updatePayload.term1_amount = term1_amount
+  if (typeof term2_amount === 'number') updatePayload.term2_amount = term2_amount
+  if (typeof term3_amount === 'number') updatePayload.term3_amount = term3_amount
+
+  const { error } = await supabase.from('school_fees').update(updatePayload).eq('id', id)
     if (error) throw error
     return NextResponse.json({ success: true })
   } catch (err) {
