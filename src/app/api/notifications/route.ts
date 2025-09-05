@@ -82,18 +82,13 @@ export async function GET(req: NextRequest) {
       results.forEach((r) => map.set(r.id, r))
       const deduped = Array.from(map.values()).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
-      const totalCount = deduped.length
-      const pageSlice = deduped.slice(offset, offset + per_page)
+  const totalCount = deduped.length
+  const pageSlice = deduped.slice(offset, offset + per_page)
 
-      // unread count for this pupil
-      const { count: unreadCount } = await supabase
-        .from('notifications')
-        .select('id', { count: 'exact' })
-        .or(`recipient_role.is.null,recipient_role.eq.pupil`)
-        .or(`recipient_id.is.null,recipient_id.eq.${pupilId},class_id.eq.${pupilClass}`)
-        .eq('is_read', false)
+  // unread count for this pupil computed from the deduped set to avoid mismatched class_id vs class text
+  const unreadCount = deduped.filter((r) => r && r.is_read === false).length || 0
 
-      return buildResponse(pageSlice || [], totalCount || 0, unreadCount || 0)
+  return buildResponse(pageSlice || [], totalCount || 0, unreadCount || 0)
     }
 
     return NextResponse.json({ notifications: [], total: 0, unread_count: 0 })

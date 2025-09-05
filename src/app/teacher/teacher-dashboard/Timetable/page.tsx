@@ -335,7 +335,7 @@ export default function TeacherTimetable() {
             <Calendar className="h-8 w-8 text-primary" />
             Weekly Timetable
           </h1>
-          <p className="text-muted-foreground mt-2">Manage your class schedule</p>
+          <p className="text-gray-900 mt-2">Manage your class schedule</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
@@ -462,7 +462,7 @@ export default function TeacherTimetable() {
         <CardContent>
           {error ? (
             <div className="text-center py-12">
-              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <Calendar className="h-12 w-12 text-gray-900 mx-auto mb-4" />
               <p className="text-red-500">{error}</p>
             </div>
           ) : (
@@ -470,13 +470,13 @@ export default function TeacherTimetable() {
               {/* Mobile: stacked list */}
               <div className="md:hidden space-y-3">
                 {filteredTimetable.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">No timetable entries yet.</div>
+                  <div className="text-center py-8 text-gray-900">No timetable entries yet.</div>
                 ) : (
                   filteredTimetable.map((entry) => (
                     <div key={entry.id} className="p-3 bg-background border border-border rounded-lg flex items-center justify-between">
                       <div>
                         <div className="font-medium">{entry.subject}</div>
-                        <div className="text-sm text-muted-foreground">{entry.day} • {entry.time}</div>
+                        <div className="text-sm text-gray-900">{entry.day} • {entry.time}</div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Button size="sm" variant="ghost" onClick={() => openEditModal(entry)}>Edit</Button>
@@ -525,14 +525,14 @@ export default function TeacherTimetable() {
                                     onClick={() => openDeleteModal(entry.id)}
                                     variant="ghost"
                                     size="sm"
-                                    className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                                    className="h-6 w-6 p-0 text-gray-900 hover:text-destructive"
                                   >
                                     <Trash2 className="h-3 w-3" />
                                   </Button>
                                 </div>
                               </div>
                             ) : (
-                              <div className="p-2 h-full flex items-center justify-center text-muted-foreground">
+                              <div className="p-2 h-full flex items-center justify-center text-gray-900">
                                 <span className="text-xs">Free</span>
                               </div>
                             )}
@@ -561,19 +561,19 @@ export default function TeacherTimetable() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center p-4 bg-background rounded-lg border border-border">
                 <div className="text-2xl font-bold text-foreground">{timetable.length}</div>
-                <div className="text-sm text-muted-foreground">Total Classes</div>
+                <div className="text-sm text-gray-900">Total Classes</div>
               </div>
               <div className="text-center p-4 bg-background rounded-lg border border-border">
                 <div className="text-2xl font-bold text-foreground">
                   {new Set(timetable.map((e) => e.subject)).size}
                 </div>
-                <div className="text-sm text-muted-foreground">Subjects</div>
+                <div className="text-sm text-gray-900">Subjects</div>
               </div>
               <div className="text-center p-4 bg-background rounded-lg border border-border">
                 <div className="text-2xl font-bold text-foreground">
                   {Math.round((timetable.length / (DAYS_OF_WEEK.length * TIME_SLOTS.length)) * 100)}%
                 </div>
-                <div className="text-sm text-muted-foreground">Schedule Filled</div>
+                <div className="text-sm text-gray-900">Schedule Filled</div>
               </div>
             </div>
           </CardContent>
@@ -671,8 +671,8 @@ export default function TeacherTimetable() {
                             <div className="flex items-center justify-between">
                               <div>
                                 <div className="font-semibold">{r.subject}</div>
-                                <div className="text-sm text-muted-foreground">{r.day} • {r.time}</div>
-                                <div className="text-xs text-muted-foreground">Class: {r.class_name}</div>
+                                <div className="text-sm text-gray-900">{r.day} • {r.time}</div>
+                                <div className="text-xs text-gray-900">Class: {r.class_name}</div>
                               </div>
                               <div className="flex items-center gap-2">
                                 <Button size="sm" variant="ghost" onClick={() => openEditModal(r)}>Edit</Button>

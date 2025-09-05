@@ -116,6 +116,15 @@ export async function POST(req: NextRequest) {
     }
 
     // Insert pupil record and link to user ID
+    // try resolve class_id from classes table by name
+    let class_id: string | null = null
+    try {
+      const { data: classMatch } = await supabase.from('classes').select('id, name').ilike('name', classLevel).limit(1).maybeSingle()
+      if (classMatch && classMatch.id) class_id = classMatch.id
+  } catch {
+      // ignore lookup failure; we'll still insert the class text
+    }
+
   const { error: pupilError } = await supabase.from("pupils").insert([
       {
         user_id: userId, // Link user to pupil
@@ -127,6 +136,7 @@ export async function POST(req: NextRequest) {
         guardian_name,
         guardian_contact,
         class: classLevel,
+        class_id: class_id,
         profile_picture: profile_picture_url,
         uin: generatedUIN,
         password: hashedPassword, // Add this

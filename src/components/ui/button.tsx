@@ -10,7 +10,7 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   asChild?: boolean
 }
 
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({ className = "", children, variant = "default", size = "md", ...props }, ref) => {
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({ className = "", children, variant = "default", size = "md", asChild, ...props }, ref) => {
   const sizeMap: Record<ButtonSizes, string> = {
     sm: "px-2 py-1 text-sm",
     md: "px-3 py-1.5 text-sm",
@@ -24,7 +24,16 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({ classN
     destructive: "bg-red-600 text-white hover:bg-red-700",
   }
 
-  const classes = `inline-flex items-center gap-2 rounded-md font-medium disabled:opacity-60 disabled:cursor-not-allowed ${sizeMap[size]} ${variantMap[variant]} ${className}`.trim()
+  const classes = `inline-flex items-center justify-center text-center gap-2 rounded-md font-medium disabled:opacity-60 disabled:cursor-not-allowed ${sizeMap[size]} ${variantMap[variant]} ${className}`.trim()
+
+  // If asChild is true and a single React element child is provided, render that child
+  // with the computed classes to avoid forwarding the `asChild` prop to the DOM.
+  if (asChild && React.isValidElement(children)) {
+    type ChildProps = { className?: string }
+    const child = React.Children.only(children) as React.ReactElement<ChildProps>
+    const childClassName = [child.props?.className || "", classes].filter(Boolean).join(" ")
+    return React.cloneElement(child, { className: childClassName })
+  }
 
   return (
     <button ref={ref} className={classes} {...props}>

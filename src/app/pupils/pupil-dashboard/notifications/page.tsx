@@ -59,16 +59,34 @@ export default function PupilDashboardNotifications() {
     if (typeof payload['blog_id'] === 'string' || typeof payload['blog_id'] === 'number') return window.location.href = `/pupils/blog/${payload['blog_id']}`
   }
 
-  const payloadMessage = (p?: Payload) => {
+  const payloadMessage = (p?: Payload | string) => {
     if (!p) return ''
+    let maybe: Payload
+    try {
+      maybe = typeof p === 'string' ? JSON.parse(p) as Payload : (p as Payload)
+    } catch {
+      return String(p)
+    }
     // pretty-format payment notifications
     try {
-      if (typeof p['payment_id'] === 'string' || (p['terms'] && Array.isArray(p['terms']))) {
-        const amt = typeof p['amount'] === 'number' ? p['amount'] : Number(p['amount'] || 0)
-        const terms = Array.isArray(p['terms']) ? (p['terms'] as string[]) : []
-        const cls = typeof p['class'] === 'string' ? p['class'] : ''
-        const ref = typeof p['reference'] === 'string' ? p['reference'] : ''
-        const paidAt = typeof p['paid_at'] === 'string' ? p['paid_at'] : ''
+      // format known payloads
+      if (maybe['assignment_title']) {
+        const title = String(maybe['assignment_title'] || '')
+        const teacherObj = (maybe['teacher'] && typeof maybe['teacher'] === 'object') ? (maybe['teacher'] as Record<string, unknown>) : null
+        const teacherName = teacherObj && typeof teacherObj['name'] === 'string' ? String(teacherObj['name']) : undefined
+        return `New assignment: ${title}${teacherName ? ` — ${teacherName}` : ''} — due ${maybe['due_date'] ? String(maybe['due_date']).split('T')[0] : 'N/A'}`
+      }
+      if (maybe['submission_id'] && maybe['assignment_title']) {
+        const title = String(maybe['assignment_title'] || '')
+        const preview = String(maybe['text_submission_preview'] || '')
+        return `Submission received for ${title}${preview ? ` — "${preview.slice(0,120)}"` : ''}`
+      }
+      if (typeof maybe['payment_id'] === 'string' || (maybe['terms'] && Array.isArray(maybe['terms']))) {
+        const amt = typeof maybe['amount'] === 'number' ? (maybe['amount'] as number) : Number(maybe['amount'] || 0)
+        const terms = Array.isArray(maybe['terms']) ? (maybe['terms'] as string[]) : []
+        const cls = typeof maybe['class'] === 'string' ? (maybe['class'] as string) : ''
+        const ref = typeof maybe['reference'] === 'string' ? (maybe['reference'] as string) : ''
+        const paidAt = typeof maybe['paid_at'] === 'string' ? (maybe['paid_at'] as string) : ''
         return `${cls} — ${terms.join(', ')} — ${new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amt)}\nRef: ${ref}${paidAt ? ` — ${paidAt}` : ''}`
       }
     } catch (err) {
@@ -77,10 +95,10 @@ export default function PupilDashboardNotifications() {
     }
     const keys = ['message', 'note', 'text'] as const
     for (const k of keys) {
-      const val = p[k]
+      const val = maybe[k]
       if (typeof val === 'string') return val
     }
-    try { return JSON.stringify(p) } catch { return String(p) }
+    try { return JSON.stringify(maybe) } catch { return String(maybe) }
   }
 
   return (

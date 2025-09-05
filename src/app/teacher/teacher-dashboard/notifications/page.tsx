@@ -73,10 +73,34 @@ export default function TeacherDashboardNotifications() {
     // default: stay on notifications
   }
 
-  const payloadMessage = (p?: Record<string, unknown>) => {
+  const payloadMessage = (p?: Record<string, unknown> | string) => {
     if (!p) return ''
-    const maybe = p as Payload
+    // normalize payload to object when it's a JSON string
+    let maybe: Payload
     try {
+      if (typeof p === 'string') {
+        maybe = JSON.parse(p) as Payload
+      } else {
+        maybe = p as Payload
+      }
+    } catch {
+      // fallback to raw string
+      return String(p)
+    }
+    try {
+      // format known notification payloads
+      if (maybe['assignment_title']) {
+        const title = String(maybe['assignment_title'] || '')
+  const pupil = (maybe['pupil'] && typeof maybe['pupil'] === 'object') ? (maybe['pupil'] as Record<string, unknown>) : null
+        if (pupil) return `${pupil.full_name || pupil['full_name'] || ''} submitted to ${title}`
+        return `Assignment: ${title}`
+      }
+      if (maybe['submission_id'] && maybe['assignment_title']) {
+        const title = String(maybe['assignment_title'] || '')
+        const pupil = (maybe['pupil'] && typeof maybe['pupil'] === 'object') ? (maybe['pupil'] as Record<string, unknown>) : null
+        const preview = String(maybe['text_submission_preview'] || '')
+        return `${pupil?.full_name ?? 'A student'} submitted to ${title}${preview ? ` — "${preview.slice(0,120)}"` : ''}`
+      }
       if (typeof maybe['payment_id'] === 'string' || (maybe['terms'] && Array.isArray(maybe['terms']))) {
         const amt = typeof maybe['amount'] === 'number' ? maybe['amount'] : Number(maybe['amount'] || 0)
         const terms = Array.isArray(maybe['terms']) ? (maybe['terms'] as string[]) : []
@@ -85,7 +109,7 @@ export default function TeacherDashboardNotifications() {
         const paidAt = typeof maybe['paid_at'] === 'string' ? maybe['paid_at'] : ''
         return `${cls} — ${terms.join(', ')} — ${new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amt)}\nRef: ${ref}${paidAt ? ` — ${paidAt}` : ''}`
       }
-    } catch {}
+  } catch {}
     const keys = ['message', 'note', 'text'] as const
     for (const k of keys) {
       const val = maybe[k]

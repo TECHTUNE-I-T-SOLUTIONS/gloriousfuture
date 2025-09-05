@@ -30,7 +30,35 @@ export async function GET(req: Request) {
 
     const { data, error } = await supabase.from('assignments').select('*').eq('class_id', cls.id)
     if (error) return NextResponse.json({ error }, { status: 500 })
-    return NextResponse.json(data)
+
+    // fetch submissions for this pupil and attach to assignments
+    const { data: subs } = await supabase
+      .from('submissions')
+      .select('id, assignment_id, pupil_id, submitted_at, file_url, text_submission, grade, feedback')
+      .eq('pupil_id', pupil.id)
+
+    const submissionsMap: Record<string, Record<string, unknown>> = {}
+    ;(subs || []).forEach((s: Record<string, unknown>) => {
+      const aid = String(s.assignment_id)
+      submissionsMap[aid] = s
+    })
+
+    const enriched = (data || []).map((a: Record<string, unknown>) => {
+      const aid = String(a.id)
+      const sub = submissionsMap[aid]
+      return {
+        ...a,
+        submission_id: sub?.id ?? null,
+        submission_text: sub?.text_submission ?? null,
+        submission_file: sub?.file_url ?? null,
+        submitted_at: sub?.submitted_at ?? null,
+        grade: sub?.grade ?? null,
+        feedback: sub?.feedback ?? null,
+        submitted: !!sub,
+      }
+    })
+
+    return NextResponse.json(enriched)
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 })
   }

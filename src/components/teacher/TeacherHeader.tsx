@@ -37,20 +37,28 @@ export default function TeacherHeader({
           setUIN(teacherData.uin || "N/A")
           setProfilePicture(teacherData.profile_picture || "/default-profile.png")
         }
-        // fetch unread notifications count
+        // fetch unread notifications count (no-store) and tolerate non-OK
         try {
-          const notifRes = await fetch('/api/notifications', { credentials: 'include' })
+          const notifRes = await fetch('/api/notifications', { credentials: 'include', cache: 'no-store' })
           if (notifRes.ok) {
-            const nb = await notifRes.json()
+            const nb = await notifRes.json().catch(() => ({}))
             setUnreadCount(nb.unread_count || 0)
+          } else {
+            setUnreadCount(0)
           }
-        } catch {}
+        } catch {
+          setUnreadCount(0)
+        }
       } catch (error) {
         console.error("Error fetching teacher details:", error)
       }
     }
 
     fetchSessionAndTeacherDetails()
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') fetchSessionAndTeacherDetails()
+    }
+    document.addEventListener('visibilitychange', onVisibility)
     // listen for optimistic mark-read events to update unread count immediately
     const handler = (e: Event) => {
       try {
@@ -61,7 +69,10 @@ export default function TeacherHeader({
   } catch { }
     }
     window.addEventListener('notifications-mark-read', handler)
-    return () => window.removeEventListener('notifications-mark-read', handler)
+    return () => {
+      window.removeEventListener('notifications-mark-read', handler)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
   }, [])
 
   return (

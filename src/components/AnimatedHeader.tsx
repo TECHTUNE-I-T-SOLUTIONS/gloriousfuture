@@ -32,9 +32,14 @@ export default function AnimatedHeader({ text }: AnimatedHeaderProps) {
     let mounted = true
     const fetchCount = async () => {
       try {
-        const res = await fetch('/api/notifications', { credentials: 'include' })
-        const body = await res.json().catch(() => ({}))
+        const res = await fetch('/api/notifications', { credentials: 'include', cache: 'no-store' })
         if (!mounted) return
+        if (!res.ok) {
+          // non-200 — treat as zero
+          setUnreadCount(0)
+          return
+        }
+        const body = await res.json().catch(() => ({}))
         const n = body && body.unread_count != null ? Number(body.unread_count) : 0
         if (!Number.isNaN(n) && n >= 0) setUnreadCount(n)
       } catch {
@@ -43,9 +48,16 @@ export default function AnimatedHeader({ text }: AnimatedHeaderProps) {
     }
     fetchCount()
     const id = setInterval(fetchCount, 15000)
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') fetchCount()
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+
     return () => {
       mounted = false
       clearInterval(id)
+      document.removeEventListener('visibilitychange', onVisibility)
     }
   }, [])
 
@@ -141,7 +153,14 @@ export default function AnimatedHeader({ text }: AnimatedHeaderProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{unreadCount > 9 ? '9+' : unreadCount}</span>
+                <span
+                  role="status"
+                  aria-live="polite"
+                  title={`${unreadCount} unread notifications`}
+                  className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                >
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
               )}
             </button>
 

@@ -18,9 +18,11 @@ export default function PupilProfile() {
     full_name: "",
     email: "",
     class: "",
+    class_id: "",
     uin: "",
     profile_picture: "",
   })
+  const [classes, setClasses] = useState<Array<{ id: string; name: string }>>([])
   const [editing, setEditing] = useState(false)
   const [loading, setLoading] = useState(true)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -37,6 +39,7 @@ export default function PupilProfile() {
 
   useEffect(() => {
     fetchProfile()
+    fetchClasses()
   }, [])
 
   const fetchProfile = async () => {
@@ -46,12 +49,28 @@ export default function PupilProfile() {
       })
       if (res.ok) {
         const data = await res.json()
-        setProfile(() => ({ ...data }))
+        // map possible class_id/class_name fields into our profile shape
+        setProfile(() => ({
+          ...data,
+          class_id: data.class_id || data.class_id || "",
+          class: data.class || data.class_name || "",
+        }))
       }
     } catch {
       // handle error
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchClasses = async () => {
+    try {
+      const res = await fetch('/api/teacher/classes')
+      if (!res.ok) return
+      const data = await res.json()
+      setClasses(data || [])
+    } catch {
+      // ignore
     }
   }
 
@@ -89,10 +108,19 @@ export default function PupilProfile() {
 
   const saveChanges = async () => {
     try {
+      // send canonical class_id when available; keep class text for compatibility
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const payload: any = { ...profile }
+      if (profile.class_id) {
+        payload.class_id = profile.class_id
+        const found = classes.find((c) => c.id === profile.class_id)
+        if (found) payload.class = found.name
+      }
+
       const res = await fetch("/api/pupils/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profile),
+        body: JSON.stringify(payload),
       })
       if (res.ok) {
         setEditing(false)
@@ -250,14 +278,26 @@ export default function PupilProfile() {
 
               <div className="space-y-2">
                 <Label htmlFor="class">Class</Label>
-                <Input
-                  id="class"
-                  name="class"
-                  value={profile.class || ""}
-                  disabled={!editing}
-                  onChange={handleChange}
-                  className="transition-all duration-200"
-                />
+                {!editing ? (
+                  <Input id="class" name="class" value={profile.class || ""} disabled className="bg-gray-50" />
+                ) : (
+                  <select
+                    aria-label="Select class"
+                    id="class"
+                    name="class_id"
+                    value={profile.class_id || profile.class || ""}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    onChange={(e) => setProfile((p: any) => ({ ...p, class_id: e.target.value }))}
+                    className="w-full px-3 py-2 border rounded-md"
+                  >
+                    <option value="">Select class</option>
+                    {classes.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <div className="space-y-2">

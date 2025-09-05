@@ -76,9 +76,10 @@ export async function GET() {
     const { data: assignments, error: assignmentsError } = await supabase.from("assignments").select("*")
     if (assignmentsError) throw assignmentsError
 
+    // Fetch submissions and include related pupil info (id, full_name, uin, profile_picture)
     const { data: submissions, error: submissionsError } = await supabase
       .from("submissions")
-      .select("id, assignment_id, pupil_id, submitted_at, file_url, text_submission, grade, feedback")
+      .select("id, assignment_id, pupil_id, submitted_at, file_url, text_submission, grade, feedback, pupil: pupils(id, full_name, uin, profile_picture)")
 
     if (submissionsError) throw submissionsError
 
@@ -102,7 +103,17 @@ export async function GET() {
       return { ...a, questions }
     })
 
-    return NextResponse.json({ assignments: normalized, submissions })
+    // Normalize submissions: if a joined pupil object exists, expose it directly on the submission
+    const normalizedSubmissions = (submissions || []).map((s: Record<string, unknown>) => {
+      const copy = { ...s }
+      if (copy.pupil && Array.isArray(copy.pupil) && copy.pupil.length > 0) {
+        // supabase returns related rows as an array; take first
+        copy.pupil = (copy.pupil as unknown[])[0]
+      }
+      return copy
+    })
+
+    return NextResponse.json({ assignments: normalized, submissions: normalizedSubmissions })
   } catch (error) {
     return NextResponse.json({ success: false, error: String(error) });
   }

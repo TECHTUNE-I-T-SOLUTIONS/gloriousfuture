@@ -16,7 +16,8 @@ export async function GET(req: NextRequest) {
   // Support ?self=1 to fetch from session
   const self = searchParams.get("self");
 
-  let query = supabase.from("pupils").select("full_name, profile_picture, email, class, uin");
+  // select class_id too if present
+  let query = supabase.from("pupils").select("full_name, profile_picture, email, class, class_id, uin");
 
   if (email) query = query.eq("email", email);
   if (userId) query = query.eq("user_id", userId);
@@ -53,7 +54,7 @@ export async function GET(req: NextRequest) {
           });
           return new NextResponse(JSON.stringify({ error: "Session role mismatch" }), { status: 401, headers: { "Set-Cookie": expired, "Content-Type": "application/json" } });
         }
-      query = supabase.from("pupils").select("full_name, profile_picture, email, class, uin").eq("uin", sessionData.uin);
+    query = supabase.from("pupils").select("full_name, profile_picture, email, class, class_id, uin").eq("uin", sessionData.uin);
     } catch {
       return NextResponse.json({ error: "Invalid session" }, { status: 400 });
     }
@@ -63,6 +64,19 @@ export async function GET(req: NextRequest) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // If class_id exists, fetch class name for display
+  if (data.class_id) {
+    try {
+      const { data: cls } = await supabase.from('classes').select('id, name').eq('id', data.class_id).maybeSingle();
+      if (cls && cls.name) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ;(data as any).class_name = cls.name
+      }
+    } catch {
+      // ignore
+    }
   }
 
   // Fetch full profile picture URL from Supabase Storage

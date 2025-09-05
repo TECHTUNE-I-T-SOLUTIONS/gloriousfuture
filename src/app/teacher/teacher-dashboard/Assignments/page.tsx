@@ -34,9 +34,13 @@ interface Submission {
   feedback?: string
 }
 
+interface SubmissionWithPupil extends Submission {
+  pupil?: { id?: string; full_name?: string; uin?: string; profile_picture?: string } | null
+}
+
 export default function TeacherAssignments() {
   const [assignments, setAssignments] = useState<Assignment[]>([])
-  const [submissions, setSubmissions] = useState<Submission[]>([])
+  const [submissions, setSubmissions] = useState<SubmissionWithPupil[]>([])
   const [loading, setLoading] = useState(true)
   const [grading, setGrading] = useState<{ [key: string]: { grade: string; feedback: string } }>({})
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -50,7 +54,9 @@ export default function TeacherAssignments() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
 
   // toast system
-  const [toasts, setToasts] = useState<{ id: string; message: string; type: "success" | "error" | "warning" | "info" }[]>([])
+  const [toasts, setToasts] = useState<
+    { id: string; message: string; type: "success" | "error" | "warning" | "info" }[]
+  >([])
 
   // edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -68,7 +74,7 @@ export default function TeacherAssignments() {
 
   // assessment modal state (grading submissions)
   const [assessModalOpen, setAssessModalOpen] = useState(false)
-  const [assessSubs, setAssessSubs] = useState<Submission[]>([])
+  const [assessSubs, setAssessSubs] = useState<SubmissionWithPupil[]>([])
   const [assessIndex, setAssessIndex] = useState(0)
 
   // delete confirmation modal (shared component)
@@ -94,7 +100,7 @@ export default function TeacherAssignments() {
       }
 
       if (e.key === "Tab") {
-        const modal = document.querySelector('[data-modal]') as HTMLElement | null
+        const modal = document.querySelector("[data-modal]") as HTMLElement | null
         if (!modal) return
         const focusable = modal.querySelectorAll<HTMLElement>(
           'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
@@ -115,8 +121,8 @@ export default function TeacherAssignments() {
     document.addEventListener("keydown", handler)
     // focus first focusable inside the modal
     setTimeout(() => {
-      const modal = document.querySelector('[data-modal]') as HTMLElement | null
-      modal?.querySelector<HTMLElement>('input, button, select, textarea')?.focus()
+      const modal = document.querySelector("[data-modal]") as HTMLElement | null
+      modal?.querySelector<HTMLElement>("input, button, select, textarea")?.focus()
     }, 0)
 
     return () => document.removeEventListener("keydown", handler)
@@ -125,7 +131,7 @@ export default function TeacherAssignments() {
   useEffect(() => {
     const fetchAssignments = async () => {
       try {
-  const res = await fetch("/api/teacher/assignments", { credentials: "include" })
+        const res = await fetch("/api/teacher/assignments", { credentials: "include" })
         if (res.ok) {
           const data = await res.json()
           setAssignments(data.assignments || [])
@@ -141,7 +147,7 @@ export default function TeacherAssignments() {
     // Fetch classes for the teacher to choose from
     const fetchClasses = async () => {
       try {
-  const res = await fetch("/api/teacher/classes", { credentials: "include" })
+        const res = await fetch("/api/teacher/classes", { credentials: "include" })
         if (res.ok) {
           const data = await res.json()
           if (Array.isArray(data)) setClasses(data)
@@ -217,12 +223,17 @@ export default function TeacherAssignments() {
     }
 
     try {
-  const res = await fetch("/api/teacher/assignments", {
+      const res = await fetch("/api/teacher/assignments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-  // backend expects snake_case due_date; teacher_id is derived server-side; include class_id
-  body: JSON.stringify({ title: newTitle, due_date: newDueDate, questions: newQuestions, class_id: selectedClassId }),
-    credentials: "include",
+        // backend expects snake_case due_date; teacher_id is derived server-side; include class_id
+        body: JSON.stringify({
+          title: newTitle,
+          due_date: newDueDate,
+          questions: newQuestions,
+          class_id: selectedClassId,
+        }),
+        credentials: "include",
       })
 
       if (res.ok) {
@@ -354,7 +365,13 @@ export default function TeacherAssignments() {
       const res = await fetch("/api/teacher/assignments", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingAssignment.id, title: editTitle, due_date: editDueDate, questions: editQuestions, class_id: editClassId }),
+        body: JSON.stringify({
+          id: editingAssignment.id,
+          title: editTitle,
+          due_date: editDueDate,
+          questions: editQuestions,
+          class_id: editClassId,
+        }),
         credentials: "include",
       })
 
@@ -378,7 +395,7 @@ export default function TeacherAssignments() {
 
   const deleteAssignment = async (id: string) => {
     try {
-  const res = await fetch(`/api/teacher/assignments?id=${id}`, { method: "DELETE", credentials: "include" })
+      const res = await fetch(`/api/teacher/assignments?id=${id}`, { method: "DELETE", credentials: "include" })
       if (res.ok) {
         setAssignments((prev) => prev.filter((a) => a.id !== id))
         addToast("Assignment deleted.", "success")
@@ -414,12 +431,16 @@ export default function TeacherAssignments() {
   return (
     <div className="space-y-8 animate-fade-in-up">
       {/* Toast container */}
-      <div className="fixed right-4 top-4 z-[9999] flex flex-col gap-2">
+      <div className="fixed right-4 top-4 z-[10000] flex flex-col gap-2">
         {toasts.map((t) => (
           <div
             key={t.id}
             className={`px-4 py-2 rounded shadow-md text-sm max-w-xs break-words ${
-              t.type === "success" ? "bg-green-600 text-white" : t.type === "error" ? "bg-red-600 text-white" : "bg-gray-800 text-white"
+              t.type === "success"
+                ? "bg-green-600 text-white"
+                : t.type === "error"
+                  ? "bg-red-600 text-white"
+                  : "bg-gray-800 text-white"
             }`}
           >
             {t.message}
@@ -434,7 +455,7 @@ export default function TeacherAssignments() {
             <BookOpen className="h-8 w-8 text-primary" />
             Assignments
           </h1>
-          <p className="text-muted-foreground mt-2">Create, manage, and grade student assignments</p>
+          <p className="text-black mt-2">Create, manage, and grade pupil assignments</p>
         </div>
         <Button onClick={() => setShowCreateForm(!showCreateForm)} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
@@ -450,7 +471,7 @@ export default function TeacherAssignments() {
               <Plus className="h-5 w-5" />
               Create New Assignment
             </CardTitle>
-            <CardDescription>Design a new assignment for your students</CardDescription>
+            <CardDescription>Design a new assignment for your pupils</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 p-2">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -505,7 +526,7 @@ export default function TeacherAssignments() {
                       placeholder={`Question ${index + 1}`}
                       value={question}
                       onChange={(e) => handleQuestionChange(index, e.target.value)}
-                      className="bg-input border-border"
+                      className="bg-input border-border w-full"
                     />
                   </div>
                   {newQuestions.length > 1 && (
@@ -540,9 +561,9 @@ export default function TeacherAssignments() {
           {assignments.length === 0 ? (
             <Card className="border-border bg-card">
               <CardContent className="text-center py-12">
-                <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <BookOpen className="h-12 w-12 text-black mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-foreground mb-2">No assignments yet</h3>
-                <p className="text-muted-foreground mb-4">Create your first assignment to get started</p>
+                <p className="text-black mb-4">Create your first assignment to get started</p>
                 <Button onClick={() => setShowCreateForm(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create Assignment
@@ -553,13 +574,13 @@ export default function TeacherAssignments() {
             assignments.map((assignment) => (
               <Card key={assignment.id} className="border-border bg-card hover-lift">
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="min-w-0 flex-1">
                       <CardTitle className="text-card-foreground flex items-center gap-2">
                         <FileText className="h-5 w-5" />
                         {assignment.title}
                       </CardTitle>
-                      <CardDescription className="flex items-center gap-4 mt-2">
+                      <CardDescription className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
                           Due: {assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : "—"}
@@ -570,23 +591,52 @@ export default function TeacherAssignments() {
                         </span>
                       </CardDescription>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">{(assignment.questions ?? []).length} questions</Badge>
-                      <span className="text-sm text-muted-foreground">{classes.find((c) => c.id === assignment.class_id)?.name ?? "Unassigned"}</span>
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" variant="outline" onClick={() => toggleExpand(assignment.id)}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {(assignment.questions ?? []).length} questions
+                      </Badge>
+                      <span className="text-xs sm:text-sm text-black hidden sm:inline">
+                        {classes.find((c) => c.id === assignment.class_id)?.name ?? "Unassigned"}
+                      </span>
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => toggleExpand(assignment.id)}
+                          className="text-xs px-2 py-1"
+                        >
                           {expanded[assignment.id] ? "Hide" : "View"}
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => duplicateAssignment(assignment)}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => duplicateAssignment(assignment)}
+                          className="text-xs px-2 py-1 hidden sm:inline-flex"
+                        >
                           Duplicate
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => openEditModal(assignment)}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openEditModal(assignment)}
+                          className="text-xs px-2 py-1"
+                        >
                           Edit
                         </Button>
-                        <Button size="sm" variant="destructive" onClick={() => openDeleteModal(assignment.id)}>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => openDeleteModal(assignment.id)}
+                          className="text-xs px-2 py-1"
+                        >
                           Delete
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => openAssessModal(assignment.id)}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => openAssessModal(assignment.id)}
+                          className="text-xs px-2 py-1"
+                        >
                           Assess
                         </Button>
                       </div>
@@ -601,128 +651,118 @@ export default function TeacherAssignments() {
                     </TabsList>
 
                     <TabsContent value="submissions" className="space-y-4">
-                        {expanded[assignment.id] && (
-                          <div className="mb-4 p-4 bg-muted rounded-md border border-border">
-                            <h4 className="font-semibold text-foreground">Description</h4>
-                            <div className="text-sm text-muted-foreground mt-2">
-                              {(() => {
-                                try {
-                                  const desc = assignment.description
-                                  if (!desc) return "—"
-                                  // If description is JSON containing questions, render them nicely
-                                  if (typeof desc === "string") {
-                                    const parsed = JSON.parse(desc)
-                                    if (parsed && parsed.questions && Array.isArray(parsed.questions)) {
-                                      return (
-                                        <ol className="list-decimal list-inside space-y-1">
-                                          {parsed.questions.map((q: string, i: number) => (
-                                            <li key={i} className="text-muted-foreground">{q}</li>
-                                          ))}
-                                        </ol>
-                                      )
-                                    }
+                      {expanded[assignment.id] && (
+                        <div className="mb-4 p-4 bg-gray-200 rounded-md border border-border">
+                          <h4 className="font-semibold text-foreground">Description</h4>
+                          <div className="text-sm text-black mt-2">
+                            {(() => {
+                              try {
+                                const desc = assignment.description
+                                if (!desc) return "—"
+                                // If description is JSON containing questions, render them nicely
+                                if (typeof desc === "string") {
+                                  const parsed = JSON.parse(desc)
+                                  if (parsed && parsed.questions && Array.isArray(parsed.questions)) {
+                                    return (
+                                      <ol className="list-decimal list-inside space-y-1">
+                                        {parsed.questions.map((q: string, i: number) => (
+                                          <li key={i} className="text-black">
+                                            {q}
+                                          </li>
+                                        ))}
+                                      </ol>
+                                    )
                                   }
-                                  // Fallback: plain text
-                                  return <pre className="whitespace-pre-wrap">{assignment.description}</pre>
-                                } catch {
-                                  return <pre className="whitespace-pre-wrap">{assignment.description}</pre>
                                 }
-                              })()}
-                            </div>
+                                // Fallback: plain text
+                                return <pre className="whitespace-pre-wrap">{assignment.description}</pre>
+                              } catch {
+                                return <pre className="whitespace-pre-wrap">{assignment.description}</pre>
+                              }
+                            })()}
                           </div>
-                        )}
-                      {submissions
-                        .filter((sub) => sub.assignment_id === assignment.id)
-                        .map((sub) => (
-                          <Card key={sub.id} className="border-border bg-background">
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between mb-4">
-                                <div>
-                                  <p className="font-medium text-foreground">Student ID: {sub.pupil_id}</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    Submitted: {new Date(sub.submitted_at).toLocaleString()}
-                                  </p>
-                                </div>
-                                {sub.grade && (
-                                  <Badge variant="outline" className="flex items-center gap-1">
-                                    <Star className="h-3 w-3" />
-                                    {sub.grade}/100
-                                  </Badge>
-                                )}
-                              </div>
-
-                              {sub.file_url && (
-                                <div className="mb-4">
-                                  <Button variant="outline" size="sm" asChild>
-                                    <a href={sub.file_url} target="_blank" rel="noopener noreferrer">
-                                      <Download className="h-4 w-4 mr-2" />
-                                      View Submitted File
-                                    </a>
-                                  </Button>
-                                </div>
-                              )}
-
-                              {sub.text_submission && (
-                                <div className="mb-4 p-3 bg-muted rounded-lg border border-border">
-                                  <Label className="text-sm font-medium mb-2 block">Text Submission:</Label>
-                                  <pre className="text-sm text-foreground whitespace-pre-wrap">{sub.text_submission}</pre>
-                                </div>
-                              )}
-
-                              <Separator className="my-4" />
-
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                  <Label htmlFor={`grade-${sub.id}`}>Grade (0-100)</Label>
-                                  <Input
-                                    id={`grade-${sub.id}`}
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    placeholder="Grade"
-                                    value={grading[sub.id]?.grade || sub.grade || ""}
-                                    onChange={(e: ChangeEvent<HTMLInputElement>) => handleGradeChange(sub.id, "grade", e.target.value)}
-                                    className="bg-input border-border"
-                                  />
-                                </div>
-                                <div className="md:col-span-2">
-                                  <Label htmlFor={`feedback-${sub.id}`}>Feedback</Label>
-                                  <Textarea
-                                    id={`feedback-${sub.id}`}
-                                    placeholder="Provide feedback to the student"
-                                    value={grading[sub.id]?.feedback || sub.feedback || ""}
-                                    onChange={(e: ChangeEvent<HTMLTextAreaElement>) => handleGradeChange(sub.id, "feedback", e.target.value)}
-                                    className="bg-input border-border"
-                                    rows={2}
-                                  />
-                                </div>
-                              </div>
-
-                              <Button
-                                onClick={() => submitGrade(sub.id)}
-                                className="mt-4 flex items-center gap-2"
-                                size="sm"
-                              >
-                                <Star className="h-4 w-4" />
-                                Submit Grade
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        ))}
-
-                      {submissions.filter((sub) => sub.assignment_id === assignment.id).length === 0 && (
-                        <div className="text-center py-8">
-                          <Users className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                          <p className="text-muted-foreground">No submissions yet</p>
                         </div>
                       )}
+                      {(() => {
+                        const subsFor = submissions.filter((sub) => sub.assignment_id === assignment.id)
+                        if (subsFor.length === 0) {
+                          return (
+                            <div className="text-center py-8">
+                              <Users className="h-8 w-8 text-black mx-auto mb-2" />
+                              <p className="text-black">No submissions yet</p>
+                            </div>
+                          )
+                        }
+
+                        const previews = subsFor.slice(0, 3)
+                        return (
+                          <div className="space-y-3">
+                            <div className="grid gap-3">
+                              {previews.map((sub) => (
+                                <Card key={sub.id} className="p-4 bg-background border border-border">
+                                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div className="min-w-0 flex-1">
+                                      <p className="font-medium text-foreground truncate">
+                                        {sub.pupil?.full_name ?? sub.pupil_id}
+                                      </p>
+                                      <p className="text-sm text-black">
+                                        {new Date(sub.submitted_at).toLocaleString()}
+                                      </p>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      {sub.grade != null && (
+                                        <Badge variant="outline" className="text-xs">
+                                          {sub.grade}/100
+                                        </Badge>
+                                      )}
+                                      {sub.file_url && (
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          asChild
+                                          className="text-xs px-2 py-1 bg-transparent"
+                                        >
+                                          <a href={sub.file_url} target="_blank" rel="noopener noreferrer">
+                                            <Download className="h-3 w-3 mr-1" />
+                                            File
+                                          </a>
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+                                </Card>
+                              ))}
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                              <p className="text-sm text-black">
+                                Showing {previews.length} of {subsFor.length} submissions
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setAssessSubs(subsFor)
+                                    setAssessIndex(0)
+                                    setAssessModalOpen(true)
+                                  }}
+                                  className="text-xs"
+                                >
+                                  View all submissions
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })()}
                     </TabsContent>
 
                     <TabsContent value="questions" className="space-y-3">
                       {(assignment.questions ?? []).map((question, index) => (
                         <div key={index} className="p-3 bg-background rounded-lg border border-border">
                           <p className="font-medium text-foreground">Question {index + 1}:</p>
-                          <p className="text-muted-foreground mt-1">{question}</p>
+                          <p className="text-black mt-1">{question}</p>
                         </div>
                       ))}
                     </TabsContent>
@@ -736,8 +776,8 @@ export default function TeacherAssignments() {
 
       {/* Edit Assignment Modal */}
       {editModalOpen && editingAssignment && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <Card className="max-w-lg w-full mx-4 p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <Card className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle className="text-card-foreground flex items-center gap-2">
                 <Star className="h-5 w-5" />
@@ -745,8 +785,8 @@ export default function TeacherAssignments() {
               </CardTitle>
               <CardDescription>Edit the details of the assignment</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="space-y-4 p-2">
+              <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="editTitle">Assignment Title</Label>
                   <Input
@@ -769,30 +809,28 @@ export default function TeacherAssignments() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="editClassSelect">Class</Label>
-                  <select
-                    id="editClassSelect"
-                    aria-label="Select class for assignment"
-                    value={editClassId ?? ""}
-                    onChange={(e) => setEditClassId(e.target.value || null)}
-                    className="w-full bg-input border-border rounded-md p-2"
-                  >
-                    <option value="">Select class</option>
-                    {classes.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="editClassSelect">Class</Label>
+                <select
+                  id="editClassSelect"
+                  aria-label="Select class for assignment"
+                  value={editClassId ?? ""}
+                  onChange={(e) => setEditClassId(e.target.value || null)}
+                  className="w-full bg-input border-border rounded-md p-2"
+                >
+                  <option value="">Select class</option>
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-4">
                 <Label className="text-base font-medium">Questions</Label>
                 {editQuestions.map((question, index) => (
-                  <div key={index} className="flex gap-2">
+                  <div key={index} className="flex flex-col sm:flex-row gap-2">
                     <div className="flex-1">
                       <Input
                         placeholder={`Question ${index + 1}`}
@@ -802,20 +840,31 @@ export default function TeacherAssignments() {
                       />
                     </div>
                     {editQuestions.length > 1 && (
-                      <Button onClick={() => removeEditQuestion(index)} variant="outline" size="sm" className="px-3">
+                      <Button
+                        onClick={() => removeEditQuestion(index)}
+                        variant="outline"
+                        size="sm"
+                        className="px-3 sm:w-auto w-sm"
+                      >
                         <Trash2 className="h-4 w-4" />
+                        <span className="sm:hidden ml-2">Remove</span>
                       </Button>
                     )}
                   </div>
                 ))}
-                <Button onClick={addEditQuestion} variant="outline" size="sm">
+                <Button
+                  onClick={addEditQuestion}
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto bg-transparent"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Question
                 </Button>
               </div>
 
-              <div className="flex gap-3">
-                <Button onClick={saveEdit} className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button onClick={saveEdit} className="flex items-center justify-center gap-2">
                   <Star className="h-4 w-4" />
                   Save Changes
                 </Button>
@@ -828,21 +877,20 @@ export default function TeacherAssignments() {
         </div>
       )}
 
-      {/* Assess Submissions Modal */}
       {assessModalOpen && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-          <Card className="max-w-3xl w-full mx-4 p-4">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <Card className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle className="text-card-foreground flex items-center gap-2">
                 <Star className="h-5 w-5" />
                 Assess Submissions
               </CardTitle>
-              <CardDescription>Grade and provide feedback for student submissions</CardDescription>
+              <CardDescription>Grade and provide feedback for pupil submissions</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {assessSubs.length > 0 && (
                 <div>
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 p-2">
                     <div>
                       <p className="font-medium text-foreground">
                         Submission {assessIndex + 1} of {assessSubs.length}
@@ -852,7 +900,12 @@ export default function TeacherAssignments() {
                       <Button size="sm" variant="outline" onClick={assessPrev} disabled={assessIndex === 0}>
                         Previous
                       </Button>
-                      <Button size="sm" variant="outline" onClick={assessNext} disabled={assessIndex === assessSubs.length - 1}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={assessNext}
+                        disabled={assessIndex === assessSubs.length - 1}
+                      >
                         Next
                       </Button>
                     </div>
@@ -860,10 +913,13 @@ export default function TeacherAssignments() {
 
                   <Card className="border-border bg-background">
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <p className="font-medium text-foreground">Student ID: {assessSubs[assessIndex].pupil_id}</p>
-                          <p className="text-sm text-muted-foreground">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                        <div className="min-w-0">
+                          <p className="font-medium text-foreground">
+                            Pupil ID: {assessSubs[assessIndex].pupil?.uin ?? assessSubs[assessIndex].pupil_id}
+                          </p>
+                          <p className="text-sm text-black">Name: {assessSubs[assessIndex].pupil?.full_name ?? "—"}</p>
+                          <p className="text-sm text-black">
                             Submitted: {new Date(assessSubs[assessIndex].submitted_at).toLocaleString()}
                           </p>
                         </div>
@@ -877,7 +933,7 @@ export default function TeacherAssignments() {
 
                       {assessSubs[assessIndex].file_url && (
                         <div className="mb-4">
-                          <Button variant="outline" size="sm" asChild>
+                          <Button variant="outline" size="sm" asChild className="w-full sm:w-auto bg-transparent">
                             <a href={assessSubs[assessIndex].file_url} target="_blank" rel="noopener noreferrer">
                               <Download className="h-4 w-4 mr-2" />
                               View Submitted File
@@ -887,16 +943,18 @@ export default function TeacherAssignments() {
                       )}
 
                       {assessSubs[assessIndex].text_submission && (
-                        <div className="mb-4 p-3 bg-muted rounded-lg border border-border">
+                        <div className="mb-4 p-3 bg-gray-200 rounded-lg border border-border">
                           <Label className="text-sm font-medium mb-2 block">Text Submission:</Label>
-                          <pre className="text-sm text-foreground whitespace-pre-wrap">{assessSubs[assessIndex].text_submission}</pre>
+                          <pre className="text-sm text-foreground whitespace-pre-wrap break-words">
+                            {assessSubs[assessIndex].text_submission}
+                          </pre>
                         </div>
                       )}
 
                       <Separator className="my-4" />
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
+                      <div className="grid grid-cols-1 gap-4">
+                        <div className="space-y-2">
                           <Label htmlFor={`grade-assess-${assessSubs[assessIndex].id}`}>Grade (0-100)</Label>
                           <Input
                             id={`grade-assess-${assessSubs[assessIndex].id}`}
@@ -905,34 +963,42 @@ export default function TeacherAssignments() {
                             max="100"
                             placeholder="Grade"
                             value={grading[assessSubs[assessIndex].id]?.grade || assessSubs[assessIndex].grade || ""}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleGradeChange(assessSubs[assessIndex].id, "grade", e.target.value)}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                              handleGradeChange(assessSubs[assessIndex].id, "grade", e.target.value)
+                            }
                             className="bg-input border-border"
                           />
                         </div>
-                        <div className="md:col-span-2">
+                        <div className="space-y-2">
                           <Label htmlFor={`feedback-assess-${assessSubs[assessIndex].id}`}>Feedback</Label>
                           <Textarea
                             id={`feedback-assess-${assessSubs[assessIndex].id}`}
-                            placeholder="Provide feedback to the student"
-                            value={grading[assessSubs[assessIndex].id]?.feedback || assessSubs[assessIndex].feedback || ""}
-                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => handleGradeChange(assessSubs[assessIndex].id, "feedback", e.target.value)}
+                            placeholder="Provide feedback to the pupil"
+                            value={
+                              grading[assessSubs[assessIndex].id]?.feedback || assessSubs[assessIndex].feedback || ""
+                            }
+                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                              handleGradeChange(assessSubs[assessIndex].id, "feedback", e.target.value)
+                            }
                             className="bg-input border-border"
-                            rows={2}
+                            rows={3}
                           />
                         </div>
                       </div>
 
-                      <Button
-                        onClick={handleAssessSubmit}
-                        className="mt-4 flex items-center gap-2"
-                        size="sm"
-                      >
-                        <Star className="h-4 w-4" />
-                        Submit Grade
-                      </Button>
-                      <Button onClick={closeAssessModal} variant="outline" className="mt-4 ml-3" size="sm">
-                        Close
-                      </Button>
+                      <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                        <Button
+                          onClick={handleAssessSubmit}
+                          className="flex items-center justify-center gap-2"
+                          size="sm"
+                        >
+                          <Star className="h-4 w-4" />
+                          Submit Grade
+                        </Button>
+                        <Button onClick={closeAssessModal} variant="outline" size="sm">
+                          Close
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>

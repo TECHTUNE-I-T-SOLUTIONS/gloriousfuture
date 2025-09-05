@@ -46,6 +46,7 @@ export default function TeacherDashboard() {
     upcomingExams: 0,
     unreadMessages: 0,
   })
+  const [recentActivity, setRecentActivity] = useState<{ id: string; title: string; time: string; kind: string }[]>([])
 
   useEffect(() => {
     const fetchSessionAndTeacherDetails = async () => {
@@ -76,7 +77,72 @@ export default function TeacherDashboard() {
                   })
 
                   // Fetch dashboard statistics
-                  await fetchDashboardStats()
+                  try {
+                    // Fetch real counts from APIs
+                    const [assignRes, testsRes, cbtRes, notifRes, messagesRes] = await Promise.all([
+                      fetch('/api/teacher/assignments', { credentials: 'include' }),
+                      fetch('/api/teacher/tests-quizzes', { credentials: 'include' }),
+                      fetch('/api/teacher/cbt-exams', { credentials: 'include' }),
+                      fetch('/api/notifications', { credentials: 'include', cache: 'no-store' }),
+                      fetch('/api/teacher/messages', { credentials: 'include' }),
+                    ])
+
+                    const assignmentsJson = assignRes.ok ? await assignRes.json() : null
+                    const testsJson = testsRes.ok ? await testsRes.json() : null
+                    const cbtJson = cbtRes.ok ? await cbtRes.json() : null
+                    const notifsJson = notifRes.ok ? await notifRes.json() : null
+                    const messagesJson = messagesRes.ok ? await messagesRes.json() : null
+
+                    const totalAssignments = Array.isArray(assignmentsJson?.assignments) ? assignmentsJson.assignments.length : Array.isArray(assignmentsJson) ? assignmentsJson.length : 0
+                    // pendingGrades is repurposed to show total tests (tests & quizzes)
+                    const totalTests = Array.isArray(testsJson) ? testsJson.length : 0
+                    const upcomingExams = Array.isArray(cbtJson) ? cbtJson.length : 0
+                    const notificationsCount = typeof notifsJson?.unread_count === 'number' ? notifsJson.unread_count : 0
+
+                    setDashboardStats({
+                      totalAssignments: totalAssignments,
+                      pendingGrades: totalTests,
+                      upcomingExams: upcomingExams,
+                      unreadMessages: notificationsCount,
+                    })
+
+                    // populate recent activity list
+                    const recent: { id: string; title: string; time: string; kind: string }[] = []
+
+                    if (Array.isArray(assignmentsJson?.assignments)) {
+                      assignmentsJson.assignments.slice(-5).reverse().forEach((a: Record<string, unknown>) => {
+                        const id = getStr(a, 'id')
+                        const title = getStr(a, 'title')
+                        const time = getStr(a, 'due_date') || getStr(a, 'created_at')
+                        recent.push({ id, title: `Assignment: ${title}`, time, kind: 'assignment' })
+                      })
+                    }
+
+                    if (Array.isArray(cbtJson)) {
+                      cbtJson.slice(-5).reverse().forEach((e: Record<string, unknown>) => {
+                        const id = getStr(e, 'id')
+                        const title = getStr(e, 'exam_title') || getStr(e, 'title') || 'Exam'
+                        const time = getStr(e, 'created_at')
+                        recent.push({ id, title: `Exam: ${title}`, time, kind: 'exam' })
+                      })
+                    }
+
+                    const recentMessages = Array.isArray(messagesJson) ? messagesJson : []
+                    if (Array.isArray(recentMessages)) {
+                      recentMessages.slice(-5).reverse().forEach((m: Record<string, unknown>) => {
+                        const id = getStr(m, 'id')
+                        const msg = getStr(m, 'message')
+                        const time = getStr(m, 'created_at') || getStr(m, 'sent_at')
+                        recent.push({ id, title: `Message: ${msg.slice(0, 60) || 'New message'}`, time, kind: 'message' })
+                      })
+                    }
+
+                    // sort by time desc and keep top 5
+                    recent.sort((a, b) => (new Date(b.time || 0).getTime() - new Date(a.time || 0).getTime()))
+                    setRecentActivity(recent.slice(0, 5))
+                  } catch (error) {
+                    console.error("Error fetching dashboard stats:", error)
+                  }
                   setLoading(false)
                   return
                 }
@@ -117,17 +183,33 @@ export default function TeacherDashboard() {
     return () => window.removeEventListener('teacher-set-active-page', handler)
   }, [router])
 
-  const fetchDashboardStats = async () => {
+  
+
+  const formatRelativeTime = (iso: string) => {
+    if (!iso) return ''
     try {
-      // These would be actual API calls in a real implementation
-      setDashboardStats({
-        totalAssignments: 12,
-        pendingGrades: 8,
-        upcomingExams: 3,
-        unreadMessages: 5,
-      })
-    } catch (error) {
-      console.error("Error fetching dashboard stats:", error)
+      const d = new Date(iso)
+      const diff = Date.now() - d.getTime()
+      const minutes = Math.round(diff / 60000)
+      if (minutes < 1) return 'just now'
+      if (minutes < 60) return `${minutes}m ago`
+      const hours = Math.round(minutes / 60)
+      if (hours < 24) return `${hours}h ago`
+      const days = Math.round(hours / 24)
+      return `${days}d ago`
+    } catch {
+      return iso
+    }
+  }
+
+  const getStr = (obj: unknown, key: string) => {
+    try {
+      const v = (obj as Record<string, unknown>)[key]
+      if (typeof v === 'string') return v
+      if (typeof v === 'number') return String(v)
+      return ''
+    } catch {
+      return ''
     }
   }
 
@@ -136,7 +218,7 @@ export default function TeacherDashboard() {
       <div className="flex justify-center items-center h-screen bg-background">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-lg text-muted-foreground">Checking authentication...</p>
+          <p className="text-lg text-black">Checking authentication...</p>
         </div>
       </div>
     )
@@ -149,7 +231,7 @@ export default function TeacherDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">Welcome back, {teacher?.full_name}! 👋</h1>
-            <p className="text-muted-foreground text-lg">Here&apos;s what&apos;s happening in your classroom today</p>
+            <p className="text-black text-lg">Here&apos;s what&apos;s happening in your classroom today</p>
           </div>
           <div className="hidden md:block">
             <div className="w-20 h-20 rounded-full bg-gradient-primary animate-float"></div>
@@ -162,47 +244,47 @@ export default function TeacherDashboard() {
         <Card className="hover-lift border-border bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-card-foreground">Total Assignments</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
+            <BookOpen className="h-4 w-4 text-black" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">{dashboardStats.totalAssignments}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-black">
               <TrendingUp className="inline h-3 w-3 mr-1" />
               +2 from last week
             </p>
           </CardContent>
         </Card>
 
-        <Card className="hover-lift border-border bg-card">
+    <Card className="hover-lift border-border bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-card-foreground">Pending Grades</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+      <CardTitle className="text-sm font-medium text-card-foreground">Total Tests</CardTitle>
+            <Clock className="h-4 w-4 text-black" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">{dashboardStats.pendingGrades}</div>
-            <p className="text-xs text-muted-foreground">Requires attention</p>
+            <p className="text-xs text-black">Requires attention</p>
           </CardContent>
         </Card>
 
         <Card className="hover-lift border-border bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-card-foreground">Upcoming Exams</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <FileText className="h-4 w-4 text-black" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">{dashboardStats.upcomingExams}</div>
-            <p className="text-xs text-muted-foreground">Next 7 days</p>
+            <p className="text-xs text-black">Next 7 days</p>
           </CardContent>
         </Card>
 
-        <Card className="hover-lift border-border bg-card">
+    <Card className="hover-lift border-border bg-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-card-foreground">Unread Messages</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+      <CardTitle className="text-sm font-medium text-card-foreground">Notifications</CardTitle>
+            <MessageSquare className="h-4 w-4 text-black" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">{dashboardStats.unreadMessages}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-black">
               {dashboardStats.unreadMessages > 0 && (
                 <Badge variant="accent" className="text-xs">
                   New
@@ -267,31 +349,24 @@ export default function TeacherDashboard() {
       <Card className="border-border bg-card">
         <CardHeader>
           <CardTitle className="text-foreground">Recent Activity</CardTitle>
-          <CardDescription className="text-muted-foreground">Your latest classroom activities</CardDescription>
+          <CardDescription className="text-black">Your latest classroom activities</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="flex items-center space-x-4 p-3 rounded-lg bg-background border border-border">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-foreground">Assignment &quot;Math Quiz 1&quot; graded</p>
-                <p className="text-xs text-muted-foreground">2 hours ago</p>
+            {recentActivity.length === 0 && (
+              <div className="text-sm text-gray-500">No recent activity</div>
+            )}
+            {recentActivity.map((r) => (
+              <div key={r.id} className="flex items-center space-x-4 p-3 rounded-lg bg-background border border-border">
+                {r.kind === 'assignment' && <CheckCircle className="h-5 w-5 text-green-500" />}
+                {r.kind === 'exam' && <PlusCircle className="h-5 w-5 text-blue-500" />}
+                {r.kind === 'message' && <MessageSquare className="h-5 w-5 text-purple-500" />}
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">{r.title}</p>
+                  <p className="text-xs text-black">{formatRelativeTime(r.time)}</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center space-x-4 p-3 rounded-lg bg-background border border-border">
-              <PlusCircle className="h-5 w-5 text-blue-500" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-foreground">New CBT exam created</p>
-                <p className="text-xs text-muted-foreground">1 day ago</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4 p-3 rounded-lg bg-background border border-border">
-              <MessageSquare className="h-5 w-5 text-purple-500" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-foreground">3 new messages received</p>
-                <p className="text-xs text-muted-foreground">2 days ago</p>
-              </div>
-            </div>
+            ))}
           </div>
         </CardContent>
       </Card>
