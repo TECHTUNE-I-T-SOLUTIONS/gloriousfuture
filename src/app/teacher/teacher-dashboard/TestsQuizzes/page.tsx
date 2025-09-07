@@ -24,6 +24,9 @@ interface TestQuiz {
 export default function TeacherTestsQuizzes() {
   const [tests, setTests] = useState<TestQuiz[]>([])
   const [classes, setClasses] = useState<{ id: string; name: string }[]>([])
+  const [sessions, setSessions] = useState<{ id: string; session: string; active?: boolean }[]>([])
+  const [filterSession, setFilterSession] = useState<string | 'all'>('all')
+  const [schoolSessionId, setSchoolSessionId] = useState<string | null>(null)
   const [newTest, setNewTest] = useState<TestQuiz>({
     title: "",
     description: "",
@@ -68,6 +71,28 @@ export default function TeacherTestsQuizzes() {
           }
         } catch (err) {
           console.warn("Failed to fetch classes for Tests & Quizzes dropdown", err)
+        }
+        // fetch available school sessions
+        try {
+          const sres = await fetch('/api/teacher/school-session?all=1', { credentials: 'include' })
+          if (sres.ok) {
+            const sd = await sres.json()
+            type SessionShape = { id?: string; session?: string; active?: boolean }
+            const parsed = (() => {
+              if (Array.isArray(sd)) return sd
+              if (sd && sd.data) return Array.isArray(sd.data) ? sd.data : [sd.data]
+              if (sd && sd.rows) return Array.isArray(sd.rows) ? sd.rows : [sd.rows]
+              return []
+            })() as SessionShape[]
+            const normalized = parsed
+              .filter((p) => p && p.id && p.session)
+              .map((p) => ({ id: String(p.id), session: String(p.session), active: Boolean(p.active) }))
+            if (normalized.length > 0) setSessions(normalized)
+            const active = normalized.find((x) => x && x.active)
+            if (active && active.id) setFilterSession(active.id)
+          }
+        } catch (err) {
+          console.warn('Failed to fetch school sessions', err)
         }
       } catch (error) {
         console.error("Error fetching tests:", error)
@@ -114,19 +139,21 @@ export default function TeacherTestsQuizzes() {
 
   const handleSubmit = async () => {
     try {
-      const res = await fetch("/api/teacher/tests-quizzes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ ...newTest, questions: newQuestions }),
-        credentials: "include",
-      })
+  const payload = { ...newTest, questions: newQuestions, ...(schoolSessionId ? { school_session_id: schoolSessionId } : {}) }
+  const res = await fetch("/api/teacher/tests-quizzes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload),
+    credentials: "include",
+  })
 
       if (res.ok) {
         const payload = await res.json()
         if (payload && payload.success && payload.data) setTests((prev) => [...prev, payload.data])
   setNewTest({ title: "", description: "", due_date: "", class_id: "" })
   setNewQuestions([""])
-        setShowCreateForm(false)
+      setShowCreateForm(false)
+      setSchoolSessionId(null)
       }
     } catch (error) {
       console.error("Error creating test:", error)
@@ -138,17 +165,19 @@ export default function TeacherTestsQuizzes() {
 
     try {
       // PUT handled at /api/teacher/tests-quizzes with JSON body { id, ... }
-      const res = await fetch(`/api/teacher/tests-quizzes`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ ...editingTest, questions: editQuestions }),
-        credentials: "include",
-      })
+  const payload = { ...editingTest, questions: editQuestions, ...(schoolSessionId ? { school_session_id: schoolSessionId } : {}) }
+  const res = await fetch(`/api/teacher/tests-quizzes`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload),
+    credentials: "include",
+  })
 
       if (res.ok) {
         setTests((prev) => prev.map((t) => (t.id === editingTest.id ? editingTest : t)))
   setEditingTest(null)
   setEditQuestions([""])
+      setSchoolSessionId(null)
       }
     } catch (error) {
       console.error("Error updating test:", error)
@@ -212,10 +241,19 @@ export default function TeacherTestsQuizzes() {
           </h1>
           <p className="text-gray-500 mt-2">Create, manage, and evaluate quizzes</p>
         </div>
-        <Button onClick={() => setShowCreateForm(!showCreateForm)} className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <div>
+            <label className="text-sm text-muted-foreground mr-2">Session</label>
+            <select aria-label="Filter by session" value={filterSession} onChange={(e) => setFilterSession(e.target.value || 'all')} className="border rounded p-2 bg-input">
+              <option value="all">All</option>
+              {sessions.map((s) => (<option key={s.id} value={s.id}>{s.session}{s.active ? ' (active)' : ''}</option>))}
+            </select>
+          </div>
+          <Button onClick={() => setShowCreateForm(!showCreateForm)} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
           Create Test/Quiz
-        </Button>
+          </Button>
+        </div>
       </div>
 
       {/* Create/Edit Form */}
@@ -317,6 +355,16 @@ export default function TeacherTestsQuizzes() {
               </select>
             </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="school_session">Session</Label>
+                <select aria-label="Select session" id="school_session" name="school_session" value={schoolSessionId ?? ''} onChange={(e) => setSchoolSessionId(e.target.value || null)} className="w-full bg-input border-border p-2 rounded">
+                  <option value="">None</option>
+                  {sessions.map((s) => (
+                    <option key={s.id} value={s.id}>{s.session}</option>
+                  ))}
+                </select>
+              </div>
+
             <div className="flex gap-3">
               {editingTest ? (
                 <>
@@ -361,7 +409,10 @@ export default function TeacherTestsQuizzes() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tests.map((test) => {
+              {tests.filter((t) => {
+                if (filterSession === 'all') return true
+                return String((t as unknown as { school_session_id?: string }).school_session_id ?? '') === String(filterSession)
+              }).map((test) => {
               const dueDateStr = test.due_date || ""
               const daysUntilDue = dueDateStr ? getDaysUntilDue(dueDateStr) : Infinity
               const overdue = dueDateStr ? isOverdue(dueDateStr) : false
@@ -377,11 +428,12 @@ export default function TeacherTestsQuizzes() {
                           Class: {
                             (classes.find((c) => c.id === test.class_id)?.name) || (test.class_id ? test.class_id : '\u2014')
                           }
+                          <div className="ml-2"><Badge className="text-xs">{(test as unknown as { school_session_id?: string }).school_session_id ? (sessions.find(s => s.id === (test as unknown as { school_session_id?: string }).school_session_id)?.session ?? 'Session') : 'None'}</Badge></div>
                         </CardDescription>
                       </div>
                       <div className="flex gap-1 items-center">
                         <Button
-                          onClick={() => { setEditingTest(test); try { setEditQuestions(((test as unknown) as { questions?: unknown[] }).questions as string[] ?? [""]) } catch { setEditQuestions([""]) } }}
+                          onClick={() => { setEditingTest(test); try { setEditQuestions(((test as unknown) as { questions?: unknown[] }).questions as string[] ?? [""]) } catch { setEditQuestions([""]) } const maybeSess = (test as unknown as { school_session_id?: string }).school_session_id; if (maybeSess) setSchoolSessionId(maybeSess) }}
                           variant="outline"
                           size="sm"
                           className="h-8 w-8 p-0"
@@ -500,7 +552,7 @@ export default function TeacherTestsQuizzes() {
 
 
 function SubmissionsModal({ testId, className, onClose, page, pageSize, onPageChange }: { testId: string | null; className?: string; onClose: () => void; page: number; pageSize: number; onPageChange: (p: number) => void }) {
-  type SubmissionItem = { id: string; pupil_id?: string; pupils?: { full_name?: string; first_name?: string; last_name?: string }; answers?: unknown; score?: number | null; submitted_at?: string }
+  type SubmissionItem = { id: string; pupil_id?: string; pupils?: { full_name?: string }; answers?: unknown; score?: number | null; submitted_at?: string }
   const [loading, setLoading] = useState(false)
   const [items, setItems] = useState<SubmissionItem[]>([])
   const [total, setTotal] = useState(0)
@@ -515,8 +567,30 @@ function SubmissionsModal({ testId, className, onClose, page, pageSize, onPageCh
         const res = await fetch(`/api/test-submissions?testId=${testId}&limit=${pageSize}&offset=${offset}`, { credentials: 'include' })
         const data = await res.json()
         if (res.ok && data.success) {
-          setItems(data.data || [])
+          const list: SubmissionItem[] = data.data || []
+          setItems(list)
           setTotal(data.total || 0)
+          // find pupil ids missing name info
+          const missingIds = Array.from(new Set(list.map((it) => it.pupil_id).filter((x): x is string => Boolean(x))))
+            .filter((id) => {
+              const row = list.find((r) => r.pupil_id === id)
+              return !(row && row.pupils && row.pupils.full_name)
+            })
+          if (missingIds.length > 0) {
+            try {
+              const resp = await fetch(`/api/teacher/pupils/by-ids?ids=${missingIds.join(',')}`, { credentials: 'include' })
+              if (resp.ok) {
+                const body = await resp.json()
+                if (body && body.success && Array.isArray(body.data)) {
+                  const map: Record<string, { id?: string; full_name?: string }> = {}
+                  for (const p of body.data) map[p.id] = p
+                  setItems((prev) => prev.map((it) => ({ ...it, pupils: it.pupils ?? map[it.pupil_id ?? ''] ?? it.pupils })))
+                }
+              }
+            } catch {
+              // ignore failures
+            }
+          }
         } else {
           setItems([])
         }
@@ -535,26 +609,25 @@ function SubmissionsModal({ testId, className, onClose, page, pageSize, onPageCh
       const res = await fetch('/api/test-submissions', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ id, score }) })
       const data = await res.json()
       if (res.ok && data.success) {
-        // update local item
-        setItems((prev) => prev.map((it) => (it.id === id ? data.data : it)))
+        // update local item (merge returned data)
+  setItems((prev) => prev.map((it) => (it.id === id ? { ...it, score: (data && data.data && typeof data.data.score !== 'undefined') ? data.data.score : score } : it)))
         setToast({ type: 'success', message: 'Score saved' })
         setTimeout(() => setToast(null), 2500)
       } else {
-        setToast({ type: 'error', message: data?.error || 'Failed to save score' })
+        setToast({ type: 'error', message: data?.error || JSON.stringify(data) || 'Failed to save score' })
         setTimeout(() => setToast(null), 3000)
       }
     } catch (err) {
       console.error(err)
-      setToast({ type: 'error', message: String(err) })
+      const msg = err instanceof Error ? err.message : JSON.stringify(err)
+      setToast({ type: 'error', message: msg })
       setTimeout(() => setToast(null), 3000)
     }
   }
 
-  const displayPupilName = (pupils?: { full_name?: string; first_name?: string; last_name?: string } | null, pupil_id?: string) => {
+  const displayPupilName = (pupils?: { full_name?: string } | null, pupil_id?: string) => {
     if (pupils) {
       if (pupils.full_name) return pupils.full_name
-      const name = `${pupils.first_name || ''} ${pupils.last_name || ''}`.trim()
-      if (name) return name
     }
     if (pupil_id) return `${String(pupil_id).slice(0, 8)}...`
     return 'Unknown Student'

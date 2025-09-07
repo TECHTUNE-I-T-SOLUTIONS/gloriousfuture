@@ -345,6 +345,27 @@ export default function TeacherAssignments() {
     }
   }
 
+  const isOverdueTimestamp = (dueDate?: string | null) => {
+    if (!dueDate) return false
+    try {
+      return new Date(dueDate) < new Date()
+    } catch {
+      return false
+    }
+  }
+
+  const daysUntilFromTimestamp = (dueDate?: string | null) => {
+    if (!dueDate) return Infinity
+    try {
+      const today = new Date()
+      const due = new Date(dueDate)
+      const diffTime = due.getTime() - today.getTime()
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    } catch {
+      return Infinity
+    }
+  }
+
   const handleEditQuestionChange = (index: number, value: string) => {
     const updated = [...editQuestions]
     updated[index] = value
@@ -584,6 +605,16 @@ export default function TeacherAssignments() {
                         <span className="flex items-center gap-1">
                           <Calendar className="h-4 w-4" />
                           Due: {assignment.due_date ? new Date(assignment.due_date).toLocaleDateString() : "—"}
+                        </span>
+                        <span>
+                          {isOverdueTimestamp(assignment.due_date) ? (
+                            <Badge variant="destructive" className="text-xs">Overdue</Badge>
+                          ) : (() => {
+                            const days = daysUntilFromTimestamp(assignment.due_date)
+                            if (days <= 3) return <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-800">Due in {days} days</Badge>
+                            if (days !== Infinity) return <Badge variant="outline" className="text-xs">{days} days left</Badge>
+                            return null
+                          })()}
                         </span>
                         <span className="flex items-center gap-1">
                           <Users className="h-4 w-4" />

@@ -6,6 +6,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { FiMenu, FiX, FiHome, FiUsers, FiBookOpen, FiUser, FiInfo, FiPhone, FiMail } from "react-icons/fi"
+import NotificationsDropdown from "./NotificationsDropdown"
 
 const CustomHeader = () => {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -109,6 +110,7 @@ const CustomHeader = () => {
         </nav>
 
         <div className="flex items-center space-x-2">
+  <NotificationsDropdown />
         {/* Contact links for desktop */}
         <div className="hidden xl:flex items-center space-x-2">
           {contactLinks.map(({ href, label, icon }) => (

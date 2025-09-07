@@ -107,8 +107,8 @@ export async function GET(req: Request) {
   const pupilIds = Array.from(new Set((data || []).map((d: unknown) => ((d as Record<string, unknown>)?.pupil_id as string | undefined)).filter(Boolean)));
   const pupilsMap: Record<string, unknown> = {};
     if (pupilIds.length > 0) {
-      // request full_name where available, and keep first_name/last_name for older schemas
-      const { data: pupils } = await supabase.from('pupils').select('id, full_name, first_name, last_name').in('id', pupilIds);
+  // request full_name where available
+  const { data: pupils } = await supabase.from('pupils').select('id, full_name').in('id', pupilIds);
       if (pupils && Array.isArray(pupils)) {
         for (const p of pupils) {
           const pp = p as Record<string, unknown>
@@ -137,10 +137,14 @@ export async function PATCH(req: Request) {
     const { id, score } = body;
     if (!id) return NextResponse.json({ success: false, error: 'id is required' }, { status: 400 });
 
-    const { data, error } = await supabase.from('test_submissions').update({ score, updated_at: new Date().toISOString() }).eq('id', id).select().single();
-    if (error) throw error;
+    const { data, error } = await supabase.from('test_submissions').update({ score }).eq('id', id).select().single();
+    if (error) {
+      console.error('failed to update submission score', error)
+      return NextResponse.json({ success: false, error: error.message || String(error) }, { status: 500 })
+    }
     return NextResponse.json({ success: true, data });
   } catch (err) {
-    return NextResponse.json({ success: false, error: String(err) }, { status: 500 });
+    const msg = err instanceof Error ? err.message : JSON.stringify(err)
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }

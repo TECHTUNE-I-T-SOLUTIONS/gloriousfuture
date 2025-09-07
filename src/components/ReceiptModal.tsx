@@ -472,8 +472,11 @@ export default function ReceiptModal({
         await inlineImagesAndBackgrounds(clone)
         inlineComputedStyles(clone)
 
-    // Ensure images finish loading in the clone before capture
-    await waitForImagesToLoad(clone, 3000)
+        // Normalize colors to avoid parsing errors (oklch etc.)
+        await (await import('@/lib/clientPdf')).normalizeElementColors(clone)
+
+        // Ensure images finish loading in the clone before capture
+        await waitForImagesToLoad(clone, 3000)
 
         // Use html2canvas at runtime for robust DOM -> canvas capture. html-to-image
         // tries to read document.styleSheets.cssRules which throws for cross-origin
@@ -662,36 +665,13 @@ export default function ReceiptModal({
         // Wait for images to load in the clone
         await waitForImagesToLoad(clone, 3000)
 
-        // Use html2canvas at runtime for DOM -> canvas capture, then open the
-        // captured image in a new tab so users can print/save as PDF via browser.
-        const h2cModule = await import("html2canvas").catch(() => null)
-        const h2cCandidate = h2cModule ? (h2cModule.default || h2cModule) as unknown : null
-        if (h2cCandidate) {
-          const html2canvas = h2cCandidate as (el: HTMLElement, opts?: Record<string, unknown>) => Promise<HTMLCanvasElement>
-          const canvas = await html2canvas(clone as HTMLElement, {
-            backgroundColor: "#ffffff",
-            useCORS: true,
-            logging: false,
-            scale: Math.max(1, window.devicePixelRatio || 1),
-          })
-          if (canvas) {
-            try {
-              const imgData = canvas.toDataURL("image/png")
-              const w = window.open("", "_blank")
-              if (w) {
-                w.document.write(`<img src="${imgData}" style="max-width:100%;height:auto;display:block;margin:0 auto" />`)
-                w.document.title = "Receipt"
-                w.document.close()
-                w.focus()
-                return
-              }
-            } catch (e) {
-              console.warn("PDF creation from canvas failed:", e)
-            }
-          }
-        }
+        // Use the shared capture helper which normalizes colors and slices multipage PDFs
+        const id = `receipt-capture-${Date.now()}`
+        clone.id = id
+  await (await import('@/lib/clientPdf')).captureElementToPdf(id)
+        return
       } catch (e) {
-        console.warn("html2canvas/pdf capture failed:", e)
+        console.warn('html2canvas/pdf capture failed:', e)
       } finally {
         container.remove()
       }

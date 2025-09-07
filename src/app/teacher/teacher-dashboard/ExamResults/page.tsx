@@ -361,8 +361,8 @@ export default function TeacherExamResults() {
             )}
             {attempts.map((a) => {
               const pupil = (a.pupils ?? null) as Record<string, unknown> | null
-              const displayName = String(pupil?.first_name || pupil?.full_name || pupil?.name || a.pupil_id || 'Unknown Student')
-              const lastName = pupil?.last_name ? String(pupil.last_name) : ''
+                const displayName = String(pupil?.full_name || pupil?.name || a.pupil_id || 'Unknown Student')
+                const lastName = ''
               const submitted = a.submitted_at ? new Date(String(a.submitted_at)).toLocaleString() : '—'
               const score = typeof a.score === 'number' ? `${a.score}%` : '-'
               const answers = a.answers as unknown as Record<string, unknown> | string | null;

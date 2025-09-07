@@ -27,37 +27,37 @@ export async function POST(req: Request) {
     const cookies = parse(cookieHeader);
     if (!cookies.session) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-    let session: { uin?: string; role?: string } | null = null;
+    let sessCookie: { uin?: string; role?: string } | null = null;
     try {
-      session = JSON.parse(cookies.session);
+      sessCookie = JSON.parse(cookies.session);
     } catch {
       return NextResponse.json({ success: false, error: "Invalid session cookie" }, { status: 400 });
     }
 
-    if (!session || session.role !== "teacher" || !session.uin) {
+    if (!sessCookie || sessCookie.role !== "teacher" || !sessCookie.uin) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 });
     }
 
     // Resolve teacher id from teachers table
-    const { data: teacherData, error: teacherErr } = await supabase.from("teachers").select("id").eq("uin", session.uin).maybeSingle();
+  const { data: teacherData, error: teacherErr } = await supabase.from("teachers").select("id").eq("uin", sessCookie.uin).maybeSingle();
     if (teacherErr || !teacherData?.id) {
       return NextResponse.json({ success: false, error: "Teacher not found" }, { status: 404 });
     }
     const teacher_id = teacherData.id as string;
 
-  const { title, description, due_date, class_id, questions } = await req.json();
+  const { title, description, due_date, class_id, questions, school_session_id, session } = await req.json();
 
     // optional: validate class exists when provided
-    if (class_id) {
+  if (class_id) {
       const { data: classCheck, error: classErr } = await supabase.from("classes").select("id").eq("id", class_id).maybeSingle();
       if (classErr) return NextResponse.json({ success: false, error: String(classErr) }, { status: 400 });
       if (!classCheck) return NextResponse.json({ success: false, error: "Invalid class_id" }, { status: 400 });
     }
 
-    const { data, error } = await supabase
-      .from("tests_quizzes")
-      .insert([{ title, description: description ?? null, due_date: due_date ?? null, class_id: class_id ?? null, teacher_id, questions: questions ?? [] }])
-      .single();
+  const insertRow: Record<string, unknown> = { title, description: description ?? null, due_date: due_date ?? null, class_id: class_id ?? null, teacher_id, questions: questions ?? [] };
+  const sess = school_session_id ?? session ?? null;
+  if (sess) insertRow["school_session_id"] = sess;
+  const { data, error } = await supabase.from("tests_quizzes").insert([insertRow]).single();
 
     if (error) throw error;
     return NextResponse.json({ success: true, data });
@@ -71,10 +71,14 @@ export async function PUT(req: Request) {
     const supabase = getSupabaseClient();
     if (!supabase) return NextResponse.json({ success: false, error: "Supabase not configured" }, { status: 500 });
 
-  const { id, title, description, due_date, class_id, questions } = await req.json();
+  const { id, title, description, due_date, class_id, questions, school_session_id, session } = await req.json();
     if (!id) return NextResponse.json({ success: false, error: "id is required" }, { status: 400 });
 
-  const { error } = await supabase.from("tests_quizzes").update({ title, description: description ?? null, due_date: due_date ?? null, class_id: class_id ?? null, questions: questions ?? [] }).eq("id", id);
+  const payload: Record<string, unknown> = { title, description: description ?? null, due_date: due_date ?? null, class_id: class_id ?? null, questions: questions ?? [] };
+  const sess2 = school_session_id ?? session ?? null;
+  if (sess2) payload["school_session_id"] = sess2;
+
+  const { error } = await supabase.from("tests_quizzes").update(payload).eq("id", id);
     if (error) throw error;
     return NextResponse.json({ success: true });
   } catch (err) {

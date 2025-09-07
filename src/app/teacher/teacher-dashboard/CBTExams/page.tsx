@@ -14,7 +14,7 @@ import ConfirmModal from "@/components/ConfirmModal";
 
 type ClassInfo = { id: string; name: string };
 type Question = { question: string; options: { a: string; b: string; c: string; d: string }; correctAnswer: string };
-type Exam = { id: string; exam_title: string; subject: string; class_id: string; teacher_id: string | null; questions: Question[]; created_at?: string; status?: "draft" | "published" | "completed"; duration?: number | null };
+type Exam = { id: string; exam_title: string; subject: string; class_id: string; teacher_id: string | null; questions: Question[]; created_at?: string; status?: "draft" | "published" | "completed"; duration?: number | null; school_session_id?: string | null };
 
 export default function TeacherCBTExams(): React.ReactElement {
   const [examTitle, setExamTitle] = useState<string>("");
@@ -22,8 +22,11 @@ export default function TeacherCBTExams(): React.ReactElement {
   const [classId, setClassId] = useState<string>("");
   const [teacherId, setTeacherId] = useState<string>("");
   const [classes, setClasses] = useState<ClassInfo[]>([]);
+  const [sessions, setSessions] = useState<{ id: string; session: string; active?: boolean }[]>([]);
+  const [filterSession, setFilterSession] = useState<string | 'all'>('all');
   const [exams, setExams] = useState<Exam[]>([]);
   const [duration, setDuration] = useState<string>("");
+  const [schoolSessionId, setSchoolSessionId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([{ question: "", options: { a: "", b: "", c: "", d: "" }, correctAnswer: "" }]);
   const [editingExam, setEditingExam] = useState<Exam | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -57,6 +60,34 @@ export default function TeacherCBTExams(): React.ReactElement {
           const t = await teacherRes.json();
           if (t?.teacher_id) setTeacherId(t.teacher_id);
         }
+        // fetch available school sessions (admin-managed)
+        try {
+          const sres = await fetch('/api/teacher/school-session?all=1', { credentials: 'include' })
+          if (sres.ok) {
+            const sd = await sres.json()
+            // support various response shapes: array, { data: [] }, { rows: [] }
+            type SessionShape = { id?: string; session?: string; active?: boolean }
+            const parsed = (() => {
+              if (Array.isArray(sd)) return sd
+              if (sd && sd.data) return Array.isArray(sd.data) ? sd.data : [sd.data]
+              if (sd && sd.rows) return Array.isArray(sd.rows) ? sd.rows : [sd.rows]
+              return []
+            })() as SessionShape[]
+            // normalize to known shape (ensure id and session are strings)
+            const normalized = parsed
+              .filter((p) => p && p.id && p.session)
+              .map((p) => ({ id: String(p.id), session: String(p.session), active: Boolean(p.active) }))
+            if (normalized.length > 0) setSessions(normalized)
+            // default filter and create form to active session if present
+            const active = normalized.find((x) => x && x.active)
+            if (active && active.id) {
+              setFilterSession(active.id)
+              setSchoolSessionId((prev) => prev ?? active.id)
+            }
+          }
+        } catch (err) {
+          console.warn('Failed to fetch sessions', err)
+        }
       } catch (err) {
         console.error(err);
         setAlert({ message: "Error fetching data.", type: "error" });
@@ -88,8 +119,8 @@ export default function TeacherCBTExams(): React.ReactElement {
       return setAlert({ message: "Please fill all fields", type: "warning" });
 
     try {
-      // payload keys match DB column names
-      const payload = {
+  // payload keys match DB column names
+  const payload = {
         exam_title: examTitle,
         subject,
         class_id: classId,
@@ -97,6 +128,7 @@ export default function TeacherCBTExams(): React.ReactElement {
   questions,
   // include duration if set (minutes)
   ...(duration ? { duration: parseInt(duration, 10) } : {}),
+  ...(schoolSessionId ? { school_session_id: schoolSessionId } : {}),
       }
       const res = await fetch("/api/teacher/cbt-exams", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const j = await res.json();
@@ -130,6 +162,8 @@ export default function TeacherCBTExams(): React.ReactElement {
     })
   setEditingExam({ ...exam, questions: normalizedQuestions })
     setEditModalOpen(true)
+  const maybeSess = (exam as unknown as { school_session_id?: string }).school_session_id
+  if (maybeSess) setSchoolSessionId(maybeSess)
   }
 
   const saveEdit = async () => {
@@ -146,15 +180,18 @@ export default function TeacherCBTExams(): React.ReactElement {
         teacher_id: editingExam.teacher_id,
   questions: editingExam.questions,
   duration: editingExam.duration ?? undefined,
+  ...(schoolSessionId ? { school_session_id: schoolSessionId } : {}),
       }
       const res = await fetch(`/api/teacher/cbt-exams?id=${editingExam.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
       const j = await res.json()
       if (j?.success) {
   // backend may not return the updated row; update local state with the editingExam values
-  setExams((e) => e.map((ex) => (ex.id === editingExam.id ? { ...editingExam } : ex)))
+  // merge school_session_id from local schoolSessionId if set
+  setExams((e) => e.map((ex) => (ex.id === editingExam.id ? { ...editingExam, school_session_id: schoolSessionId ?? editingExam.school_session_id } : ex)))
         setAlert({ message: "Exam updated", type: "success" })
         setEditModalOpen(false)
         setEditingExam(null)
+  setSchoolSessionId(null)
       } else setAlert({ message: j?.message ?? "Update failed", type: "error" })
     } catch (err) {
       console.error(err)
@@ -205,7 +242,16 @@ export default function TeacherCBTExams(): React.ReactElement {
           <h1 className="text-3xl font-bold text-foreground flex items-center gap-3"><FileText className="h-8 w-8 text-primary" /> CBT Exams Management</h1>
           <p className="text-muted-foreground mt-2">Create and manage computer-based tests</p>
         </div>
-        <Button onClick={() => setShowCreateForm((v) => !v)} className="flex items-center gap-2"><Plus className="h-4 w-4" /> Create Exam</Button>
+        <div className="flex items-center gap-3">
+          <div>
+            <label className="text-sm text-muted-foreground mr-2">Session</label>
+            <select aria-label="Filter by session" value={filterSession} onChange={(e) => setFilterSession(e.target.value || 'all')} className="border rounded p-2 bg-input">
+              <option value="all">All</option>
+              {sessions.map((s) => (<option key={s.id} value={s.id}>{s.session}{s.active ? ' (active)' : ''}</option>))}
+            </select>
+          </div>
+          <Button onClick={() => setShowCreateForm((v) => !v)} className="flex items-center gap-2"><Plus className="h-4 w-4" /> Create Exam</Button>
+        </div>
       </div>
 
       {showCreateForm && (
@@ -232,6 +278,18 @@ export default function TeacherCBTExams(): React.ReactElement {
                   </SelectTrigger>
                   <SelectContent>
                     {classes.map((c) => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="school_session">Session</Label>
+                <Select value={schoolSessionId ?? ''} onValueChange={(v: string) => setSchoolSessionId(v || null)}>
+                  <SelectTrigger aria-label="Select session">
+                    <SelectValue placeholder="Select session (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {sessions.map((s) => (<SelectItem key={s.id} value={s.id}>{s.session}</SelectItem>))}
                   </SelectContent>
                 </Select>
               </div>
@@ -310,7 +368,10 @@ export default function TeacherCBTExams(): React.ReactElement {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {exams.map((exam) => (
+            {exams.filter((ex) => {
+              if (filterSession === 'all') return true
+              return String(ex.school_session_id ?? '') === String(filterSession)
+            }).map((exam) => (
               <Card key={exam.id} className="border-border bg-card hover-lift p-2">
                 <CardHeader>
                   <div className="flex items-start justify-between">
@@ -319,6 +380,7 @@ export default function TeacherCBTExams(): React.ReactElement {
                       <CardDescription className="mt-2 space-y-1">
                         <div className="flex items-center gap-2"><BookOpen className="h-4 w-4" /> {exam.subject}</div>
                         <div className="flex items-center gap-2"><Users className="h-4 w-4" /> Class: {classes.find((c) => c.id === exam.class_id)?.name ?? "Unknown"}</div>
+                        <div className="flex items-center gap-2"><Badge className="text-xs">{exam.school_session_id ? (sessions.find(s => s.id === exam.school_session_id)?.session ?? 'Session') : 'None'}</Badge></div>
                         {exam.duration ? <div className="flex items-center gap-2">⏱ {exam.duration} mins</div> : null}
                       </CardDescription>
                     </div>
@@ -365,6 +427,18 @@ export default function TeacherCBTExams(): React.ReactElement {
                     </SelectTrigger>
                     <SelectContent>
                       {classes.map((c) => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Session</Label>
+                  <Select value={schoolSessionId ?? ''} onValueChange={(v: string) => setSchoolSessionId(v || null)}>
+                    <SelectTrigger aria-label="Select session">
+                      <SelectValue placeholder="Select session (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {sessions.map((s) => (<SelectItem key={s.id} value={s.id}>{s.session}</SelectItem>))}
                     </SelectContent>
                   </Select>
                 </div>

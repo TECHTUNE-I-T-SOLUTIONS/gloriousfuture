@@ -100,41 +100,17 @@ export default function Timetable() {
 
   // download as PDF (uses html2canvas dynamically)
   const handleDownload = async () => {
-    // Try server-side PDF first (high-fidelity). Fallback to client capture if server fails.
     try {
-      const res = await fetch('/api/pdf', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: window.location.href })
-      })
-      if (!res.ok) throw new Error('Server PDF failed')
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'timetable.pdf'
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      URL.revokeObjectURL(url)
-      return
-    } catch (err) {
-      console.warn('Server PDF failed, falling back to client capture', err)
-    }
-
-    // fallback: previous html2canvas-based capture
-    try {
-      const html2canvas = (await import('html2canvas')).default
+      const { captureElementToPdf } = await import('@/lib/clientPdf')
+      // create a temporary wrapper id if ref has none
       const el = tableRef.current
       if (!el) return
-      const canvas = await html2canvas(el, { scale: 2 })
-      const dataUrl = canvas.toDataURL('image/png')
-      const w = window.open('about:blank')
-      if (!w) return
-      w.document.write(`<img src="${dataUrl}" style="width:100%"/>`)
-      w.document.close()
+      const id = el.id || `timetable-capture-${Date.now()}`
+      if (!el.id) el.id = id
+  await captureElementToPdf(id)
+      if (id.startsWith('timetable-capture-')) el.removeAttribute('id')
     } catch (err) {
-      console.error('Client capture failed', err)
+      console.error('Client PDF failed', err)
     }
   }
 

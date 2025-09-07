@@ -7,6 +7,12 @@ export async function GET(req: Request) {
     const examId = searchParams.get('examId')
     if (!examId) return NextResponse.json({ success: false, error: 'Missing examId' }, { status: 400 })
 
+    // validate examId is a UUID to avoid DB type errors (e.g. ?examId=0)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(examId)) {
+      return NextResponse.json({ success: false, error: 'Invalid examId format; expected UUID' }, { status: 400 })
+    }
+
     // read session cookie
     const cookie = req.headers.get('cookie') || ''
     const match = cookie.match(/session=([^;]+)/)

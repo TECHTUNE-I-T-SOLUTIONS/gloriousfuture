@@ -3,14 +3,26 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-  // prefer the active session; fallback to most recently created
-  const { data: active } = await supabase.from('school_session').select('*').eq('active', true).limit(1).maybeSingle()
-  if (active) return NextResponse.json({ success: true, data: active })
+    const url = new URL(req.url)
+    const all = url.searchParams.get('all')
+    // if caller asked for all sessions return them (including inactive)
+    if (all && (all === '1' || all.toLowerCase() === 'true')) {
+      const { data, error } = await supabase.from('school_session').select('*').order('created_at', { ascending: false })
+      if (error) {
+        console.error('failed to fetch sessions', error)
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+      }
+      return NextResponse.json({ success: true, data })
+    }
 
-  const { data: latest } = await supabase.from('school_session').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle()
-  return NextResponse.json({ success: true, data: latest })
+    // prefer the active session; fallback to most recently created
+    const { data: active } = await supabase.from('school_session').select('*').eq('active', true).limit(1).maybeSingle()
+    if (active) return NextResponse.json({ success: true, data: active })
+
+    const { data: latest } = await supabase.from('school_session').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle()
+    return NextResponse.json({ success: true, data: latest })
   } catch (err) {
     console.error(err)
     return NextResponse.json({ success: false, error: (err as Error).message }, { status: 500 })

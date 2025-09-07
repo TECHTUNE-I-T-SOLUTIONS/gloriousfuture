@@ -62,7 +62,6 @@ export default function ExamResults() {
 
   if (loading) return <Loader />
 
-  if (!attempt) return <p className="p-6 text-gray-500">No results available.</p>
   // If no detailed attempt loaded but we have a list, show previews with expand buttons
   if (!attempt && list.length > 0) {
     return (
@@ -101,12 +100,15 @@ export default function ExamResults() {
     )
   }
 
+  // If we reached here and there's no attempt and no list, show a placeholder
+  if (!attempt && list.length === 0) return <p className="p-6 text-gray-500">No results available.</p>
+
   // Detailed attempt view: show questions, pupil answers, and correct answers
-  const questions = attempt?.questions ?? attempt?.cbt_exams?.questions ?? []
-  const answers = attempt?.answers ?? attempt?.responses ?? {}
-  const examTitle = attempt?.cbt_exams?.exam_title ?? attempt?.title ?? ''
-  const examSubject = attempt?.cbt_exams?.subject ?? attempt?.subject ?? ''
-  const examClass = (typeof attempt?.class_name === 'string' ? String(attempt?.class_name) : (attempt?.cbt_exams && typeof attempt.cbt_exams.class_id === 'string' ? String(attempt.cbt_exams.class_id) : (typeof attempt?.class === 'string' ? String(attempt.class) : '')))
+  const questions = attempt!.questions ?? attempt!.cbt_exams?.questions ?? []
+  const answers = attempt!.answers ?? attempt!.responses ?? {}
+  const examTitle = attempt!.cbt_exams?.exam_title ?? attempt!.title ?? ''
+  const examSubject = attempt!.cbt_exams?.subject ?? attempt!.subject ?? ''
+  const examClass = (typeof attempt!.class_name === 'string' ? String(attempt!.class_name) : (attempt!.cbt_exams && typeof attempt!.cbt_exams.class_id === 'string' ? String(attempt!.cbt_exams.class_id) : (typeof attempt!.class === 'string' ? String(attempt!.class) : '')))
 
   return (
     <div className="p-6">
@@ -120,7 +122,7 @@ export default function ExamResults() {
           <div className="text-sm text-gray-600">
             <div>Subject: {examSubject || '—'}</div>
             <div>Class: {examClass || '—'}</div>
-            <div className="mt-1">Score: {String(attempt.score ?? (attempt.percent ?? '-'))}</div>
+            <div className="mt-1">Score: {String(attempt?.score ?? (attempt?.percent ?? '-'))}</div>
           </div>
         </div>
 

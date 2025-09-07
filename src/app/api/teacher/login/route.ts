@@ -35,7 +35,8 @@ export async function POST(req: NextRequest) {
     const sessionData = JSON.stringify({ 
       uin: data.uin, 
       role: "teacher", 
-      user: { email: data.email } 
+      user: { email: data.email },
+      id: data.id // include teacher id so APIs can set created_by
     });
 
     const sessionCookie = serialize("session", sessionData, {

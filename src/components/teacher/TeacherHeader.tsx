@@ -2,8 +2,9 @@
 
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react"
 import { motion } from "framer-motion"
-import { User, Bell, Settings, LogOut, Menu } from "lucide-react"
+import { User, Settings, LogOut, Menu } from "lucide-react"
 import Image from "next/image"
+import NotificationsDropdown from "../NotificationsDropdown"
 export default function TeacherHeader({
   text,
   setIsSidebarOpen,
@@ -15,7 +16,7 @@ export default function TeacherHeader({
   const [profilePicture, setProfilePicture] = useState("/default-profile.png")
   const [uin, setUIN] = useState("N/A")
   const [showDropdown, setShowDropdown] = useState(false)
-  const [unreadCount, setUnreadCount] = useState<number>(0)
+  const [, setUnreadCount] = useState<number>(0) // only using the setter; omit unreadCount to avoid unused var
 
   useEffect(() => {
   const fetchSessionAndTeacherDetails = async () => {
@@ -106,26 +107,7 @@ export default function TeacherHeader({
 
         {/* Right Section - User Info and Actions */}
         <div className="flex items-center space-x-4">
-          {/* Notifications */}
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => {
-              try {
-                // dispatch event so teacher dashboard can open notifications in-dashboard
-                window.dispatchEvent(new CustomEvent('teacher-set-active-page', { detail: { page: 'notifications' } }))
-              } catch {
-                // fallback to hard navigation if event fails
-                window.location.href = '/teacher/teacher-dashboard/notifications'
-              }
-            }}
-            className="relative p-2 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
-          >
-            <Bell className="w-5 h-5" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-2 -right-2 min-w-[18px] h-4 px-1 bg-destructive text-white text-xs rounded-full flex items-center justify-center">{unreadCount}</span>
-            )}
-          </motion.button>
+          <NotificationsDropdown />
 
           {/* User Profile Dropdown */}
           <div className="relative">
