@@ -50,9 +50,9 @@ export async function PUT(req: Request) {
   const questions = body.questions;
   const duration = typeof body.duration !== 'undefined' ? body.duration : undefined;
   const payload: Record<string, unknown> = { exam_title, subject, questions };
-  // allow updating exam's session association
+  // allow updating exam's session association - include even if null to clear the association
   const school_session_id = body.school_session_id ?? body.session ?? body.schoolSessionId ?? null;
-  if (school_session_id) payload.school_session_id = school_session_id;
+  payload.school_session_id = school_session_id; // Always include to allow clearing
   if (typeof duration !== "undefined") payload.duration = duration;
   await supabase.from("cbt_exams").update(payload).eq("id", id);
   return NextResponse.json({ success: true });

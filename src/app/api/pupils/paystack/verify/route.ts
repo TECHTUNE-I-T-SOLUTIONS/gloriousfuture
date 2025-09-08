@@ -16,7 +16,9 @@ export async function GET(req: NextRequest) {
     const res = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reqReference)}`, {
       headers: { Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}` },
     })
-  const body = (await res.json()) as PaystackVerifyResponse
+    const body = (await res.json()) as PaystackVerifyResponse
+  // We'll log the verify response later once we resolve paymentId; keep the body handy
+  const verifyResponseBody = body
     if (!body || !body.status) return NextResponse.json({ error: 'verify failed', details: body }, { status: 502 })
 
     if (!body || typeof body !== 'object') return NextResponse.json({ error: 'verify returned no body' }, { status: 502 })
@@ -85,6 +87,20 @@ export async function GET(req: NextRequest) {
       if (updErr) console.error('Paystack verify update-by-reference error', updErr, { reference, updateData })
       else console.debug('Paystack verify updated payment row by reference', updData)
     }
+
+      // Insert a diagnostic log of the Paystack verify call
+      try {
+        const httpStatus = typeof (res as unknown as { status?: number }).status === 'number' ? (res as unknown as { status?: number }).status : null
+        await supabase.from('paystack_response_logs').insert({
+          source: 'verify',
+          payment_id: paymentId ?? null,
+          reference: reqReference,
+          http_status: httpStatus,
+          raw_response: verifyResponseBody ?? null,
+        })
+      } catch (logErr) {
+        console.error('failed to insert paystack verify log', logErr)
+      }
 
     // support JSON response for client-side verify calls (format=json)
     if (searchParams.get('format') === 'json') {

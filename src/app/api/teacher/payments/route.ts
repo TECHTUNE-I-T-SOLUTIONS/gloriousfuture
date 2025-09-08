@@ -95,9 +95,36 @@ export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json()
     const { id, status } = body || {}
+    // allow teacher to update status and optionally mark payment as paid with details
+    const { payment_reference, paid_at, payment_method } = body || {}
     if (!id || typeof status !== 'string') return NextResponse.json({ success: false, error: 'Invalid payload' }, { status: 400 })
-    const { error } = await supabase.from('payments').update({ status }).eq('id', id)
+    const updateObj: Record<string, unknown> = { status }
+    if (payment_reference) updateObj.payment_reference = payment_reference
+    if (paid_at) updateObj.paid_at = paid_at
+    if (payment_method) updateObj.payment_method = payment_method
+    const { error } = await supabase.from('payments').update(updateObj).eq('id', id)
     if (error) throw error
+    // if status is paid, insert notification to pupil
+    try {
+      if (status === 'paid') {
+        // fetch payment to gather pupil_id
+        const { data: p } = await supabase.from('payments').select('pupil_id, uin, amount').eq('id', id).limit(1).maybeSingle()
+        const pay = (p as Record<string, unknown>) || null
+        const pupilId = pay ? (pay.pupil_id as string | null) : null
+        const amount = pay ? (pay.amount as number | null) : null
+        if (pupilId) {
+          await supabase.from('notifications').insert({
+            pupil_id: pupilId,
+            title: 'Payment marked as received',
+            body: `Your payment ${payment_reference || ''} of ₦${amount ?? 0} has been marked as received by your teacher.`,
+            created_at: new Date().toISOString(),
+          })
+        }
+      }
+    } catch (nErr) {
+      console.error('failed to create notification after teacher update', nErr)
+    }
+
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error(err)

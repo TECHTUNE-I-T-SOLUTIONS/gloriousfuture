@@ -11,9 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import CustomAlert from "@/components/CustomAlert";
 import ConfirmModal from "@/components/ConfirmModal";
+import CBTExamModal from "@/components/CBTExamModal";
 
 type ClassInfo = { id: string; name: string };
-type Question = { question: string; options: { a: string; b: string; c: string; d: string }; correctAnswer: string };
+type Question = { question: string; options: { a: string; b: string; c: string; d: string }; correctAnswer: string; explanation?: string };
 type Exam = { id: string; exam_title: string; subject: string; class_id: string; teacher_id: string | null; questions: Question[]; created_at?: string; status?: "draft" | "published" | "completed"; duration?: number | null; school_session_id?: string | null };
 
 export default function TeacherCBTExams(): React.ReactElement {
@@ -27,7 +28,7 @@ export default function TeacherCBTExams(): React.ReactElement {
   const [exams, setExams] = useState<Exam[]>([]);
   const [duration, setDuration] = useState<string>("");
   const [schoolSessionId, setSchoolSessionId] = useState<string | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([{ question: "", options: { a: "", b: "", c: "", d: "" }, correctAnswer: "" }]);
+  const [questions, setQuestions] = useState<Question[]>([{ question: "", options: { a: "", b: "", c: "", d: "" }, correctAnswer: "", explanation: "" }]);
   const [editingExam, setEditingExam] = useState<Exam | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [alert, setAlert] = useState<{ message: string; type: "success" | "error" | "warning" | "info" } | null>(null);
@@ -99,7 +100,7 @@ export default function TeacherCBTExams(): React.ReactElement {
     fetchAll();
   }, []);
 
-  const addQuestion = () => setQuestions((s) => [...s, { question: "", options: { a: "", b: "", c: "", d: "" }, correctAnswer: "" }]);
+  const addQuestion = () => setQuestions((s) => [...s, { question: "", options: { a: "", b: "", c: "", d: "" }, correctAnswer: "", explanation: "" }]);
   const removeQuestion = (i: number) => setQuestions((s) => s.filter((_, idx) => idx !== i));
   const handleQuestionChange = (index: number, field: string, value: string) => {
     setQuestions((prev) => {
@@ -109,6 +110,7 @@ export default function TeacherCBTExams(): React.ReactElement {
         const key = field.replace("option", "") as keyof Question["options"];
         copy[index].options[key] = value;
       } else if (field === "correctAnswer") copy[index].correctAnswer = value;
+      else if (field === "explanation") copy[index].explanation = value;
       return copy;
     });
   };
@@ -142,7 +144,7 @@ export default function TeacherCBTExams(): React.ReactElement {
         setSubject("");
         setClassId("");
   setDuration("");
-        setQuestions([{ question: "", options: { a: "", b: "", c: "", d: "" }, correctAnswer: "" }]);
+        setQuestions([{ question: "", options: { a: "", b: "", c: "", d: "" }, correctAnswer: "", explanation: "" }]);
       } else setAlert({ message: j?.message ?? "Create failed", type: "error" });
     } catch (err) {
       console.error(err);
@@ -151,14 +153,31 @@ export default function TeacherCBTExams(): React.ReactElement {
   };
 
   const openEditModal = (exam: Exam) => {
+    // Parse questions if they are stored as JSON string
+    let questionsData = exam.questions
+    if (typeof questionsData === 'string') {
+      try {
+        questionsData = JSON.parse(questionsData)
+      } catch (error) {
+        console.error('Failed to parse questions JSON:', error)
+        questionsData = []
+      }
+    }
+
+    // Ensure questionsData is an array
+    if (!Array.isArray(questionsData)) {
+      console.error('Questions data is not an array:', questionsData)
+      questionsData = []
+    }
+
     // normalize questions if they are stored with array options
-    const normalizedQuestions = exam.questions.map((q) => {
+    const normalizedQuestions = (questionsData as Question[]).map((q) => {
       const maybeOpts = (q as unknown as { options: unknown }).options
       if (Array.isArray(maybeOpts)) {
         const arr = maybeOpts as string[]
-        return { question: q.question, options: { a: arr[0] ?? "", b: arr[1] ?? "", c: arr[2] ?? "", d: arr[3] ?? "" }, correctAnswer: q.correctAnswer }
+        return { question: q.question, options: { a: arr[0] ?? "", b: arr[1] ?? "", c: arr[2] ?? "", d: arr[3] ?? "" }, correctAnswer: q.correctAnswer, explanation: (q as { explanation?: string }).explanation || "" }
       }
-      return q
+      return { ...q, explanation: (q as { explanation?: string }).explanation || "" }
     })
   setEditingExam({ ...exam, questions: normalizedQuestions })
     setEditModalOpen(true)
@@ -330,6 +349,12 @@ export default function TeacherCBTExams(): React.ReactElement {
                         <SelectItem value={q.options.d}>{`d) ${q.options.d}`}</SelectItem>
                       </SelectContent>
                     </Select>
+                    <Label className="mt-2">Explanation (shown when pupil gets it wrong)</Label>
+                    <Input
+                      value={q.explanation || ""}
+                      onChange={(e) => handleQuestionChange(idx, "explanation", e.target.value)}
+                      placeholder="Explain why this is the correct answer..."
+                    />
                     <div className="mt-2">
                       <Button size="sm" variant="outline" onClick={() => removeQuestion(idx)}><Trash2 className="h-4 w-4" /> Remove</Button>
                     </div>
@@ -401,115 +426,30 @@ export default function TeacherCBTExams(): React.ReactElement {
           </div>
         )}
       </div>
-      {/* Edit Modal */}
+      {/* Edit Modal using CBTExamModal component */}
       {editModalOpen && editingExam && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <Card className="max-w-2xl w-full mx-4">
-            <CardHeader>
-              <CardTitle>Edit Exam</CardTitle>
-              <CardDescription>Modify exam details and questions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Exam Title</Label>
-                  <Input value={editingExam.exam_title} onChange={(e) => setEditingExam({ ...editingExam, exam_title: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Subject</Label>
-                  <Input value={editingExam.subject} onChange={(e) => setEditingExam({ ...editingExam, subject: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Class</Label>
-                  <Select value={editingExam.class_id} onValueChange={(v: string) => setEditingExam({ ...editingExam, class_id: v })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {classes.map((c) => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Session</Label>
-                  <Select value={schoolSessionId ?? ''} onValueChange={(v: string) => setSchoolSessionId(v || null)}>
-                    <SelectTrigger aria-label="Select session">
-                      <SelectValue placeholder="Select session (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">None</SelectItem>
-                      {sessions.map((s) => (<SelectItem key={s.id} value={s.id}>{s.session}</SelectItem>))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Duration (minutes)</Label>
-                  <Input type="number" value={editingExam.duration ?? ""} onChange={(e) => setEditingExam({ ...editingExam, duration: e.target.value ? parseInt(e.target.value, 10) : null })} placeholder="e.g. 30" />
-                </div>
-              </div>
-
-              <Separator className="my-4" />
-
-              <div>
-                {editingExam.questions.map((q, idx) => (
-                  <Card key={idx} className="mb-3">
-                    <CardContent>
-                      <Label>Question {idx + 1}</Label>
-                      <Input value={q.question} onChange={(e) => {
-                        const copy = editingExam.questions.map((x) => ({ ...x, options: { ...x.options } }))
-                        copy[idx].question = e.target.value
-                        setEditingExam({ ...editingExam, questions: copy })
-                      }} />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
-                        <Input value={q.options.a} onChange={(e) => {
-                          const copy = editingExam.questions.map((x) => ({ ...x, options: { ...x.options } }))
-                          copy[idx].options.a = e.target.value
-                          setEditingExam({ ...editingExam, questions: copy })
-                        }} placeholder="a) Option A" />
-                        <Input value={q.options.b} onChange={(e) => {
-                          const copy = editingExam.questions.map((x) => ({ ...x, options: { ...x.options } }))
-                          copy[idx].options.b = e.target.value
-                          setEditingExam({ ...editingExam, questions: copy })
-                        }} placeholder="b) Option B" />
-                        <Input value={q.options.c} onChange={(e) => {
-                          const copy = editingExam.questions.map((x) => ({ ...x, options: { ...x.options } }))
-                          copy[idx].options.c = e.target.value
-                          setEditingExam({ ...editingExam, questions: copy })
-                        }} placeholder="c) Option C" />
-                        <Input value={q.options.d} onChange={(e) => {
-                          const copy = editingExam.questions.map((x) => ({ ...x, options: { ...x.options } }))
-                          copy[idx].options.d = e.target.value
-                          setEditingExam({ ...editingExam, questions: copy })
-                        }} placeholder="d) Option D" />
-                      </div>
-                      <Label className="mt-2">Correct Answer</Label>
-                      <Select value={q.correctAnswer} onValueChange={(v: string) => {
-                        const copy = editingExam.questions.map((x) => ({ ...x, options: { ...x.options } }))
-                        copy[idx].correctAnswer = v
-                        setEditingExam({ ...editingExam, questions: copy })
-                      }}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select correct option" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={q.options.a}>{`a) ${q.options.a}`}</SelectItem>
-                          <SelectItem value={q.options.b}>{`b) ${q.options.b}`}</SelectItem>
-                          <SelectItem value={q.options.c}>{`c) ${q.options.c}`}</SelectItem>
-                          <SelectItem value={q.options.d}>{`d) ${q.options.d}`}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-
-              <div className="flex justify-end gap-2 mt-4">
-                <Button variant="outline" onClick={() => { setEditModalOpen(false); setEditingExam(null) }}>Cancel</Button>
-                <Button onClick={saveEdit}>Save</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <CBTExamModal
+          exam={editingExam}
+          onClose={() => {
+            setEditModalOpen(false);
+            setEditingExam(null);
+            setSchoolSessionId(null);
+          }}
+          onSave={(updatedExam) => {
+            // Preserve the original exam properties that CBTExamModal doesn't handle
+            const completeExam = {
+              ...editingExam,
+              ...updatedExam,
+              teacher_id: editingExam?.teacher_id,
+              created_at: editingExam?.created_at,
+              status: editingExam?.status,
+              duration: editingExam?.duration,
+              school_session_id: schoolSessionId ?? editingExam?.school_session_id
+            };
+            setEditingExam(completeExam);
+            saveEdit();
+          }}
+        />
       )}
     </div>
   );

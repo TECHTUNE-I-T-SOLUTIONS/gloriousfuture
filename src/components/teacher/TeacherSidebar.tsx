@@ -18,6 +18,7 @@ import {
   Bell,
   ChevronLeft,
   ChevronRight,
+  Sparkles,
 } from "lucide-react"
 
 interface SidebarProps {
@@ -80,11 +81,12 @@ export default function TeacherSidebar({ setActivePage, isSidebarOpen, setIsSide
     { id: "profile", icon: User, label: "Profile" },
     { id: "cbt-exams", icon: Laptop, label: "CBT Exams" },
     { id: "tests", icon: ClipboardCheck, label: "Tests & Quizzes" },
+    { id: "ai-tools", icon: Sparkles, label: "AI Tools" },
     { id: "create-blog", icon: Edit, label: "Create Blog" },
     { id: "create-alert", icon: Bell, label: "Create Alert" },
-  { id: "notifications", icon: Bell, label: "Notifications" },
-  { id: "school-fees", icon: FileText, label: "School Fees" },
-  { id: "payments", icon: FileText, label: "Payments" },
+    { id: "notifications", icon: Bell, label: "Notifications" },
+    { id: "school-fees", icon: FileText, label: "School Fees" },
+    { id: "payments", icon: FileText, label: "Payments" },
   ]
 
   return (

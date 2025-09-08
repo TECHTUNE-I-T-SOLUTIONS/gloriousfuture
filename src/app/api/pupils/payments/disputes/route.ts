@@ -24,11 +24,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message || String(error) }, { status: 500 })
     }
 
-    // create a notification for teachers (recipient_role = 'teacher') and the pupil
-    const notificationPayload = { type: 'payment_dispute', dispute: data }
-    await supabase.from('notifications').insert([{ recipient_role: 'teacher', type: 'payment_dispute', payload: notificationPayload }, { recipient_role: 'pupil', recipient_id: disputeRow.pupil_id, type: 'payment_dispute', payload: notificationPayload }])
-
-    return NextResponse.json({ dispute: data })
+  // notifications are created by DB triggers (migration), return the dispute row
+  return NextResponse.json({ dispute: data })
   } catch (err: unknown) {
     console.error('disputes POST error', err)
     return NextResponse.json({ error: (err as Error).message || String(err) }, { status: 500 })

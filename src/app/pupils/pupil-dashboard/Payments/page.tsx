@@ -62,6 +62,7 @@ export default function Payments() {
 
   // toast state (simple local toast)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [creatingPayment, setCreatingPayment] = useState<boolean>(false)
 
   const hasDispute = (paymentId: string) => {
     try {
@@ -683,6 +684,7 @@ export default function Payments() {
       try {
         const initRes = await fetch(`/api/pupils/payments/init?payment_id=${encodeURIComponent(paymentId)}`, { credentials: 'include' })
         if (initRes.ok) data = await initRes.json()
+        console.debug('payment init response', data)
       } catch {
         // ignore; fall back to safe defaults
         data = {}
@@ -807,8 +809,15 @@ export default function Payments() {
   const createAndPay = async () => {
     try {
       if (!pupil) return
+      if (creatingPayment) return
+      setCreatingPayment(true)
       const termsToSend = selectedTerms
-      if (!termsToSend || termsToSend.length === 0) return window.alert("Please select one or more terms before paying")
+      if (!termsToSend || termsToSend.length === 0) {
+        setToast({ type: 'error', message: 'Please select one or more terms before paying' })
+        setTimeout(() => setToast(null), 3000)
+        setCreatingPayment(false)
+        return
+      }
 
       // Compute amount even when schoolFee is missing. Fallback per-term amount is derived
       // from existing payments (if any) or falls back to 0. We prefer an average of existing
@@ -860,7 +869,9 @@ export default function Payments() {
       // basic sanity checks before sending
       if (!currentSession) {
         console.error('createAndPay: missing current session, aborting', { body })
-        window.alert('Unable to create payment: current session is not set. Please refresh the page and try again.')
+        setToast({ type: 'error', message: 'Unable to create payment: current session not set. Refresh and try again.' })
+        setTimeout(() => setToast(null), 3500)
+        setCreatingPayment(false)
         return
       }
 
@@ -871,7 +882,7 @@ export default function Payments() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       })
-      if (!res.ok) {
+  if (!res.ok) {
         // try to decode error response for debugging
         const text = await res.text().catch(() => null)
         console.error("failed to create payment", { status: res.status, statusText: res.statusText, body: text })
@@ -881,15 +892,46 @@ export default function Payments() {
         } catch {
           // ignore JSON parse
         }
-        window.alert('Failed to create payment. See console for details.')
+        setToast({ type: 'error', message: 'Failed to create payment. See console for details.' })
+        setTimeout(() => setToast(null), 3500)
+        setCreatingPayment(false)
         return
       }
       const created = await res.json()
-      if (created && created.id) {
-        await handlePayNow(created.id)
+      // server may return { payment } or the payment directly; handle both
+      const paymentId = (created && (created.id || (created.payment && created.payment.id))) || null
+      if (!paymentId) {
+        console.error('createAndPay: unable to determine created payment id', created)
+        setToast({ type: 'error', message: 'Payment created but failed to initialize. Contact admin.' })
+        setTimeout(() => setToast(null), 3500)
+        setCreatingPayment(false)
+        return
       }
+
+      // initiate the provider flow
+      await handlePayNow(paymentId)
+
+      // refresh payments after attempting init so UI reflects the pending row
+      try {
+        const uin = typeof pupil?.uin === 'string' ? pupil.uin : undefined
+        if (uin) {
+          const pr = await fetch(`/api/pupils/payments?uin=${encodeURIComponent(uin)}&placeholders=1`, { credentials: 'include' })
+          if (pr.ok) {
+            const pj = await pr.json()
+            const newPayments = (pj.payments || []) as Payment[]
+            setPayments(newPayments)
+            setPaidTerms(computePaidTermsFromPayments(newPayments))
+          }
+        }
+      } catch {
+        // ignore refresh errors
+      }
+      setCreatingPayment(false)
     } catch (err) {
       console.error("createAndPay error", err)
+      setToast({ type: 'error', message: 'Unexpected error. See console.' })
+      setTimeout(() => setToast(null), 3500)
+      setCreatingPayment(false)
     }
   }
 

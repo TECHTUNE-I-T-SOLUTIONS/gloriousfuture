@@ -29,6 +29,7 @@ import Teacheralert from "./Teacheralert/page"
 import TeacherNotifications from "./notifications/page"
 import TeacherSchoolFees from "./SchoolFees/page"
 import TeacherPayments from "./Payments/page"
+import TeacherAITools from "./AI/page"
 import CustomAlert from "@/components/CustomAlert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -395,6 +396,8 @@ export default function TeacherDashboard() {
         return <TeacherTestsQuizzes />
       case "profile":
         return <TeacherProfile />
+      case "ai-tools":
+        return <TeacherAITools />
       case "create-blog":
         return <Teacherblog />
       case "create-alert":

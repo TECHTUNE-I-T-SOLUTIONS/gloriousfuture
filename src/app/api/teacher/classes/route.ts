@@ -1,16 +1,43 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const { data, error } = await supabase.from("classes").select("id, name");
+    // Get teacher UIN from session
+    const sessionCookie = request.cookies.get("session")?.value;
+    if (!sessionCookie) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    if (error) throw error;
+    let sessionData;
+    try {
+      sessionData = JSON.parse(sessionCookie);
+    } catch {
+      return NextResponse.json({ error: "Invalid session" }, { status: 400 });
+    }
+
+    if (!sessionData.uin) {
+      return NextResponse.json({ error: "Session missing UIN" }, { status: 400 });
+    }
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    const { data, error } = await supabase
+      .from("classes")
+      .select("id, name")
+      .order("name");
+
+    if (error) {
+      console.error('Error fetching classes:', error);
+      return NextResponse.json({ error: 'Failed to fetch classes' }, { status: 500 });
+    }
 
     return NextResponse.json(data);
   } catch (error) {
-    return NextResponse.json({ success: false, error });
+    console.error('Error in classes API:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
