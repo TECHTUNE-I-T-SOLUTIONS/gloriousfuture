@@ -5,6 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import {
   User,
   Phone,
@@ -471,9 +472,11 @@ export default function PupilSignupPage() {
                         className="flex items-center justify-center w-20 h-20 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors"
                       >
                         {imagePreview ? (
-                          <img
+                          <Image
                             src={imagePreview || "/placeholder.svg"}
                             alt="Preview"
+                            width={80}
+                            height={80}
                             className="w-full h-full object-cover rounded-lg"
                           />
                         ) : (

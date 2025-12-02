@@ -1,6 +1,8 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
 import { BookOpen, Users, BarChart3, Calendar, Award, CheckCircle } from "lucide-react"
 import CustomHeader from "@/components/CustomHeader"
 import CustomFooter from "@/components/CustomFooter"
@@ -44,6 +46,12 @@ export default function TeacherLanding() {
       content: "The assignment tools are incredible. I can create engaging content and track progress in real-time.",
     },
   ]
+
+  const [testiIndex, setTestiIndex] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => setTestiIndex((i) => (i + 1) % testimonials.length), 5200)
+    return () => clearInterval(t)
+  }, [testimonials.length])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500/50 via-indigo-600 to-indigo-900/90">
@@ -95,24 +103,31 @@ export default function TeacherLanding() {
       <section className="py-20 bg-card/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Everything We Need to Help Our Pupils Excel</h2>
-            <p className="text-lg text-gray-900 max-w-2xl mx-auto">
-              Comprehensive tools designed specifically for our teachers to enhance teaching effectiveness
-            </p>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Everything You Need to Help Pupils Excel</h2>
+            <p className="text-lg text-gray-900 max-w-2xl mx-auto">Tools designed to streamline teaching and improve learning outcomes.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <motion.div
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+            variants={{ visible: { transition: { staggerChildren: 0.14 } } }}
+          >
             {features.map((feature, index) => (
-              <div
+              <motion.div
                 key={index}
                 className="bg-background rounded-xl p-6 shadow-sm border border-border hover:shadow-md transition-all duration-200"
+                variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0 } }}
+                whileHover={{ scale: 1.03 }}
+                transition={{ type: "spring", stiffness: 110 }}
               >
                 <div className="mb-4">{feature.icon}</div>
                 <h3 className="text-xl font-semibold text-foreground mb-2">{feature.title}</h3>
                 <p className="text-gray-500">{feature.description}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -158,16 +173,35 @@ export default function TeacherLanding() {
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">What Our Teachers Are Saying</h2>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-background rounded-xl p-8 shadow-sm border border-border">
-                <p className="text-foreground mb-6 text-lg italic">&quot;{testimonial.content}&quot;</p>
-                <div>
-                  <div className="font-semibold text-foreground">{testimonial.name}</div>
-                  <div className="text-gray-500">{testimonial.role}</div>
-                </div>
+          <div className="grid md:grid-cols-2 gap-8 items-start">
+            <motion.div
+              className="col-span-1 bg-background rounded-xl p-8 shadow-sm border border-border"
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.45 }}
+            >
+              <p className="text-foreground mb-6 text-lg italic">“{testimonials[testiIndex].content}”</p>
+              <div>
+                <div className="font-semibold text-foreground">{testimonials[testiIndex].name}</div>
+                <div className="text-gray-500">{testimonials[testiIndex].role}</div>
               </div>
-            ))}
+            </motion.div>
+
+            <div className="col-span-1 flex flex-col gap-4">
+              {testimonials.map((t, i) => (
+                <motion.button
+                  key={i}
+                  onClick={() => setTestiIndex(i)}
+                  className={`text-left p-4 rounded-lg border border-border bg-background hover:bg-card/60 transition`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.06 * i }}
+                >
+                  <div className="font-medium text-foreground">{t.name}</div>
+                  <div className="text-sm text-gray-500">{t.role}</div>
+                </motion.button>
+              ))}
+            </div>
           </div>
         </div>
       </section>

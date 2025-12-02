@@ -106,6 +106,7 @@ export default function Sidebar({ setActivePage, onToggle }: SidebarProps) {
   const menuItems = [
     { id: "dashboard", icon: FaHome, label: "Dashboard", color: "text-blue-600" },
     { id: "assignments", icon: FaBook, label: "Assignments", color: "text-green-600" },
+    { id: "programming-courses", icon: FaLaptopCode, label: "Programming", color: "text-indigo-600" },
   { id: "notifications", icon: FaBell, label: "Notifications", color: "text-pink-600" },
     { id: "timetable", icon: FaCalendarAlt, label: "Timetable", color: "text-yellow-600" },
     { id: "exam-results", icon: FaFileAlt, label: "Exam Results", color: "text-purple-600" },

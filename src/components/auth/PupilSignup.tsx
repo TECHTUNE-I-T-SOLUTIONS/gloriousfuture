@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import ParticlesBg from "@/components/ParticlesBg"
 import CustomAlert from "@/components/CustomAlert"
@@ -173,7 +174,7 @@ export default function PupilSignup() {
                     <div className="space-y-3">
                       <label className="block text-sm font-medium" htmlFor="profile_upload">Upload Profile Picture</label>
                       <input id="profile_upload" aria-label="Profile picture" title="Profile picture" type="file" accept="image/*" onChange={handleImageUpload} className="w-full" />
-                      {imagePreview && <div className="flex justify-center"><img src={imagePreview} alt="Profile Preview" className="w-24 h-24 rounded-full" /></div>}
+                      {imagePreview && <div className="flex justify-center"><Image src={imagePreview} alt="Profile Preview" width={96} height={96} className="w-24 h-24 rounded-full" /></div>}
                     </div>
                     <div className="flex space-x-3"><button onClick={() => setStep(4)} className="flex-1 py-4 bg-slate-200 rounded-xl">Back</button><button onClick={generateUIN} className="flex-1 py-4 bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-xl">Generate UIN</button></div>
                   </div>

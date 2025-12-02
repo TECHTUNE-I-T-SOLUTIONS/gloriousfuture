@@ -1,6 +1,8 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
 import { BookOpen, Target, Users, Zap, Star, CheckCircle } from "lucide-react"
 import CustomHeader from "@/components/CustomHeader"
 import CustomFooter from "@/components/CustomFooter"
@@ -44,6 +46,12 @@ export default function PupilLanding() {
       content: "The collaborative features are amazing. Working on group projects has never been easier!",
     },
   ]
+
+  const [testiIndex, setTestiIndex] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => setTestiIndex((i) => (i + 1) % testimonials.length), 4800)
+    return () => clearInterval(t)
+  }, [testimonials.length])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500/50 via-indigo-600 to-indigo-900/90">
@@ -97,22 +105,34 @@ export default function PupilLanding() {
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Learn Smarter, Not Harder</h2>
             <p className="text-lg text-gray-900 max-w-2xl mx-auto">
-              Discover tools designed to make your learning experience more engaging and effective
+              Discover tools designed to make learning more engaging and effective.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <motion.div
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-8"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.12 } },
+            }}
+          >
             {features.map((feature, index) => (
-              <div
+              <motion.div
                 key={index}
                 className="bg-background rounded-xl p-6 shadow-sm border border-border hover:shadow-md transition-all duration-200"
+                variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0 } }}
+                whileHover={{ scale: 1.025 }}
+                transition={{ type: "spring", stiffness: 120 }}
               >
                 <div className="mb-4">{feature.icon}</div>
                 <h3 className="text-xl font-semibold text-foreground mb-2">{feature.title}</h3>
                 <p className="text-gray-500">{feature.description}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -159,15 +179,34 @@ export default function PupilLanding() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-background rounded-xl p-8 shadow-sm border border-border">
-                <p className="text-foreground mb-6 text-lg italic">&quot;{testimonial.content}&quot;</p>
-                <div>
-                  <div className="font-semibold text-foreground">{testimonial.name}</div>
-                  <div className="text-gray-500">{testimonial.grade}</div>
-                </div>
+            <motion.div
+              className="col-span-1 bg-background rounded-xl p-8 shadow-sm border border-border"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.45 }}
+            >
+              <p className="text-foreground mb-6 text-lg italic">“{testimonials[testiIndex].content}”</p>
+              <div>
+                <div className="font-semibold text-foreground">{testimonials[testiIndex].name}</div>
+                <div className="text-gray-500">{testimonials[testiIndex].grade}</div>
               </div>
-            ))}
+            </motion.div>
+
+            <div className="col-span-1 flex flex-col gap-4">
+              {testimonials.map((t, i) => (
+                <motion.button
+                  key={i}
+                  onClick={() => setTestiIndex(i)}
+                  className={`text-left p-4 rounded-lg border border-border bg-background hover:bg-card/60 transition`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.05 * i }}
+                >
+                  <div className="font-medium text-foreground">{t.name}</div>
+                  <div className="text-sm text-gray-500">{t.grade}</div>
+                </motion.button>
+              ))}
+            </div>
           </div>
         </div>
       </section>

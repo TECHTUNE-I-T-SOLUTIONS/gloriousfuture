@@ -24,6 +24,11 @@ interface TestQuiz {
 export default function TeacherTestsQuizzes() {
   const [tests, setTests] = useState<TestQuiz[]>([])
   const [classes, setClasses] = useState<{ id: string; name: string }[]>([])
+  const [subjects, setSubjects] = useState<{ id: string; name: string }[]>([])
+  const [newSubjectId, setNewSubjectId] = useState<string>("")
+  const [newManualSubject, setNewManualSubject] = useState<string>("")
+  const [editSubjectId, setEditSubjectId] = useState<string>("")
+  const [editManualSubject, setEditManualSubject] = useState<string>("")
   const [sessions, setSessions] = useState<{ id: string; session: string; active?: boolean }[]>([])
   const [filterSession, setFilterSession] = useState<string | 'all'>('all')
   const [schoolSessionId, setSchoolSessionId] = useState<string | null>(null)
@@ -72,6 +77,16 @@ export default function TeacherTestsQuizzes() {
         } catch (err) {
           console.warn("Failed to fetch classes for Tests & Quizzes dropdown", err)
         }
+        // fetch subjects
+        try {
+          const sres = await fetch('/api/teacher/subjects', { credentials: 'include' })
+          if (sres.ok) {
+            const sd = await sres.json()
+            if (Array.isArray(sd)) setSubjects(sd)
+          }
+        } catch (err) {
+          console.warn('Failed to fetch subjects for Tests & Quizzes', err)
+        }
         // fetch available school sessions
         try {
           const sres = await fetch('/api/teacher/school-session?all=1', { credentials: 'include' })
@@ -104,6 +119,15 @@ export default function TeacherTestsQuizzes() {
 
     fetchTests()
   }, [])
+
+  useEffect(() => {
+    if (!editingTest) return
+    const subjId = ((editingTest as unknown) as Record<string, unknown>).subject_id ?? null
+    if (subjId) setEditSubjectId(subjId as string)
+    else if (((editingTest as unknown) as Record<string, unknown>).subject) setEditSubjectId("__other")
+    else setEditSubjectId("")
+    setEditManualSubject(String(((editingTest as unknown) as Record<string, unknown>).subject ?? ""))
+  }, [editingTest])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const target = e.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -139,7 +163,7 @@ export default function TeacherTestsQuizzes() {
 
   const handleSubmit = async () => {
     try {
-  const payload = { ...newTest, questions: newQuestions, ...(schoolSessionId ? { school_session_id: schoolSessionId } : {}) }
+  const payload = { ...newTest, questions: newQuestions, ...(schoolSessionId ? { school_session_id: schoolSessionId } : {}), ...(newSubjectId && newSubjectId !== '__other' ? { subject_id: newSubjectId } : {}), ...(newSubjectId === '__other' && newManualSubject ? { subject: newManualSubject } : {}) }
   const res = await fetch("/api/teacher/tests-quizzes", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -165,7 +189,7 @@ export default function TeacherTestsQuizzes() {
 
     try {
       // PUT handled at /api/teacher/tests-quizzes with JSON body { id, ... }
-  const payload = { ...editingTest, questions: editQuestions, ...(schoolSessionId ? { school_session_id: schoolSessionId } : {}) }
+  const payload = { ...editingTest, questions: editQuestions, ...(schoolSessionId ? { school_session_id: schoolSessionId } : {}), ...(editSubjectId && editSubjectId !== '__other' ? { subject_id: editSubjectId } : {}), ...(editSubjectId === '__other' && editManualSubject ? { subject: editManualSubject } : {}) }
   const res = await fetch(`/api/teacher/tests-quizzes`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -353,6 +377,22 @@ export default function TeacherTestsQuizzes() {
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="subject_id">Subject</Label>
+              <select aria-label="Select subject" id="subject_id" name="subject_id" value={editingTest ? editSubjectId : newSubjectId} onChange={(e) => {
+                const v = e.target.value
+                if (editingTest) setEditSubjectId(v)
+                else setNewSubjectId(v)
+              }} className="w-full bg-input border-border p-2 rounded">
+                <option value="">Select subject</option>
+                {subjects.map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
+                <option value="__other">Other (manual)</option>
+              </select>
+              {(editingTest ? editSubjectId === '__other' : newSubjectId === '__other') && (
+                <Input placeholder="Enter subject name" value={editingTest ? editManualSubject : newManualSubject} onChange={(e) => { if (editingTest) setEditManualSubject(e.target.value); else setNewManualSubject(e.target.value) }} />
+              )}
             </div>
 
               <div className="space-y-2">

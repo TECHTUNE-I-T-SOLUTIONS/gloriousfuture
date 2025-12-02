@@ -76,6 +76,7 @@ export default function TeacherSidebar({ setActivePage, isSidebarOpen, setIsSide
   const sidebarItems = [
     { id: "dashboard", icon: Home, label: "Dashboard" },
     { id: "assignments", icon: BookOpen, label: "Assignments" },
+    { id: "programming-courses", icon: Laptop, label: "Programming Courses" },
     { id: "timetable", icon: Calendar, label: "Timetable" },
     { id: "exam-results", icon: FileText, label: "Results" },
     { id: "profile", icon: User, label: "Profile" },
@@ -87,6 +88,7 @@ export default function TeacherSidebar({ setActivePage, isSidebarOpen, setIsSide
     { id: "notifications", icon: Bell, label: "Notifications" },
     { id: "school-fees", icon: FileText, label: "School Fees" },
     { id: "payments", icon: FileText, label: "Payments" },
+    { id: "final-results", icon: FileText, label: "Final Results" },
   ]
 
   return (

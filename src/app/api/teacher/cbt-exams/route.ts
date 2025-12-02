@@ -9,6 +9,7 @@ export async function POST(req: Request) {
   const body = await req.json();
   const exam_title = body.exam_title ?? body.examTitle;
   const subject = body.subject;
+  const subject_id = body.subject_id ?? body.subjectId ?? null;
   const class_id = body.class_id ?? body.classId;
   const school_session_id = body.school_session_id ?? body.session ?? body.schoolSessionId ?? null;
   const teacher_id = body.teacher_id ?? body.teacherId;
@@ -16,6 +17,7 @@ export async function POST(req: Request) {
   const duration = typeof body.duration !== 'undefined' ? body.duration : undefined;
 
   const insertRow: Record<string, unknown> = { exam_title, subject, class_id, teacher_id, questions };
+  if (subject_id) insertRow.subject_id = subject_id;
   if (school_session_id) insertRow.school_session_id = school_session_id;
   if (typeof duration !== "undefined") insertRow.duration = duration;
 
@@ -47,6 +49,7 @@ export async function PUT(req: Request) {
   const id = body.id ?? body.examId;
   const exam_title = body.exam_title ?? body.examTitle;
   const subject = body.subject;
+  const subject_id = body.subject_id ?? body.subjectId ?? null;
   const questions = body.questions;
   const duration = typeof body.duration !== 'undefined' ? body.duration : undefined;
   const payload: Record<string, unknown> = { exam_title, subject, questions };
@@ -54,6 +57,7 @@ export async function PUT(req: Request) {
   const school_session_id = body.school_session_id ?? body.session ?? body.schoolSessionId ?? null;
   payload.school_session_id = school_session_id; // Always include to allow clearing
   if (typeof duration !== "undefined") payload.duration = duration;
+  if (subject_id) payload.subject_id = subject_id;
   await supabase.from("cbt_exams").update(payload).eq("id", id);
   return NextResponse.json({ success: true });
 }

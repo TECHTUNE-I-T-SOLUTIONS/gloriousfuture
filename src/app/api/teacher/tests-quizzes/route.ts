@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     }
     const teacher_id = teacherData.id as string;
 
-  const { title, description, due_date, class_id, questions, school_session_id, session } = await req.json();
+  const { title, description, due_date, class_id, questions, school_session_id, session, subject_id } = await req.json();
 
     // optional: validate class exists when provided
   if (class_id) {
@@ -55,6 +55,7 @@ export async function POST(req: Request) {
     }
 
   const insertRow: Record<string, unknown> = { title, description: description ?? null, due_date: due_date ?? null, class_id: class_id ?? null, teacher_id, questions: questions ?? [] };
+  if (subject_id) insertRow.subject_id = subject_id
   const sess = school_session_id ?? session ?? null;
   if (sess) insertRow["school_session_id"] = sess;
   const { data, error } = await supabase.from("tests_quizzes").insert([insertRow]).single();
@@ -71,10 +72,11 @@ export async function PUT(req: Request) {
     const supabase = getSupabaseClient();
     if (!supabase) return NextResponse.json({ success: false, error: "Supabase not configured" }, { status: 500 });
 
-  const { id, title, description, due_date, class_id, questions, school_session_id, session } = await req.json();
+  const { id, title, description, due_date, class_id, questions, school_session_id, session, subject_id } = await req.json();
     if (!id) return NextResponse.json({ success: false, error: "id is required" }, { status: 400 });
 
   const payload: Record<string, unknown> = { title, description: description ?? null, due_date: due_date ?? null, class_id: class_id ?? null, questions: questions ?? [] };
+  if (subject_id) payload.subject_id = subject_id
   const sess2 = school_session_id ?? session ?? null;
   if (sess2) payload["school_session_id"] = sess2;
 

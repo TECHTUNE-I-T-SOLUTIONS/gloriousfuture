@@ -34,6 +34,7 @@
     "pdf-parse": "^1.1.1",
     "pdf2pic": "^3.2.0",
     "postcss": "^8.5.3",
+    "puppeteer": "^21.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
@@ -45,6 +46,7 @@
     "tw-animate-css": "^1.3.7"
   },
   "devDependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "@tailwindcss/postcss": "^4",
     "@types/cookie": "^1.0.0",
     "@types/minimatch": "^6.0.0",

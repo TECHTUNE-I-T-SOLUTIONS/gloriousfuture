@@ -6,6 +6,8 @@ import Sidebar from "@/components/Sidebar"
 import AnimatedHeader from "@/components/AnimatedHeader"
 import DashboardCard from "@/components/DashboardCard"
 import Assignments from "./Assignments/page"
+import ProgrammingCourses from "@/components/ProgrammingCourses"
+import ProgrammingLessons from "@/components/ProgrammingLessons"
 import Timetable from "./Timetable/page"
 import ExamResults from "./ExamResults/page"
 import Messages from "./Messages/page"
@@ -88,6 +90,7 @@ function ResponsiveDashboard({
 export default function PupilDashboard() {
   const [pupil, setPupil] = useState<PupilType>(null)
   const [activePage, setActivePage] = useState("dashboard")
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
   // Dashboard analytics state
   const [summary, setSummary] = useState({
     assignments: 0,
@@ -150,6 +153,23 @@ export default function PupilDashboard() {
         return <PupilDashboardNotifications />
       case "assignments":
         return <Assignments />
+      case "programming-courses":
+        return <ProgrammingCourses onStartLesson={(courseId) => {
+          setSelectedCourseId(courseId)
+          setActivePage("programming-lessons")
+        }} />
+      case "programming-lessons":
+        return selectedCourseId ? (
+          <ProgrammingLessons 
+            courseId={selectedCourseId}
+            onBack={() => setActivePage("programming-courses")}
+          />
+        ) : (
+          <ProgrammingCourses onStartLesson={(courseId) => {
+            setSelectedCourseId(courseId)
+            setActivePage("programming-lessons")
+          }} />
+        )
       case "timetable":
         return <Timetable />
       case "exam-results":

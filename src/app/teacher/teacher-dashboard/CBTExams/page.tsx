@@ -14,14 +14,17 @@ import ConfirmModal from "@/components/ConfirmModal";
 import CBTExamModal from "@/components/CBTExamModal";
 
 type ClassInfo = { id: string; name: string };
+type Subject = { id: string; name: string };
 type Question = { question: string; options: { a: string; b: string; c: string; d: string }; correctAnswer: string; explanation?: string };
-type Exam = { id: string; exam_title: string; subject: string; class_id: string; teacher_id: string | null; questions: Question[]; created_at?: string; status?: "draft" | "published" | "completed"; duration?: number | null; school_session_id?: string | null };
+type Exam = { id: string; exam_title: string; subject?: string | null; subject_id?: string | null; class_id: string; teacher_id: string | null; questions: Question[]; created_at?: string; status?: "draft" | "published" | "completed"; duration?: number | null; school_session_id?: string | null };
 
 export default function TeacherCBTExams(): React.ReactElement {
   const [examTitle, setExamTitle] = useState<string>("");
-  const [subject, setSubject] = useState<string>("");
+  const [subjectId, setSubjectId] = useState<string>("");
+  const [manualSubject, setManualSubject] = useState<string>("");
   const [classId, setClassId] = useState<string>("");
   const [teacherId, setTeacherId] = useState<string>("");
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [sessions, setSessions] = useState<{ id: string; session: string; active?: boolean }[]>([]);
   const [filterSession, setFilterSession] = useState<string | 'all'>('all');
@@ -44,15 +47,18 @@ export default function TeacherCBTExams(): React.ReactElement {
         const [classesRes, examsRes, sessionRes] = await Promise.all([
           fetch("/api/teacher/classes", { credentials: "include" }),
           fetch("/api/teacher/cbt-exams", { credentials: "include" }),
+          fetch("/api/teacher/subjects", { credentials: "include" }),
           fetch("/api/auth/session", { credentials: "include" }),
         ]);
 
         const classesData = await classesRes.json();
         const examsData = await examsRes.json();
+        const subjectsData = await (await fetch("/api/teacher/subjects", { credentials: "include" })).json();
         const sessionData = await sessionRes.json();
 
         if (Array.isArray(classesData)) setClasses(classesData);
         if (Array.isArray(examsData)) setExams(examsData);
+        if (Array.isArray(subjectsData)) setSubjects(subjectsData);
 
         // session API returns { session: { uin, role, user } }
         const sessionUin = sessionData?.session?.uin ?? sessionData?.session?.user?.uin;
@@ -117,14 +123,13 @@ export default function TeacherCBTExams(): React.ReactElement {
 
   const createExam = async () => {
     if (!teacherId) return setAlert({ message: "Teacher not found", type: "error" });
-    if (!examTitle || !subject || !classId || questions.some((q) => !q.question || Object.values(q.options).some((o) => !o) || !q.correctAnswer))
+    if (!examTitle || (!subjectId && !manualSubject) || !classId || questions.some((q) => !q.question || Object.values(q.options).some((o) => !o) || !q.correctAnswer))
       return setAlert({ message: "Please fill all fields", type: "warning" });
 
     try {
   // payload keys match DB column names
-  const payload = {
+  const payload: Record<string, unknown> = {
         exam_title: examTitle,
-        subject,
         class_id: classId,
         teacher_id: teacherId,
   questions,
@@ -132,6 +137,9 @@ export default function TeacherCBTExams(): React.ReactElement {
   ...(duration ? { duration: parseInt(duration, 10) } : {}),
   ...(schoolSessionId ? { school_session_id: schoolSessionId } : {}),
       }
+  // attach subject_id if selected, otherwise attach manual subject text
+  if (subjectId && subjectId !== "other") payload.subject_id = subjectId;
+  else if (manualSubject) payload.subject = manualSubject;
       const res = await fetch("/api/teacher/cbt-exams", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const j = await res.json();
       if (j?.success) {
@@ -141,7 +149,8 @@ export default function TeacherCBTExams(): React.ReactElement {
         setAlert({ message: "Exam created", type: "success" });
         setShowCreateForm(false);
         setExamTitle("");
-        setSubject("");
+        setSubjectId("");
+        setManualSubject("");
         setClassId("");
   setDuration("");
         setQuestions([{ question: "", options: { a: "", b: "", c: "", d: "" }, correctAnswer: "", explanation: "" }]);
@@ -192,15 +201,17 @@ export default function TeacherCBTExams(): React.ReactElement {
     }
 
     try {
-      const payload = {
+      const payload: Record<string, unknown> = {
         exam_title: editingExam.exam_title,
-        subject: editingExam.subject,
         class_id: editingExam.class_id,
         teacher_id: editingExam.teacher_id,
   questions: editingExam.questions,
   duration: editingExam.duration ?? undefined,
   ...(schoolSessionId ? { school_session_id: schoolSessionId } : {}),
       }
+      // preserve subject_id if present on the exam, otherwise include subject text
+      if ((editingExam as Record<string, unknown>).subject_id) payload.subject_id = (editingExam as Record<string, unknown>).subject_id;
+      else if (editingExam.subject) payload.subject = editingExam.subject;
       const res = await fetch(`/api/teacher/cbt-exams?id=${editingExam.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
       const j = await res.json()
       if (j?.success) {
@@ -287,7 +298,20 @@ export default function TeacherCBTExams(): React.ReactElement {
               </div>
               <div>
                 <Label htmlFor="subject">Subject</Label>
-                <Input id="subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
+                <Select value={subjectId} onValueChange={(v: string) => setSubjectId(v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a subject" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subjects.map((s) => (<SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>))}
+                    <SelectItem value="other">Other (manual)</SelectItem>
+                  </SelectContent>
+                </Select>
+                {subjectId === "other" && (
+                  <div className="mt-2">
+                    <Input placeholder="Enter subject name" value={manualSubject} onChange={(e) => setManualSubject(e.target.value)} />
+                  </div>
+                )}
               </div>
               <div>
                 <Label htmlFor="class">Class</Label>
@@ -403,7 +427,11 @@ export default function TeacherCBTExams(): React.ReactElement {
                     <div className="flex-1">
                       <CardTitle className="text-lg text-card-foreground line-clamp-2">{exam.exam_title}</CardTitle>
                       <CardDescription className="mt-2 space-y-1">
-                        <div className="flex items-center gap-2"><BookOpen className="h-4 w-4" /> {exam.subject}</div>
+                        <div className="flex items-center gap-2"><BookOpen className="h-4 w-4" /> {(() => {
+                          const sid = (exam as Record<string, unknown>).subject_id;
+                          if (sid) return subjects.find(s => s.id === sid)?.name ?? exam.subject ?? 'Unknown';
+                          return exam.subject ?? 'Unknown';
+                        })()}</div>
                         <div className="flex items-center gap-2"><Users className="h-4 w-4" /> Class: {classes.find((c) => c.id === exam.class_id)?.name ?? "Unknown"}</div>
                         <div className="flex items-center gap-2"><Badge className="text-xs">{exam.school_session_id ? (sessions.find(s => s.id === exam.school_session_id)?.session ?? 'Session') : 'None'}</Badge></div>
                         {exam.duration ? <div className="flex items-center gap-2">⏱ {exam.duration} mins</div> : null}

@@ -5,6 +5,8 @@ import { motion } from "framer-motion"
 import { User, Settings, LogOut, Menu } from "lucide-react"
 import Image from "next/image"
 import NotificationsDropdown from "../NotificationsDropdown"
+import { useRouter } from "next/navigation"
+import ConfirmModal from "@/components/ConfirmModal"
 export default function TeacherHeader({
   text,
   setIsSidebarOpen,
@@ -16,6 +18,8 @@ export default function TeacherHeader({
   const [profilePicture, setProfilePicture] = useState("/default-profile.png")
   const [uin, setUIN] = useState("N/A")
   const [showDropdown, setShowDropdown] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const router = useRouter()
   const [, setUnreadCount] = useState<number>(0) // only using the setter; omit unreadCount to avoid unused var
 
   useEffect(() => {
@@ -146,16 +150,31 @@ export default function TeacherHeader({
                 </div>
 
                 <div className="py-2">
-                  <button className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-muted transition-colors flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      setShowDropdown(false)
+                      router.push("/teacher/teacher-dashboard/Profile")
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-muted transition-colors flex items-center space-x-2"
+                  >
                     <User className="w-4 h-4" />
                     <span>Profile Settings</span>
                   </button>
-                  <button className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-muted transition-colors flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      setShowDropdown(false)
+                      router.push("/teacher/preferences")
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-muted transition-colors flex items-center space-x-2"
+                  >
                     <Settings className="w-4 h-4" />
                     <span>Preferences</span>
                   </button>
                   <hr className="my-2 border-border" />
-                  <button className="w-full px-4 py-2 text-left text-sm text-destructive hover:bg-destructive/10 transition-colors flex items-center space-x-2">
+                  <button
+                    onClick={() => setShowLogoutModal(true)}
+                    className="w-full px-4 py-2 text-left text-sm text-destructive hover:bg-destructive/10 transition-colors flex items-center space-x-2"
+                  >
                     <LogOut className="w-4 h-4" />
                     <span>Sign Out</span>
                   </button>
@@ -168,6 +187,31 @@ export default function TeacherHeader({
 
       {/* Click outside to close dropdown */}
       {showDropdown && <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)} />}
+
+      {/* Logout confirmation modal */}
+      <ConfirmModal
+        open={showLogoutModal}
+        title="Sign Out"
+        description="Are you sure you want to sign out of your account?"
+        confirmText="Sign Out"
+        cancelText="Cancel"
+        busy={false}
+        onConfirm={async () => {
+          try {
+            const res = await fetch("/api/teacher/logout", { method: "POST", credentials: "include" })
+            if (res.ok) {
+              setShowLogoutModal(false)
+              // redirect to teacher landing (login) page
+              router.push("/teacher")
+            } else {
+              console.error("Logout failed")
+            }
+          } catch (err) {
+            console.error("Error during logout", err)
+          }
+        }}
+        onCancel={() => setShowLogoutModal(false)}
+      />
     </motion.header>
   )
 }

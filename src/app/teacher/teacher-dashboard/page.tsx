@@ -18,12 +18,14 @@ import TeacherSidebar from "@/components/teacher/TeacherSidebar"
 import TeacherHeader from "@/components/teacher/TeacherHeader"
 import TeacherDashboardCard from "@/components/teacher/TeacherDashboardCard"
 import TeacherAssignments from "./Assignments/page"
+import ProgrammingCourses from "./ProgrammingCourses/page"
 import TeacherTimetable from "./Timetable/page"
 import TeacherExamResults from "./ExamResults/page"
 import TeacherMessages from "./Messages/page"
 import TeacherCBTExams from "./CBTExams/page"
 import TeacherTestsQuizzes from "./TestsQuizzes/page"
 import TeacherProfile from "./Profile/page"
+import TeacherFinalResults from "./FinalResults/page"
 import Teacherblog from "./Teacherblog/page"
 import Teacheralert from "./Teacheralert/page"
 import TeacherNotifications from "./notifications/page"
@@ -384,6 +386,8 @@ export default function TeacherDashboard() {
         return <TeacherPayments />
       case "assignments":
         return <TeacherAssignments />
+      case "programming-courses":
+        return <ProgrammingCourses />
       case "timetable":
         return <TeacherTimetable />
       case "exam-results":
@@ -394,6 +398,8 @@ export default function TeacherDashboard() {
         return <TeacherCBTExams />
       case "tests":
         return <TeacherTestsQuizzes />
+      case "final-results":
+        return <TeacherFinalResults />
       case "profile":
         return <TeacherProfile />
       case "ai-tools":

@@ -84,7 +84,7 @@ export default function Home() {
   const [showGreatJob, setShowGreatJob] = useState(false)
 
   useEffect(() => {
-    setTimeout(() => setShowMainContent(true), 10000)
+    setTimeout(() => setShowMainContent(true), 6000)
     fetchGameImages()
   }, [])
 
@@ -94,8 +94,8 @@ export default function Home() {
     }).then(() => setInit(true))
   }, [])
 
-  // Local image data
-  const imageList = [
+  // Local image data (kept as initial state so drag order persists)
+  const initialImageList = [
     { id: "1", src: "/images/gallery/learning.jpg", title: "Learning in Action" },
     { id: "2", src: "/images/gallery/games.jpg", title: "Fun & Games" },
     { id: "3", src: "/images/gallery/computer-training.jpg", title: "Computer Training" },
@@ -117,6 +117,31 @@ export default function Home() {
     { id: "19", src: "/images/gallery/biology.jpg", title: "Biology & Nature Study" },
     { id: "20", src: "/images/gallery/group-study.jpg", title: "Collaborative Learning" },
   ]
+  const [imageList, setImageList] = useState(initialImageList)
+  
+  // Testimonials for carousel
+  const testimonials = [
+    {
+      quote: "Glorious Future Academy has been a wonderful place for my child — warm teachers and clear feedback that helps at home.",
+      author: "Mrs. A.",
+      role: "Parent",
+    },
+    {
+      quote: "Teachers here have more time to teach and connect with pupils; the tools make admin simple and dependable.",
+      author: "Mr. K.",
+      role: "Teacher",
+    },
+    {
+      quote: "I still remember the clubs and projects that inspired me — GFA gave me the confidence to explore.",
+      author: "S. (Alumnus)",
+      role: "Alumnus",
+    },
+  ]
+  const [testiIndex, setTestiIndex] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => setTestiIndex((i) => (i + 1) % testimonials.length), 4500)
+    return () => clearInterval(t)
+  }, [testimonials.length])
 
   const fetchGameImages = async (): Promise<void> => {
     if (!navigator.onLine) {
@@ -376,8 +401,39 @@ export default function Home() {
             animate={{ scale: 1 }}
             transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
           >
-            Welcome to a brighter future of learning! 🎉
+            Welcome to a brighter future of learning at Glorious Future Academy! 🎉
           </motion.p>
+          <div className="mt-8 max-w-6xl mx-auto text-center text-indigo-100">
+            <h3 className="text-2xl font-semibold mb-3">What we do</h3>
+            <p className="text-lg text-indigo-200 mb-4">
+              At Glorious Future Academy we combine warm, child-centered teaching with modern tools to support learning.
+              We make it simple for teachers to create assessments, track student progress, and share clear feedback with
+              families — all designed to showcase the strengths of our school and help each pupil thrive.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-4">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🎯</span>
+                <div className="text-left">
+                  <div className="font-semibold">Improve Learning</div>
+                  <div className="text-sm text-indigo-300">Assessment and feedback that supports pupil progress</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🧑‍🏫</span>
+                <div className="text-left">
+                  <div className="font-semibold">Support Teachers</div>
+                  <div className="text-sm text-indigo-300">Tools that save time and free teachers to teach</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🏫</span>
+                <div className="text-left">
+                  <div className="font-semibold">Showcase Our School</div>
+                  <div className="text-sm text-indigo-300">Share achievements, events and the life of GFA with families</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </motion.div>
       ) : (
         <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pt-24 px-6 relative z-10">
@@ -395,11 +451,11 @@ export default function Home() {
               transition={{ delay: 0.2 }}
               className="text-xl text-indigo-200 mt-4 max-w-3xl mx-auto"
             >
-              A place where learning is fun, filled with creativity, and innovation.
+                  A place where learning is joyful, creative, and focused on the growth of every child.
             </motion.p>
           </section>
 
-          <section className="max-w-6xl mx-auto mb-16 z-10">
+          <section className="max-w-7xl mx-auto mb-16 z-10">
             <motion.h2
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
@@ -408,7 +464,18 @@ export default function Home() {
               📸 Our School Moments
             </motion.h2>
 
-            <DragDropContext onDragEnd={() => {}}>
+            <DragDropContext
+              onDragEnd={(result) => {
+                if (!result.destination) return
+                const src = result.source.index
+                const dest = result.destination.index
+                if (src === dest) return
+                const next = Array.from(imageList)
+                const [moved] = next.splice(src, 1)
+                next.splice(dest, 0, moved)
+                setImageList(next)
+              }}
+            >
               <Droppable droppableId="images">
                 {(provided) => (
                   <div
@@ -417,30 +484,34 @@ export default function Home() {
                     className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
                   >
                     {imageList.map((image, index) => (
-                      <Draggable key={image.id} draggableId={image.id} index={index}>
-                        {(provided) => (
+                      <Draggable key={image.id} draggableId={String(image.id)} index={index}>
+                        {(provided, snapshot) => (
                           <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            className="transform transition duration-300"
+                            className={`transform transition duration-300 ${snapshot.isDragging ? 'z-50 scale-105' : ''}`}
                           >
                             <motion.div
                               initial={{ opacity: 0, y: 30 }}
                               whileInView={{ opacity: 1, y: 0 }}
-                              transition={{ delay: index * 0.1 }}
-                              whileHover={{ scale: 1.05, y: -5 }}
-                              className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-indigo-200 hover:shadow-2xl transition-all duration-300"
+                              transition={{ delay: index * 0.03 }}
+                              whileHover={{ scale: 1.03 }}
+                              className="bg-white/90 group backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-indigo-200 hover:shadow-2xl transition-all duration-300"
                             >
-                              <Image
-                                src={image.src || "/placeholder.svg"}
-                                alt={image.title}
-                                width={400}
-                                height={300}
-                                className="w-full h-48 object-cover"
-                              />
+                              <div className="relative w-full h-56 overflow-hidden">
+                                <Image
+                                  src={image.src || "/placeholder.svg"}
+                                  alt={image.title}
+                                  width={600}
+                                  height={360}
+                                  className="object-cover w-full h-full transform transition duration-500 group-hover:scale-105 group-hover:filter-none filter grayscale contrast-90"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                              </div>
                               <div className="p-6 text-center">
                                 <h2 className="text-xl font-semibold text-indigo-900">{image.title}</h2>
+                                <p className="text-sm text-indigo-600 mt-2">Drag to reorder gallery</p>
                               </div>
                             </motion.div>
                           </div>
@@ -454,13 +525,131 @@ export default function Home() {
             </DragDropContext>
           </section>
 
-          <motion.div
-            className="text-3xl text-indigo-200 font-bold text-center my-12 mt-10 bg-indigo-800/50 backdrop-blur-sm rounded-2xl py-6 mx-auto max-w-4xl"
-            animate={{ y: ["100%", "-100%"] }}
-            transition={{ duration: 5, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
-          >
-            🎓 Learning is Fun at Glorious Future Academy! 🚀
-          </motion.div>
+          {/* Polished animated banner with CTA and stats */}
+          <section className="mx-auto w-full max-w-6xl px-4">
+            <motion.div
+              className="relative overflow-hidden rounded-2xl p-8 bg-gradient-to-r from-[#4237C7] to-[#9AA6FA] text-white shadow-2xl"
+              initial={{ opacity: 0, y: 8, scale: 0.995 }}
+              animate={{ opacity: [0, 1], y: [8, 0], scale: [0.995, 1] }}
+              transition={{ duration: 0.9, ease: "easeOut" }}
+            >
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex-1">
+                  <motion.h2
+                    className="text-3xl md:text-4xl font-extrabold leading-tight"
+                    initial={{ x: -8, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.15 }}
+                  >
+                    Nurturing curious minds. Supporting our teachers.
+                  </motion.h2>
+
+                  <motion.p
+                    className="mt-3 text-white/90 max-w-2xl"
+                    initial={{ x: -6, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: 0.25 }}
+                  >
+                    At Glorious Future Academy we use thoughtful digital tools to streamline routine tasks, provide
+                    meaningful insights into pupil progress, and share clear, timely feedback with families — so our
+                    teachers can focus on learning.
+                  </motion.p>
+
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <a
+                      href="#"
+                      className="inline-flex items-center gap-2 bg-white text-[#4237C7] px-4 py-2 rounded-lg font-medium shadow-sm hover:translate-y-[-2px] transition-transform"
+                    >
+                      Request Demo
+                    </a>
+                    <a
+                      href="#features"
+                      className="inline-flex items-center gap-2 border border-white/30 text-white px-4 py-2 rounded-lg hover:bg-white/10 transition"
+                    >
+                      Explore Features
+                    </a>
+                  </div>
+                </div>
+
+                <div className="w-full md:w-72">
+                  <motion.div
+                    className="bg-white/10 rounded-lg p-4 text-sm"
+                    initial={{ scale: 0.98, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-xs text-white/80">Our Community</div>
+                        <div className="text-lg font-semibold mt-1">Glorious Future Academy</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs text-white/80">Average improvement</div>
+                        <div className="text-lg font-semibold mt-1">+12%</div>
+                      </div>
+                    </div>
+                    <div className="mt-3 text-xs text-white/80">A modern approach to assessments and school communications.</div>
+                  </motion.div>
+                </div>
+              </div>
+
+              {/* subtle floating accent */}
+              <motion.div
+                className="pointer-events-none absolute -right-20 -bottom-20 w-48 h-48 rounded-full bg-white/6 blur-3xl"
+                animate={{ rotate: [0, 20, 0] }}
+                transition={{ duration: 12, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+              />
+            </motion.div>
+
+            {/* quick stats */}
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-white/5 p-4 rounded-lg text-white">
+                <div className="text-sm text-white/80">Students</div>
+                <div className="text-2xl font-bold">1,200+</div>
+                <div className="text-xs text-white/80 mt-1">Active learners at Glorious Future Academy</div>
+              </div>
+              <div className="bg-white/5 p-4 rounded-lg text-white">
+                <div className="text-sm text-white/80">Assessments</div>
+                <div className="text-2xl font-bold">10k+</div>
+                <div className="text-xs text-white/80 mt-1">Assessments created and safely delivered</div>
+              </div>
+              <div className="bg-white/5 p-4 rounded-lg text-white">
+                <div className="text-sm text-white/80">Engagement</div>
+                <div className="text-2xl font-bold">92%</div>
+                <div className="text-xs text-white/80 mt-1">Average pupil engagement rate</div>
+              </div>
+            </div>
+
+            {/* Testimonial carousel */}
+            <div className="mt-6">
+              <motion.div
+                key={testiIndex}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.45 }}
+                className="bg-white/6 p-6 rounded-xl text-white max-w-4xl mx-auto"
+              >
+                <p className="text-lg italic text-white/95">“{testimonials[testiIndex].quote}”</p>
+                <div className="mt-4 flex items-center justify-between">
+                  <div>
+                    <div className="font-semibold">{testimonials[testiIndex].author}</div>
+                    <div className="text-xs text-white/80">{testimonials[testiIndex].role}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {testimonials.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setTestiIndex(i)}
+                        aria-label={`Show testimonial ${i + 1}`}
+                        className={`w-2 h-2 rounded-full ${i === testiIndex ? 'bg-white' : 'bg-white/40'}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </section>
 
           <section className="text-center mt-16 relative">
             {showGoodJob && (
@@ -520,7 +709,7 @@ export default function Home() {
 
             <h3 className="text-3xl font-bold text-indigo-200 mt-16 mb-8">🖥️ Our Website Features</h3>
             <motion.div
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto text-white"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto text-white"
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}

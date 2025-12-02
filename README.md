@@ -90,6 +90,23 @@ Tailor to actual repo layout if different.
 - Example hosts: Netlify, Vercel, GitHub Pages (static), Azure Static Web Apps, or containerize with Docker if backend integration is required.
 - Use CI pipelines to run tests and builds (GitHub Actions, GitLab CI, Azure Pipelines).
 
+### Puppeteer / PDF generation
+
+- This project includes server-side PDF generation endpoints that use Puppeteer to render HTML reports and export PDFs. To enable this feature in your environment:
+  - Install dependencies: `npm install` (Puppeteer is included in `package.json`).
+  - Ensure your host supports running headless Chromium. On many managed hosts you may need to enable additional flags or use a custom Chromium binary.
+  - Recommended launch flags for Puppeteer (use when launching in production): `['--no-sandbox','--disable-setuid-sandbox','--disable-dev-shm-usage','--single-process']`.
+
+- If Puppeteer cannot run in your environment, the endpoints fall back to returning an HTML report that can be printed to PDF manually.
+
+### Deployment notes for Puppeteer
+
+- Vercel: serverless functions may not support a full Chromium binary out-of-the-box. Use Vercel's "Edge Functions" approaches or an external PDF-generation service, or deploy to a containerized service (Docker) where Chromium is installable.
+- Docker: include the necessary dependencies and a lightweight Chromium (install `chromium-browser` or use the official Puppeteer Docker images). Example Dockerfile base image: `node:20-bullseye-slim` and install `gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libnss3 libpango-1.0-0 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxrandr2 libxrender1 libxss1 ca-certificates fonts-liberation lsb-release xdg-utils`.
+- Azure App Service / other PaaS: prefer Docker deployment to ensure Chromium availability.
+
+If you'd like, I can add a small Dockerfile example and a CI job to build and test PDF generation in a reproducible environment.
+
 ## Environment & secrets
 - Keep secrets out of the repo; use environment variables and a secure store.
 - Example `.env` entries:

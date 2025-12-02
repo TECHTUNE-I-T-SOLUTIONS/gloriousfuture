@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 
     const teacher_id = teacherData.id as string
 
-    const { title, description, due_date, class_id, questions } = await req.json();
+    const { title, description, due_date, class_id, questions, subject_id } = await req.json();
 
     // If questions provided by the frontend, store them inside the description as JSON.
     // The assignments table doesn't have a questions column; we normalize on read.
@@ -54,9 +54,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Invalid class_id" }, { status: 400 })
     }
 
+    const insertObj: Record<string, unknown> = { teacher_id, title, description: storedDescription, due_date, class_id }
+    if (subject_id) insertObj.subject_id = subject_id
     const { data, error } = await supabase
       .from("assignments")
-      .insert([{ teacher_id, title, description: storedDescription, due_date, class_id }])
+      .insert([insertObj])
       .select()
 
     if (error) throw error
@@ -163,7 +165,7 @@ export async function PUT(req: Request) {
     if (!teacherData?.id) return NextResponse.json({ success: false, error: "Teacher not found" }, { status: 404 })
     const teacher_id = teacherData.id as string
 
-    const { id, title, description, due_date, class_id, questions } = await req.json()
+    const { id, title, description, due_date, class_id, questions, subject_id } = await req.json()
     if (!id) return NextResponse.json({ success: false, error: "Assignment id is required" }, { status: 400 })
 
     // verify ownership
@@ -173,9 +175,11 @@ export async function PUT(req: Request) {
 
     const storedDescription = questions ? JSON.stringify({ questions }) : description ?? null
 
+    const updateObj: Record<string, unknown> = { title, description: storedDescription, due_date, class_id }
+    if (subject_id) updateObj.subject_id = subject_id
     const { data, error } = await supabase
       .from("assignments")
-      .update({ title, description: storedDescription, due_date, class_id })
+      .update(updateObj)
       .eq("id", id)
       .select()
 

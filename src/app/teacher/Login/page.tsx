@@ -45,8 +45,8 @@ export default function TeacherLoginPage() {
       return
     }
 
-    // Validate UIN format strictly (expect GFA-T-<digits> or similar)
-    const teacherPattern = /^GFA-T-\d{3,}$/i
+    // Validate UIN format strictly (expect GFA-T-<4 digits>)
+    const teacherPattern = /^GFA-T-\d{4}$/i
     if (!teacherPattern.test(uin.trim())) {
       setAlert({ message: "Please enter a valid Teacher UIN (e.g. GFA-T-1759).", type: "warning" })
       return
@@ -153,16 +153,69 @@ export default function TeacherLoginPage() {
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                <input
-                  id="uin"
-                  type="text"
-                  value={uin}
-                  onChange={(e) => setUIN(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="w-full pl-10 pr-4 py-3 bg-input border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary transition-colors"
-                  placeholder="Enter your Teacher ID"
-                  autoComplete="username"
-                />
+
+                {/* UIN OTP-style input: prefix + 4 numeric boxes */}
+                <div className="w-full pl-10 pr-4 py-3 bg-input border border-border rounded-lg transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="px-3 py-2 rounded-md bg-gray-100 text-sm font-medium text-gray-700 select-none">GFA-T-</div>
+                    <div className="flex gap-2">
+                      {Array.from({ length: 4 }).map((_, idx) => (
+                        <input
+                          key={idx}
+                          inputMode="numeric"
+                          pattern="\\d*"
+                          maxLength={1}
+                          aria-label={`Teacher UIN digit ${idx + 1}`}
+                          className="w-10 h-10 text-center rounded-md bg-white/90 border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                          value={(uin.replace(/^GFA-T-/, "") || "").split("")[idx] || ""}
+                          onChange={(e) => {
+                            const v = e.target.value.replace(/\D/g, "").slice(0, 1)
+                            const raw = uin.replace(/^GFA-T-/, "")
+                            const digits = raw.split("").slice(0, 4)
+                            while (digits.length < 4) digits.push("")
+                            digits[idx] = v || ""
+                            const joined = digits.join("")
+                            setUIN(joined.replace(/^\s*$/, "") ? `GFA-T-${joined}` : "")
+                            // focus next if available
+                            if (v) {
+                              const inputs = (e.currentTarget.closest("div") as HTMLElement).querySelectorAll("input[inputmode='numeric']")
+                              const next = inputs[Array.from(inputs).indexOf(e.currentTarget as HTMLInputElement) + 1] as HTMLInputElement | undefined
+                              if (next) next.focus()
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            const target = e.currentTarget as HTMLInputElement
+                            if (e.key === "Backspace") {
+                              if (target.value === "") {
+                                const inputs = (e.currentTarget.closest("div") as HTMLElement).querySelectorAll("input[inputmode='numeric']")
+                                const idxOf = Array.from(inputs).indexOf(target)
+                                const prev = inputs[idxOf - 1] as HTMLInputElement | undefined
+                                if (prev) {
+                                  e.preventDefault()
+                                  const raw = uin.replace(/^GFA-T-/, "")
+                                  const digits = raw.split("").slice(0, 4)
+                                  while (digits.length < 4) digits.push("")
+                                  digits[Math.max(0, idxOf - 1)] = ""
+                                  const joined = digits.join("")
+                                  setUIN(joined.replace(/^\s*$/, "") ? `GFA-T-${joined}` : "")
+                                  prev.focus()
+                                }
+                              }
+                            }
+                          }}
+                          onPaste={(e) => {
+                            e.preventDefault()
+                            const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 4)
+                            const digits = pasted.split("")
+                            while (digits.length < 4) digits.push("")
+                            const joined = digits.join("")
+                            setUIN(joined.replace(/^\s*$/, "") ? `GFA-T-${joined}` : "")
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 

@@ -51,6 +51,9 @@ export default function TeacherAssignments() {
   const [newQuestions, setNewQuestions] = useState<string[]>([""])
   const [classes, setClasses] = useState<{ id: string; name: string }[]>([])
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null)
+  const [subjects, setSubjects] = useState<{ id: string; name: string }[]>([])
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null)
+  const [manualSubject, setManualSubject] = useState<string>("")
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
 
   // toast system
@@ -65,6 +68,8 @@ export default function TeacherAssignments() {
   const [editDueDate, setEditDueDate] = useState("")
   const [editQuestions, setEditQuestions] = useState<string[]>([""])
   const [editClassId, setEditClassId] = useState<string | null>(null)
+  const [editSubjectId, setEditSubjectId] = useState<string | null>(null)
+  const [editManualSubject, setEditManualSubject] = useState<string>("")
 
   const addToast = (message: string, type: "success" | "error" | "warning" | "info") => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
@@ -157,7 +162,20 @@ export default function TeacherAssignments() {
       }
     }
 
+    const fetchSubjects = async () => {
+      try {
+        const res = await fetch('/api/teacher/subjects', { credentials: 'include' })
+        if (res.ok) {
+          const data = await res.json()
+          if (Array.isArray(data)) setSubjects(data)
+        }
+      } catch (err) {
+        console.warn('Failed to fetch subjects', err)
+      }
+    }
+
     fetchClasses()
+    fetchSubjects()
 
     fetchAssignments()
   }, [])
@@ -232,6 +250,8 @@ export default function TeacherAssignments() {
           due_date: newDueDate,
           questions: newQuestions,
           class_id: selectedClassId,
+          ...(selectedSubjectId ? { subject_id: selectedSubjectId } : {}),
+          ...(selectedSubjectId === null && manualSubject ? { subject: manualSubject } : {}),
         }),
         credentials: "include",
       })
@@ -247,6 +267,8 @@ export default function TeacherAssignments() {
         setNewTitle("")
         setNewDueDate("")
         setNewQuestions([""])
+        setSelectedSubjectId(null)
+        setManualSubject("")
         setShowCreateForm(false)
         addToast("Assignment created successfully!", "success")
       }
@@ -304,6 +326,12 @@ export default function TeacherAssignments() {
     setEditDueDate(assignment.due_date ? assignment.due_date.split("T")[0] : "")
     setEditQuestions(assignment.questions ?? [""])
     setEditClassId(assignment.class_id ?? null)
+    // populate edit subject fields if available
+    const subjId = ((assignment as unknown) as Record<string, unknown>).subject_id ?? null
+    if (subjId) setEditSubjectId(subjId as string)
+    else if (((assignment as unknown) as Record<string, unknown>).subject) setEditSubjectId("__other")
+    else setEditSubjectId(null)
+    setEditManualSubject(String(((assignment as unknown) as Record<string, unknown>).subject ?? ""))
     setEditModalOpen(true)
   }
 
@@ -392,6 +420,8 @@ export default function TeacherAssignments() {
           due_date: editDueDate,
           questions: editQuestions,
           class_id: editClassId,
+          ...(editSubjectId && editSubjectId !== "__other" ? { subject_id: editSubjectId } : {}),
+          ...(editSubjectId === "__other" && editManualSubject ? { subject: editManualSubject } : {}),
         }),
         credentials: "include",
       })
@@ -536,6 +566,17 @@ export default function TeacherAssignments() {
                   ))}
                 </select>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="subjectSelect">Subject</Label>
+                <select id="subjectSelect" aria-label="Select subject" value={selectedSubjectId ?? ""} onChange={(e) => setSelectedSubjectId(e.target.value || null)} className="w-full bg-input border-border rounded-md p-2">
+                  <option value="">Select subject</option>
+                  {subjects.map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
+                  <option value="__other">Other (manual)</option>
+                </select>
+                {selectedSubjectId === "__other" && (
+                  <Input placeholder="Enter subject name" value={manualSubject} onChange={(e) => setManualSubject(e.target.value)} />
+                )}
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -619,6 +660,10 @@ export default function TeacherAssignments() {
                         <span className="flex items-center gap-1">
                           <Users className="h-4 w-4" />
                           {submissions.filter((sub) => sub.assignment_id === assignment.id).length} submissions
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <BookOpen className="h-4 w-4" />
+                          {String(subjects.find((s) => s.id === ((assignment as unknown) as Record<string, unknown>).subject_id)?.name ?? ((assignment as unknown) as Record<string, unknown>).subject ?? "—")}
                         </span>
                       </CardDescription>
                     </div>
@@ -856,6 +901,17 @@ export default function TeacherAssignments() {
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="editSubjectSelect">Subject</Label>
+                <select id="editSubjectSelect" aria-label="Select subject" value={editSubjectId ?? ""} onChange={(e) => setEditSubjectId(e.target.value || null)} className="w-full bg-input border-border rounded-md p-2">
+                  <option value="">Select subject</option>
+                  {subjects.map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
+                  <option value="__other">Other (manual)</option>
+                </select>
+                {editSubjectId === "__other" && (
+                  <Input placeholder="Enter subject name" value={editManualSubject} onChange={(e) => setEditManualSubject(e.target.value)} />
+                )}
               </div>
 
               <div className="space-y-4">

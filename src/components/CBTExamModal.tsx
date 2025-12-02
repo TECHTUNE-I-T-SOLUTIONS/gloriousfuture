@@ -11,7 +11,7 @@ interface Question {
 interface Exam {
   id: string;
   exam_title: string;
-  subject: string;
+  subject?: string | null;
   class_id: string;
   questions: Question[];
 }
@@ -33,7 +33,7 @@ export default function CBTExamModal({ exam, onClose, onSave }: CBTExamModalProp
   useEffect(() => {
     if (exam) {
       setExamTitle(exam.exam_title);
-      setSubject(exam.subject);
+      setSubject(exam.subject ?? "");
       setCurrentQuestionIndex(0); // Reset to first question when loading new exam
 
       // Parse questions if they are stored as JSON string

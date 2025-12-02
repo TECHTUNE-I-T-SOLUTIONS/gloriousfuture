@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
 import CustomLoader from "@/components/CustomLoader"
 import CustomAlert from "@/components/CustomAlert"
@@ -234,7 +235,7 @@ export default function TeacherSignup() {
                     <div className="relative">
                       <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" id="profile-upload-teacher" />
                       <label htmlFor="profile-upload-teacher" className="flex items-center justify-center w-20 h-20 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary transition-colors">
-                        {preview ? (<img src={preview || "/placeholder.svg"} alt="Preview" className="w-full h-full object-cover rounded-lg" />) : (<Upload className="w-6 h-6 text-gray-500" />)}
+                        {preview ? (<Image src={preview || "/placeholder.svg"} alt="Preview" width={80} height={80} className="w-full h-full object-cover rounded-lg" />) : (<Upload className="w-6 h-6 text-gray-500" />)}
                       </label>
                     </div>
                     <div className="flex-1">
