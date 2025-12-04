@@ -105,7 +105,7 @@ export default function StepByStepTutorial({ title, steps, onComplete }: StepByS
               <div className="flex gap-2">
                 <AlertCircle className="text-blue-600 flex-shrink-0" size={20} />
                 <div>
-                  <h4 className="font-semibold text-blue-900 mb-1">💡 Pro Tip:</h4>
+                  <h4 className="font-semibold text-blue-900 mb-1">💡Pro Tip:</h4>
                   <p className="text-blue-800">{step.explanation}</p>
                 </div>
               </div>
@@ -170,7 +170,7 @@ export default function StepByStepTutorial({ title, steps, onComplete }: StepByS
             <div className="flex items-center gap-3">
               <CheckCircle className="text-green-600" size={28} />
               <div>
-                <h4 className="font-semibold text-green-900">Tutorial Complete! 🎉</h4>
+                <h4 className="font-semibold text-green-900">Tutorial Complete!</h4>
                 <p className="text-green-800">You&apos;ve completed all steps. Ready to practice?</p>
               </div>
             </div>

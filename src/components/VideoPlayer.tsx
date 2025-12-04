@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward } from "lucide-react"
+import { Play, Pause, Volume2, VolumeX, Maximize, SkipBack, SkipForward, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -12,6 +12,34 @@ interface VideoPlayerProps {
   fileSize?: number
   description?: string
   thumbnail?: string
+}
+
+// Detect and extract video source type
+function getVideoSource(url: string): { type: "youtube" | "vimeo" | "web"; embedUrl?: string; id?: string } {
+  // YouTube patterns
+  if (url.includes("youtube.com") || url.includes("youtu.be")) {
+    const youtubeIdMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)
+    if (youtubeIdMatch?.[1]) {
+      return {
+        type: "youtube",
+        id: youtubeIdMatch[1],
+        embedUrl: `https://www.youtube.com/embed/${youtubeIdMatch[1]}`,
+      }
+    }
+  }
+  // Vimeo patterns
+  if (url.includes("vimeo.com")) {
+    const vimeoIdMatch = url.match(/vimeo\.com\/(\d+)/)
+    if (vimeoIdMatch?.[1]) {
+      return {
+        type: "vimeo",
+        id: vimeoIdMatch[1],
+        embedUrl: `https://player.vimeo.com/video/${vimeoIdMatch[1]}`,
+      }
+    }
+  }
+  // Web video (mp4, webm, etc.)
+  return { type: "web" }
 }
 
 export default function VideoPlayer({
@@ -33,6 +61,9 @@ export default function VideoPlayer({
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const videoSource = getVideoSource(videoUrl)
+  const isExternalVideo = videoSource.type !== "web"
 
   // Format time display
   const formatTime = (time: number) => {
@@ -173,8 +204,19 @@ export default function VideoPlayer({
           ref={containerRef}
           className={`relative bg-black group ${isFullscreen ? "w-full h-full" : "w-full aspect-video"}`}
         >
-          {/* Video Element */}
-          {!error ? (
+          {/* External Video Embed (YouTube/Vimeo) */}
+          {isExternalVideo && videoSource.embedUrl ? (
+            <iframe
+              src={videoSource.embedUrl}
+              title={title}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : null}
+
+          {/* Web Video Element */}
+          {!isExternalVideo && !error ? (
             <video
               ref={videoRef}
               src={videoUrl}
@@ -185,26 +227,29 @@ export default function VideoPlayer({
               onError={handleError}
               className="w-full h-full object-contain"
             />
-          ) : (
+          ) : null}
+
+          {/* Error Message */}
+          {error && !isExternalVideo ? (
             <div className="w-full h-full flex items-center justify-center bg-gray-900">
               <div className="text-center">
                 <p className="text-red-500 text-lg mb-4">{error}</p>
                 <Button variant="outline" onClick={() => setError(null)}>
-                  Try Again
+                  Sorry, Try Again
                 </Button>
               </div>
             </div>
-          )}
+          ) : null}
 
           {/* Loading Spinner */}
-          {isLoading && !error && (
+          {isLoading && !error && !isExternalVideo && (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white" />
             </div>
           )}
 
           {/* Play Button Overlay */}
-          {!isPlaying && !isLoading && !error && (
+          {!isPlaying && !isLoading && !error && !isExternalVideo && (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 hover:bg-opacity-50 transition-all cursor-pointer group">
               <button
                 onClick={togglePlay}
@@ -216,8 +261,9 @@ export default function VideoPlayer({
             </div>
           )}
 
-          {/* Controls */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/50 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          {/* Controls (only for web videos) */}
+          {!isExternalVideo && (
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/50 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             {/* Progress Bar */}
             <div className="mb-3">
               <input
@@ -303,27 +349,43 @@ export default function VideoPlayer({
                 </Button>
               </div>
             </div>
-          </div>
+            </div>
+          )}
         </div>
       </CardContent>
 
       {/* Video Info */}
-      {(duration || fileSize) && !isFullscreen && (
-        <CardContent className="pt-4 border-t">
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            {duration && (
-              <div>
-                <p className="text-gray-500">Duration</p>
-                <p className="font-semibold">{formatTime(duration)}</p>
-              </div>
-            )}
-            {fileSize && (
-              <div>
-                <p className="text-gray-500">File Size</p>
-                <p className="font-semibold">{formatFileSize(fileSize)}</p>
-              </div>
-            )}
-          </div>
+      {!isFullscreen && (
+        <CardContent className="pt-4 border-t space-y-4">
+          {(duration || fileSize) && !isExternalVideo && (
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              {duration && (
+                <div>
+                  <p className="text-gray-500">Duration</p>
+                  <p className="font-semibold">{formatTime(duration)}</p>
+                </div>
+              )}
+              {fileSize && (
+                <div>
+                  <p className="text-gray-500">File Size</p>
+                  <p className="font-semibold">{formatFileSize(fileSize)}</p>
+                </div>
+              )}
+            </div>
+          )}
+          {isExternalVideo && (
+            <div className="flex items-center gap-2 text-sm text-blue-600">
+              <ExternalLink size={16} />
+              <a
+                href={videoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:underline"
+              >
+                Open in {videoSource.type === "youtube" ? "YouTube" : "Vimeo"}
+              </a>
+            </div>
+          )}
         </CardContent>
       )}
     </Card>

@@ -481,7 +481,7 @@ export default function Home() {
                   <div
                     {...provided.droppableProps}
                     ref={provided.innerRef}
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+                    className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-8"
                   >
                     {imageList.map((image, index) => (
                       <Draggable key={image.id} draggableId={String(image.id)} index={index}>

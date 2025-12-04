@@ -14,6 +14,7 @@ interface CodeIDEProps {
   title?: string
 }
 
+
 export default function CodeIDE({ lessonId, initialCode, language, expectedOutput, title }: CodeIDEProps) {
   const [code, setCode] = useState(initialCode)
   const [output, setOutput] = useState("")

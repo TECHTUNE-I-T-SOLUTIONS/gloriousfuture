@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ArrowLeft, BookOpen, Clock, CheckCircle, AlertCircle, Send, BarChart3, Code } from "lucide-react"
+import { ArrowLeft, BookOpen, Clock, CheckCircle, AlertCircle, Send, BarChart3, Code, ChevronLeft, ChevronRight } from "lucide-react"
+import { motion } from "framer-motion"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -78,6 +79,21 @@ export default function ProgrammingLessons({ courseId, onBack }: ProgrammingLess
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [submission, setSubmission] = useState<AssessmentSubmission | null>(null)
   const [activeSection, setActiveSection] = useState<"video" | "tutorial" | "practice" | "assessment">("video")
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setSidebarOpen(false)
+      } else {
+        setSidebarOpen(true)
+      }
+    }
+
+    handleResize()
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
 
   const addToast = (message: string, type: "success" | "error" | "warning" | "info") => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
@@ -85,7 +101,7 @@ export default function ProgrammingLessons({ courseId, onBack }: ProgrammingLess
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4000)
   }
 
-  // Fetch modules
+  // Fetch modules (pupil view)
   useEffect(() => {
     const fetchModules = async () => {
       try {
@@ -233,11 +249,35 @@ export default function ProgrammingLessons({ courseId, onBack }: ProgrammingLess
         </Button>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Modules Sidebar */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Modules</CardTitle>
+          {/* Mobile Overlay */}
+          {sidebarOpen && (
+            <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+          )}
+
+          {/* Responsive Modules Sidebar */}
+          <motion.div
+            initial={false}
+            animate={{
+              width: sidebarOpen ? "100%" : "0%",
+              opacity: sidebarOpen ? 1 : 0,
+              x: sidebarOpen ? 0 : -280,
+            }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="lg:col-span-1 lg:relative lg:w-auto lg:opacity-100 lg:x-0"
+          >
+            <Card className="h-full">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Modules</CardTitle>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                    className="lg:hidden p-1 rounded hover:bg-gray-100"
+                  >
+                    <ChevronLeft size={20} />
+                  </motion.button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-2">
                 {modules.length === 0 ? (
@@ -249,6 +289,9 @@ export default function ProgrammingLessons({ courseId, onBack }: ProgrammingLess
                       onClick={() => {
                         setSelectedModule(module)
                         setSelectedLesson(null)
+                        if (window.innerWidth < 1024) {
+                          setSidebarOpen(false)
+                        }
                       }}
                       className={`w-full text-left p-3 rounded-lg transition-colors ${
                         selectedModule?.id === module.id
@@ -262,7 +305,19 @@ export default function ProgrammingLessons({ courseId, onBack }: ProgrammingLess
                 )}
               </CardContent>
             </Card>
-          </div>
+          </motion.div>
+
+          {/* Sidebar Toggle Button (visible on mobile) */}
+          {!sidebarOpen && (
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              onClick={() => setSidebarOpen(true)}
+              className="fixed left-0 top-32 z-40 lg:hidden p-2 bg-blue-600 text-white rounded-r-lg"
+            >
+              <ChevronRight size={20} />
+            </motion.button>
+          )}
 
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
@@ -327,7 +382,7 @@ export default function ProgrammingLessons({ courseId, onBack }: ProgrammingLess
               <div className="space-y-6">
                 {/* Section Navigation Tabs */}
                 <Card>
-                  <CardContent className="pt-6">
+                  <CardContent className="pt-6 p-2">
                     <div className="flex flex-wrap gap-2">
                       {selectedLesson.video_url && (
                         <Button
@@ -454,7 +509,7 @@ export default function ProgrammingLessons({ courseId, onBack }: ProgrammingLess
                   </CardTitle>
                   <CardDescription>{assessment.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 p-2">
                   {assessment.questions.length === 0 ? (
                     <p className="text-gray-600">No questions in this assessment</p>
                   ) : (
