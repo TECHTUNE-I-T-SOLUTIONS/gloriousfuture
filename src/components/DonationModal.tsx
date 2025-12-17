@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, Variants } from 'framer-motion'
 import { X, Heart, Gift, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
@@ -15,12 +15,12 @@ export default function DonationModal({ isOpen, onClose }: DonationModalProps) {
     if (!isOpen) return
   }, [isOpen])
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 15 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { type: 'spring', stiffness: 100, damping: 12 },
+      transition: { type: 'spring' as const, stiffness: 100, damping: 12 },
     },
   }
 

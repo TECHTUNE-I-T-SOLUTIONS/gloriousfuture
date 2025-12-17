@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, ChangeEvent, FormEvent } from 'react'
-import { motion } from 'framer-motion'
+import { motion, Variants } from 'framer-motion'
 import { Heart, ArrowLeft, Loader, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import CustomHeader from '@/components/CustomHeader'
@@ -84,7 +84,7 @@ export default function DonationPage() {
     }
   }
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -94,7 +94,7 @@ export default function DonationPage() {
     },
   }
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
