@@ -19,6 +19,12 @@ import {
   FiUsers,
   FiBookOpen,
   FiHeart,
+  FiArrowRight,
+  FiHome,
+  FiFileText,
+  FiGift,
+  FiTrendingUp,
+  FiStar,
 } from "react-icons/fi"
 import { FaGraduationCap } from "react-icons/fa"
 import CustomHeader from "@/components/CustomHeader"
@@ -313,19 +319,62 @@ export default function About() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">Visit Us</h2>
-              <div className="bg-gray-100/80 backdrop-blur-sm rounded-2xl p-8 border border-border shadow-lg">
-                <div className="flex items-center justify-center lg:justify-start mb-4">
-                  <div className="p-3 bg-gradient-to-br from-secondary to-accent rounded-xl text-white mr-4">
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">📍 Visit Us</h2>
+              <motion.div
+                className="bg-gradient-to-br from-blue-50/80 to-indigo-50/80 backdrop-blur-sm rounded-2xl p-8 border-2 border-indigo-200 shadow-lg hover:shadow-xl transition-all"
+                whileHover={{ scale: 1.02 }}
+              >
+                <div className="flex items-start gap-4 mb-6">
+                  <div className="p-3 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl text-white flex-shrink-0">
                     <FiMapPin className="w-6 h-6" />
                   </div>
-                  <h3 className="text-xl font-bold text-primary">Our Location</h3>
+                  <div className="text-left">
+                    <h3 className="text-xl font-bold text-primary mb-2">Our New Campus</h3>
+                    <p className="text-lg text-gray-800 font-semibold leading-relaxed">
+                      IBA Transformer Area<br />
+                      IBA Village, Ijomu Road<br />
+                      Oro, Kwara State, Nigeria
+                    </p>
+                  </div>
                 </div>
-                <p className="text-lg text-gray-900">Iba Village, Oro, Kwara State, Nigeria</p>
-              </div>
+
+                <div className="pt-4 border-t-2 border-indigo-200 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <FiPhone className="w-5 h-5 text-indigo-600 flex-shrink-0" />
+                    <Link href="tel:+2348035770623" className="text-gray-800 hover:text-indigo-600 font-medium">
+                      +234 803 577 0623
+                    </Link>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <FiMail className="w-5 h-5 text-indigo-600 flex-shrink-0" />
+                    <Link href="mailto:christgloriousfuture@gmail.com" className="text-gray-800 hover:text-indigo-600 font-medium break-all">
+                      christgloriousfuture@gmail.com
+                    </Link>
+                  </div>
+                </div>
+
+                <motion.div className="mt-6 flex gap-3">
+                  <Link
+                    href="https://wa.me/2348035770623"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl"
+                  >
+                    <FiPhone className="w-4 h-4" />
+                    WhatsApp
+                  </Link>
+                  <Link
+                    href="mailto:christgloriousfuture@gmail.com"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-all shadow-lg hover:shadow-xl"
+                  >
+                    <FiMail className="w-4 h-4" />
+                    Email
+                  </Link>
+                </motion.div>
+              </motion.div>
             </motion.div>
 
-            {/* Sitemap */}
+            {/* Enhanced Quicklinks */}
             <motion.div
               className="text-center lg:text-left"
               initial={{ opacity: 0, x: 50 }}
@@ -333,33 +382,206 @@ export default function About() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">Quick Links</h2>
-              <div className="bg-gray-100/80 backdrop-blur-sm rounded-2xl p-8 border border-border shadow-lg">
-                <div className="grid grid-cols-2 gap-4">
-                  {[
-                    { href: "/", label: "Home" },
-                    { href: "/pupils", label: "pupils" },
-                    { href: "/teacher", label: "Teachers" },
-                    { href: "/blog", label: "Blog" },
-                    { href: "/about", label: "About Us" },
-                  ].map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className="flex items-center gap-2 p-3 text-gray-900 hover:text-accent hover:bg-accent/10 rounded-lg transition-all duration-200"
-                    >
-                      <div className="w-2 h-2 bg-secondary rounded-full" />
-                      {link.label}
-                    </Link>
-                  ))}
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">🚀 Quick Links</h2>
+              <motion.div
+                className="bg-gradient-to-br from-purple-50/80 to-pink-50/80 backdrop-blur-sm rounded-2xl p-6 border-2 border-purple-200 shadow-lg"
+              >
+                {/* Main Links */}
+                <div className="mb-6">
+                  <p className="text-xs font-bold text-purple-700 uppercase tracking-wide mb-3">Explore</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { href: "/", label: "Home", icon: <FiHome className="w-4 h-4" /> },
+                      { href: "/pupils", label: "Pupils", icon: <FiUsers className="w-4 h-4" /> },
+                      { href: "/teacher", label: "Teachers", icon: <FiBookOpen className="w-4 h-4" /> },
+                      { href: "/blog", label: "Blog", icon: <FiFileText className="w-4 h-4" /> },
+                    ].map((link) => (
+                      <motion.div key={link.href} whileHover={{ scale: 1.05 }}>
+                        <Link
+                          href={link.href}
+                          className="flex items-center justify-between p-3 text-gray-800 hover:text-white hover:bg-gradient-to-r hover:from-purple-600 hover:to-pink-600 rounded-lg transition-all duration-200 border border-transparent hover:border-purple-400 group"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="text-purple-600 group-hover:text-white">{link.icon}</span>
+                            <span className="font-semibold">{link.label}</span>
+                          </div>
+                          <FiArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+
+                {/* Features Section */}
+                <div className="pt-4 border-t-2 border-purple-200">
+                  <p className="text-xs font-bold text-purple-700 uppercase tracking-wide mb-3">Features</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { href: "/donation", label: "Donate", icon: <FiGift className="w-4 h-4" />, color: "from-red-500 to-pink-500" },
+                      { href: "/funzone", label: "Fun Zone", icon: <FiStar className="w-4 h-4" />, color: "from-yellow-500 to-orange-500" },
+                    ].map((link) => (
+                      <motion.div key={link.href} whileHover={{ scale: 1.05 }}>
+                        <Link
+                          href={link.href}
+                          className={`flex items-center justify-between p-3 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg bg-gradient-to-r ${link.color}`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span>{link.icon}</span>
+                            <span className="font-semibold">{link.label}</span>
+                          </div>
+                          <FiArrowRight className="w-3 h-3" />
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
             </motion.div>
           </div>
         </div>
       </motion.section>
 
-      <footer className="relative bg-indigo-900 text-primary-foreground py-12 z-10">
+      {/* Programs & Achievements Section */}
+      <motion.section className="relative py-20 px-6 z-10">
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">🎓 Our Programs</h2>
+            <p className="text-lg text-gray-100 max-w-2xl mx-auto">
+              Comprehensive educational programs designed to develop well-rounded learners
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                title: "Academic Excellence",
+                description: "Rigorous curriculum with focus on STEM, Languages, and Liberal Arts",
+                icon: <FiTrendingUp className="w-6 h-6" />,
+                color: "from-blue-500 to-cyan-500",
+              },
+              {
+                title: "Character Development",
+                description: "Life skills, leadership training, and moral education",
+                icon: <FiAward className="w-6 h-6" />,
+                color: "from-purple-500 to-pink-500",
+              },
+              {
+                title: "Co-Curricular Activities",
+                description: "Sports, arts, music, debate, and technology clubs",
+                icon: <FiStar className="w-6 h-6" />,
+                color: "from-orange-500 to-red-500",
+              },
+            ].map((program, index) => (
+              <motion.div
+                key={program.title}
+                className="group relative"
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.2, duration: 0.8 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -10 }}
+              >
+                <div className={`bg-gradient-to-br ${program.color} opacity-10 absolute inset-0 rounded-2xl group-hover:opacity-20 transition-opacity`} />
+                <div className="relative bg-card/80 backdrop-blur-sm rounded-2xl p-6 border border-border shadow-lg group-hover:shadow-xl transition-all">
+                  <div className={`p-3 bg-gradient-to-br ${program.color} text-white rounded-xl inline-block mb-4`}>
+                    {program.icon}
+                  </div>
+                  <h3 className="text-lg font-bold text-primary mb-2">{program.title}</h3>
+                  <p className="text-gray-500">{program.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Why Choose Us Section */}
+      <motion.section className="relative py-20 px-6 z-10">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">✨ Why Choose Us?</h2>
+            <p className="text-lg text-gray-100 max-w-2xl mx-auto">
+              What sets Glorious Future Academy apart
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[
+              "🎯 Experienced & Dedicated Teaching Staff",
+              "🏫 Modern State-of-the-Art Facilities",
+              "💻 Technology-Integrated Learning Environment",
+              "🌍 Global Perspective & International Standards",
+              "👥 Small Class Sizes for Personalized Attention",
+              "📈 Proven Track Record of Student Success",
+              "🤝 Strong Parent-Teacher Partnership",
+              "🌟 Holistic Development Approach",
+            ].map((feature, index) => (
+              <motion.div
+                key={feature}
+                className="flex items-start gap-4 p-4 bg-card/40 backdrop-blur-sm rounded-xl border border-border/50 hover:border-border hover:bg-card/60 transition-all"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1, duration: 0.6 }}
+                viewport={{ once: true }}
+              >
+                <div className="text-2xl flex-shrink-0">{feature.split(" ")[0]}</div>
+                <span className="text-gray-300 font-medium">{feature.split(" ").slice(1).join(" ")}</span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Call to Action Section */}
+      <motion.section className="relative py-20 px-6 z-10">
+        <motion.div
+          className="max-w-4xl mx-auto bg-gradient-to-r from-indigo-600 to-purple-700 rounded-3xl p-12 text-center shadow-xl"
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8 }}
+          viewport={{ once: true }}
+          whileHover={{ scale: 1.02 }}
+        >
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            Ready to Join Our Community?
+          </h2>
+          <p className="text-indigo-100 text-lg mb-8 max-w-2xl mx-auto">
+            Take the first step towards excellence. Contact us today to learn more about enrollment and start your journey with Glorious Future Academy.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link
+              href="https://wa.me/2348035770623"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-green-500 hover:bg-green-600 text-white rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl"
+            >
+              <FiPhone className="w-5 h-5" />
+              Chat on WhatsApp
+            </Link>
+            <Link
+              href="mailto:christgloriousfuture@gmail.com"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-gray-100 text-indigo-600 rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl"
+            >
+              <FiMail className="w-5 h-5" />
+              Send Email
+            </Link>
+          </div>
+        </motion.div>
+      </motion.section>
+
+      <footer className="relative py-20 px-6 z-10 text-white text-center border-t border-white/10 bg-gradient-to-b from-transparent to-black/20">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

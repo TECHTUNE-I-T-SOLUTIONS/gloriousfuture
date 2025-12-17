@@ -252,109 +252,7 @@ export default function Home() {
     [],
   )
 
-  // Puzzle Game Component
-  function PuzzleGame() {
-    const galleryImages = [
-      "/images/gallery/learning.jpg",
-      "/images/gallery/games.jpg",
-      "/images/gallery/computer-training.jpg",
-      "/images/gallery/study.jpg",
-      "/images/gallery/sports.jpg",
-      "/images/gallery/classroom.jpg",
-      "/images/gallery/library.jpg",
-      "/images/gallery/reading.jpg",
-      "/images/gallery/writing.jpg",
-      "/images/gallery/music.jpg",
-      "/images/gallery/art.jpg",
-      "/images/gallery/science-lab.jpg",
-      "/images/gallery/coding-class.jpg",
-      "/images/gallery/mathematics.jpg",
-      "/images/gallery/geography.jpg",
-      "/images/gallery/history.jpg",
-      "/images/gallery/chemistry.jpg",
-      "/images/gallery/physics.jpg",
-      "/images/gallery/biology.jpg",
-      "/images/gallery/group-study.jpg",
-    ]
-    const [image, setImage] = useState(galleryImages[Math.floor(Math.random() * galleryImages.length)])
-    const initialTiles = useMemo(() => {
-      const arr = [...Array(8).keys()].map((i) => i + 1)
-      arr.push(0)
-      return arr
-    }, [])
-
-    function shuffle(arr: number[]): number[] {
-      const a = arr.slice()
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1))
-        ;[a[i], a[j]] = [a[j], a[i]]
-      }
-      return a
-    }
-    const [tiles, setTiles] = useState<number[]>(() => shuffle(initialTiles))
-    const [solved, setSolved] = useState(false)
-
-    useEffect(() => {
-      setSolved(tiles.join() === initialTiles.join())
-    }, [tiles, initialTiles])
-
-    function moveTile(idx: number) {
-      const emptyIdx = tiles.indexOf(0)
-      const row = Math.floor(idx / 3),
-        col = idx % 3
-      const emptyRow = Math.floor(emptyIdx / 3),
-        emptyCol = emptyIdx % 3
-      if (
-        (Math.abs(row - emptyRow) === 1 && col === emptyCol) ||
-        (Math.abs(col - emptyCol) === 1 && row === emptyRow)
-      ) {
-        const newTiles = tiles.slice()
-        ;[newTiles[idx], newTiles[emptyIdx]] = [newTiles[emptyIdx], newTiles[idx]]
-        setTiles(newTiles)
-      }
-    }
-
-    function resetPuzzle() {
-      setTiles(shuffle(initialTiles))
-      setSolved(false)
-      setImage(galleryImages[Math.floor(Math.random() * galleryImages.length)])
-    }
-
-    return (
-      <div className="mt-16 text-center mb-10">
-        <h2 className="text-4xl font-bold text-indigo-200 mb-6">🧩 Puzzle Challenge</h2>
-        <div className="inline-block bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-2xl border border-indigo-200">
-          <div className="grid grid-cols-3 grid-rows-3 gap-1 w-60 h-60 relative rounded-xl overflow-hidden">
-            {tiles.map((tile, idx) =>
-              tile !== 0 ? (
-                <button
-                  key={tile}
-                  className="w-20 h-20 p-0 border-2 border-indigo-300 focus:outline-none hover:border-indigo-500 transition-colors"
-                  style={{
-                    backgroundImage: `url(${image})`,
-                    backgroundSize: "180px 180px",
-                    backgroundPosition: `${(-(tile - 1) % 3) * 60}px ${-Math.floor((tile - 1) / 3) * 60}px`,
-                  }}
-                  onClick={() => !solved && moveTile(idx)}
-                  aria-label={`Tile ${tile}`}
-                />
-              ) : (
-                <div key={tile + "-" + idx} className="w-20 h-20 bg-indigo-100" />
-              ),
-            )}
-          </div>
-          {solved && <div className="mt-4 text-green-600 font-bold text-lg">🎉 Puzzle Solved! Amazing! 🎉</div>}
-          <button
-            onClick={resetPuzzle}
-            className="mt-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-lg"
-          >
-            New Puzzle
-          </button>
-        </div>
-        <div className="mt-4 text-indigo-200 text-sm">Arrange the tiles to form the complete image.</div>
-      </div>
-    )
-  }
+  // Puzzle Game Component is now defined outside to prevent state reset
 
   return (
     <div className="relative min-h-screen w-full bg-gradient-to-br from-indigo-200 via-indigo-500 to-indigo-800 flex flex-col">
@@ -405,7 +303,7 @@ export default function Home() {
           </motion.p>
           <div className="mt-8 max-w-6xl mx-auto text-center text-indigo-100">
             <h3 className="text-2xl font-semibold mb-3">What we do</h3>
-            <p className="text-lg text-indigo-200 mb-4">
+            <p className="text-lg text-indigo-200 mb-4 breakwords">
               At Glorious Future Academy we combine warm, child-centered teaching with modern tools to support learning.
               We make it simple for teachers to create assessments, track student progress, and share clear feedback with
               families — all designed to showcase the strengths of our school and help each pupil thrive.
@@ -441,7 +339,7 @@ export default function Home() {
             <motion.h1
               initial={{ opacity: 0, y: -30 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-6xl font-bold text-indigo-100 drop-shadow-lg mb-4"
+              className="text-6xl font-bold text-indigo-100 drop-shadow-lg mb-4 mt-8"
             >
               Welcome to Glorious Future Academy
             </motion.h1>
@@ -750,6 +648,112 @@ export default function Home() {
       )}
 
       <CustomFooter />
+    </div>
+  )
+}
+
+// Extract PuzzleGame as a separate component to prevent state reset
+function PuzzleGame() {
+  const galleryImages = [
+    "/images/gallery/learning.jpg",
+    "/images/gallery/games.jpg",
+    "/images/gallery/computer-training.jpg",
+    "/images/gallery/study.jpg",
+    "/images/gallery/sports.jpg",
+    "/images/gallery/classroom.jpg",
+    "/images/gallery/library.jpg",
+    "/images/gallery/reading.jpg",
+    "/images/gallery/writing.jpg",
+    "/images/gallery/music.jpg",
+    "/images/gallery/art.jpg",
+    "/images/gallery/science-lab.jpg",
+    "/images/gallery/coding-class.jpg",
+    "/images/gallery/mathematics.jpg",
+    "/images/gallery/geography.jpg",
+    "/images/gallery/history.jpg",
+    "/images/gallery/chemistry.jpg",
+    "/images/gallery/physics.jpg",
+    "/images/gallery/biology.jpg",
+    "/images/gallery/group-study.jpg",
+  ]
+  
+  // Initialize image once and don't change it unless puzzle is reset
+  const [image] = useState(galleryImages[Math.floor(Math.random() * galleryImages.length)])
+  const initialTiles = useMemo(() => {
+    const arr = [...Array(8).keys()].map((i) => i + 1)
+    arr.push(0)
+    return arr
+  }, [])
+
+  function shuffle(arr: number[]): number[] {
+    const a = arr.slice()
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[a[i], a[j]] = [a[j], a[i]]
+    }
+    return a
+  }
+  const [tiles, setTiles] = useState<number[]>(() => shuffle(initialTiles))
+  const [solved, setSolved] = useState(false)
+
+  useEffect(() => {
+    setSolved(tiles.join() === initialTiles.join())
+  }, [tiles, initialTiles])
+
+  function moveTile(idx: number) {
+    const emptyIdx = tiles.indexOf(0)
+    const row = Math.floor(idx / 3),
+      col = idx % 3
+    const emptyRow = Math.floor(emptyIdx / 3),
+      emptyCol = emptyIdx % 3
+    if (
+      (Math.abs(row - emptyRow) === 1 && col === emptyCol) ||
+      (Math.abs(col - emptyCol) === 1 && row === emptyRow)
+    ) {
+      const newTiles = tiles.slice()
+      ;[newTiles[idx], newTiles[emptyIdx]] = [newTiles[emptyIdx], newTiles[idx]]
+      setTiles(newTiles)
+    }
+  }
+
+  function resetPuzzle() {
+    setTiles(shuffle(initialTiles))
+    setSolved(false)
+  }
+
+  return (
+    <div className="mt-16 text-center mb-10">
+      <h2 className="text-4xl font-bold text-indigo-200 mb-6">🧩 Puzzle Challenge</h2>
+      <div className="inline-block bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-2xl border border-indigo-200">
+        <div className="grid grid-cols-3 grid-rows-3 gap-0 w-60 h-60 relative rounded-xl overflow-hidden border-4 border-indigo-400">
+          {tiles.map((tile, idx) =>
+            tile !== 0 ? (
+              <button
+                key={tile}
+                className="w-20 h-20 p-0 focus:outline-none hover:opacity-90 transition-opacity"
+                style={{
+                  backgroundImage: `url(${image})`,
+                  backgroundSize: "180px 180px",
+                  backgroundPosition: `${(-(tile - 1) % 3) * 60}px ${-Math.floor((tile - 1) / 3) * 60}px`,
+                  backgroundRepeat: "no-repeat",
+                }}
+                onClick={() => !solved && moveTile(idx)}
+                aria-label={`Tile ${tile}`}
+              />
+            ) : (
+              <div key={tile + "-" + idx} className="w-20 h-20 bg-indigo-100" />
+            ),
+          )}
+        </div>
+        {solved && <div className="mt-4 text-green-600 font-bold text-lg">🎉 Puzzle Solved! Amazing! 🎉</div>}
+        <button
+          onClick={resetPuzzle}
+          className="mt-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 shadow-lg"
+        >
+          New Puzzle
+        </button>
+      </div>
+      <div className="mt-4 text-indigo-200 text-sm">Arrange the tiles to form the complete image.</div>
     </div>
   )
 }
