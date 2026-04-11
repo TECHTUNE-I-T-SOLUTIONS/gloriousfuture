@@ -5,7 +5,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
-import { FiMenu, FiX, FiHome, FiUsers, FiBookOpen, FiUser, FiInfo, FiPhone, FiMail } from "react-icons/fi"
+import { FiMenu, FiX, FiHome, FiUsers, FiBookOpen, FiUser, FiInfo, FiPhone, FiMail, FiAward } from "react-icons/fi"
 import { MapPin } from "lucide-react"
 
 const CustomHeader = () => {
@@ -41,6 +41,7 @@ const CustomHeader = () => {
     { href: "/", label: "Home", icon: <FiHome className="w-4 h-4" /> },
     { href: "/pupils", label: "Pupils", icon: <FiUsers className="w-4 h-4" /> },
     { href: "/teacher", label: "Teachers", icon: <FiUser className="w-4 h-4" /> },
+    { href: "/quizzes", label: "Quiz", icon: <FiAward className="w-4 h-4" /> },
     { href: "/blog", label: "Blog", icon: <FiBookOpen className="w-4 h-4" /> },
     { href: "/about", label: "About", icon: <FiInfo className="w-4 h-4" /> },
   ]
