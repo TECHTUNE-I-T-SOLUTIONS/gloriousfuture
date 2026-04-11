@@ -6,6 +6,16 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+// Fisher-Yates shuffle algorithm
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array]
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
+}
+
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
@@ -32,7 +42,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       question_text: q.question_text,
       order_index: q.order_index,
       time_limit_seconds: q.time_limit_seconds,
-      options: (options || []).filter((o: any) => o.question_id === q.id).map((o: any) => ({ id: o.id, option_text: o.option_text, order_index: o.order_index, is_correct: !!o.is_correct })),
+      options: shuffleArray((options || []).filter((o: any) => o.question_id === q.id).map((o: any) => ({ id: o.id, option_text: o.option_text, order_index: o.order_index, is_correct: !!o.is_correct }))),
     }))
 
     return NextResponse.json({ quiz: { id: quiz.id, title: quiz.title, description: quiz.description, time_per_question: quiz.time_per_question, total_questions: quiz.total_questions }, questions: questionsWithOptions })
@@ -41,3 +51,4 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: String(err) }, { status: 500 })
   }
 }
+

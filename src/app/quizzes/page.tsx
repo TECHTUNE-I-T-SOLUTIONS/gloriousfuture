@@ -14,6 +14,8 @@ export default function PublicQuizzesPage() {
   const [quizzes, setQuizzes] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [init, setInit] = useState(false)
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all')
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>('all')
 
   useEffect(() => {
     initParticlesEngine(async (engine) => {
@@ -40,6 +42,15 @@ export default function PublicQuizzesPage() {
       mounted = false
     }
   }, [])
+
+  // Filter quizzes based on selected filters
+  const filteredQuizzes = useMemo(() => {
+    return quizzes.filter((q) => {
+      const difficultyMatch = selectedDifficulty === 'all' || q.difficulty_level === selectedDifficulty
+      const ageMatch = selectedAgeGroup === 'all' || q.age_group === selectedAgeGroup
+      return difficultyMatch && ageMatch
+    })
+  }, [quizzes, selectedDifficulty, selectedAgeGroup])
 
   const particlesOptions = useMemo<RecursivePartial<IOptions>>(
     () => ({
@@ -111,6 +122,67 @@ export default function PublicQuizzesPage() {
 
         {/* Main Content */}
         <section className="max-w-7xl mx-auto mb-16">
+          {/* Filter Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-12 bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-indigo-200"
+          >
+            <h3 className="text-lg font-bold text-indigo-900 mb-4">Filter Quizzes</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Difficulty Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-indigo-700 mb-3">Difficulty Level</label>
+                <div className="flex flex-wrap gap-2">
+                  {['all', 'easy', 'medium', 'hard'].map((level) => (
+                    <motion.button
+                      key={level}
+                      onClick={() => setSelectedDifficulty(level)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`px-4 py-2 rounded-full font-semibold transition-all ${
+                        selectedDifficulty === level
+                          ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg'
+                          : 'bg-indigo-100 text-indigo-900 hover:bg-indigo-200'
+                      }`}
+                    >
+                      {level.charAt(0).toUpperCase() + level.slice(1)}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Age Group Filter */}
+              <div>
+                <label className="block text-sm font-semibold text-indigo-700 mb-3">Age Group</label>
+                <div className="flex flex-wrap gap-2">
+                  {['all', '6-8', '8-10', '10-12', '12-14'].map((age) => (
+                    <motion.button
+                      key={age}
+                      onClick={() => setSelectedAgeGroup(age)}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`px-4 py-2 rounded-full font-semibold transition-all ${
+                        selectedAgeGroup === age
+                          ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg'
+                          : 'bg-indigo-100 text-indigo-900 hover:bg-indigo-200'
+                      }`}
+                    >
+                      {age === 'all' ? 'All Ages' : `${age} yrs`}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Results count */}
+            <p className="text-sm text-indigo-600 font-semibold mt-4">
+              Showing {filteredQuizzes.length} of {quizzes.length} quizzes
+            </p>
+          </motion.div>
+
+          {/* Quizzes Grid */}
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -123,7 +195,7 @@ export default function PublicQuizzesPage() {
                 />
               ))}
             </div>
-          ) : quizzes.length === 0 ? (
+          ) : filteredQuizzes.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -136,31 +208,28 @@ export default function PublicQuizzesPage() {
                   transition={{ delay: 0.2 }}
                   className="text-6xl mb-6"
                 >
-                  🎯
+                  🔍
                 </motion.div>
-                <h2 className="text-3xl font-bold text-indigo-900 mb-3">No Quizzes Yet</h2>
+                <h2 className="text-3xl font-bold text-indigo-900 mb-3">No Quizzes Found</h2>
                 <p className="text-indigo-700 text-lg mb-8">
-                  Teachers are working hard to create engaging quizzes. Check back soon or create one if you have teacher access!
+                  Try adjusting your filters or check back soon for more quizzes!
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link
-                    href="/teacher/teacher-dashboard"
-                    className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-105"
-                  >
-                    Create a Quiz
-                  </Link>
-                  <Link
-                    href="/"
-                    className="px-6 py-3 border-2 border-indigo-600 text-indigo-900 rounded-lg font-semibold hover:bg-indigo-50 transition-all"
-                  >
-                    Back to Home
-                  </Link>
-                </div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    setSelectedDifficulty('all')
+                    setSelectedAgeGroup('all')
+                  }}
+                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+                >
+                  Clear Filters
+                </motion.button>
               </div>
             </motion.div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {quizzes.map((q, index) => (
+              {filteredQuizzes.map((q, index) => (
                 <motion.div
                   key={q.id}
                   initial={{ opacity: 0, y: 30 }}

@@ -26,12 +26,16 @@ export default function QuizPlayer({ quizId }: { quizId: string }) {
 
   const correctAudio = useRef<HTMLAudioElement | null>(null)
   const wrongAudio = useRef<HTMLAudioElement | null>(null)
+  const introAudio = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
+    // Use WWTBAM-style sounds from trivia game
     correctAudio.current = new Audio('/correct.mp3')
     wrongAudio.current = new Audio('/wrong.mp3')
+    introAudio.current = new Audio('/intro.mp3')
     correctAudio.current.load()
     wrongAudio.current.load()
+    introAudio.current.load()
   }, [])
 
   useEffect(() => {
@@ -131,7 +135,7 @@ export default function QuizPlayer({ quizId }: { quizId: string }) {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-900 text-white flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-950 text-white flex flex-col items-center justify-center p-6">
         <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 1.5, repeat: Infinity }} className="text-6xl mb-4">🎯</motion.div>
         <h2 className="text-2xl font-bold">Loading Quiz...</h2>
       </div>
@@ -141,12 +145,12 @@ export default function QuizPlayer({ quizId }: { quizId: string }) {
   // Error state
   if (error || !quiz) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-900 text-white flex flex-col items-center justify-center p-6">
-        <div className="bg-white/20 backdrop-blur-md rounded-2xl p-8 max-w-md text-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-950 text-white flex flex-col items-center justify-center p-6">
+        <div className="bg-amber-900/30 backdrop-blur-md rounded-2xl p-8 max-w-md text-center border border-amber-600/50">
           <div className="text-6xl mb-4">⚠️</div>
           <h2 className="text-2xl font-bold mb-2">Quiz Not Found</h2>
           <p className="text-white/80 mb-6">{error || 'This quiz may have been removed or is not available.'}</p>
-          <Link href="/quizzes" className="inline-block px-6 py-3 bg-white text-indigo-600 font-bold rounded-lg hover:bg-gray-100 transition">
+          <Link href="/quizzes" className="inline-block px-6 py-3 bg-amber-600 text-white font-bold rounded-lg hover:bg-amber-700 transition">
             ← Back to Quizzes
           </Link>
         </div>
@@ -157,24 +161,41 @@ export default function QuizPlayer({ quizId }: { quizId: string }) {
   // Show hero before questions start
   if (!started) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-indigo-500 to-indigo-800 text-white flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden">
-        {/* Animated background blobs */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-950 text-white flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-hidden">
+        {/* Game Show Background */}
+        <div 
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(2, 13, 48, 0.8)), url(/quiz-bg.jpeg)',
+            backgroundPosition: 'center',
+            backgroundSize: 'cover',
+            backgroundAttachment: 'fixed'
+          }}
+        />
+
+        {/* Decorative background elements */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-96 bg-gradient-to-b from-amber-600/5 to-transparent blur-3xl opacity-30 z-0" />
+        <div className="absolute inset-0 opacity-5 z-0">
+          <div className="absolute top-20 left-10 w-40 h-40 border border-amber-600 rounded-full" />
+          <div className="absolute bottom-32 right-10 w-56 h-56 border border-amber-600 rounded-full" />
+        </div>
         
-        <div className="max-w-2xl mx-auto relative z-10">
-          <Link href="/quizzes" className="flex items-center gap-2 text-white/80 hover:text-white transition mb-8">
+        <div className="max-w-3xl mx-auto relative z-10">
+          <Link href="/quizzes" className="flex items-center gap-2 text-white/70 hover:text-white transition mb-8 font-semibold">
             <FiArrowLeft /> Back to Quizzes
           </Link>
           <motion.div 
             initial={{ opacity: 0, y: 30, scale: 0.95 }} 
             animate={{ opacity: 1, y: 0, scale: 1 }} 
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="bg-white/95 backdrop-blur-lg rounded-3xl shadow-2xl overflow-hidden border border-white/20"
+            className="bg-gradient-to-b from-slate-800/95 to-slate-900/95 rounded-3xl shadow-2xl overflow-hidden border-2 border-amber-600/40 relative backdrop-blur-sm"
           >
+            {/* Decorative top bar */}
+            <div className="h-1 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600" />
+            
             {/* Hero Image */}
             {quiz?.thumbnail_url && (
-              <div className="relative w-full h-72 sm:h-96 bg-gradient-to-br from-indigo-400 to-purple-500">
+              <div className="relative w-full h-72 sm:h-96 bg-gradient-to-br from-slate-800 to-blue-900">
                 <Image
                   src={quiz.thumbnail_url}
                   alt={quiz.title}
@@ -185,7 +206,7 @@ export default function QuizPlayer({ quizId }: { quizId: string }) {
                     e.currentTarget.style.display = 'none'
                   }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent" />
               </div>
             )}
             
@@ -194,7 +215,7 @@ export default function QuizPlayer({ quizId }: { quizId: string }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 mb-4"
+                className="text-4xl md:text-5xl font-extrabold text-amber-500 mb-4 text-center"
               >
                 {quiz?.title}
               </motion.h1>
@@ -203,7 +224,7 @@ export default function QuizPlayer({ quizId }: { quizId: string }) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="text-lg text-indigo-700 text-justify mb-8 leading-relaxed"
+                  className="text-lg text-white/80 text-center mb-8 leading-relaxed"
                 >
                   {quiz.description}
                 </motion.p>
@@ -214,19 +235,19 @@ export default function QuizPlayer({ quizId }: { quizId: string }) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="grid grid-cols-3 gap-4 mb-8 p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100"
+                className="grid grid-cols-3 gap-4 mb-8 p-6 bg-gradient-to-br from-slate-700/50 to-blue-900/50 rounded-2xl border border-amber-600/30"
               >
                 <div className="text-center">
-                  <p className="text-4xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{questions.length}</p>
-                  <p className="text-sm text-indigo-600 font-semibold mt-1">Questions</p>
+                  <p className="text-4xl font-extrabold text-amber-500">{questions.length}</p>
+                  <p className="text-sm text-amber-400/80 font-semibold mt-1">Questions</p>
                 </div>
-                <div className="text-center border-l-2 border-r-2 border-indigo-200">
-                  <p className="text-4xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{Math.round((questions.length * (quiz?.time_per_question || 20)) / 60)}</p>
-                  <p className="text-sm text-indigo-600 font-semibold mt-1">Minutes</p>
+                <div className="text-center border-l-2 border-r-2 border-amber-600/30">
+                  <p className="text-4xl font-extrabold text-amber-500">{Math.round((questions.length * (quiz?.time_per_question || 20)) / 60)}</p>
+                  <p className="text-sm text-amber-400/80 font-semibold mt-1">Minutes</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-4xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">∞</p>
-                  <p className="text-sm text-indigo-600 font-semibold mt-1">Free</p>
+                  <p className="text-4xl font-extrabold text-amber-500">∞</p>
+                  <p className="text-sm text-amber-400/80 font-semibold mt-1">Free</p>
                 </div>
               </motion.div>
 
@@ -237,11 +258,15 @@ export default function QuizPlayer({ quizId }: { quizId: string }) {
                 transition={{ delay: 0.5 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setStarted(true)}
-                className="w-full py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 text-white font-bold text-xl rounded-xl hover:shadow-2xl transition-all shadow-lg relative overflow-hidden group"
+                onClick={() => {
+                  // Play intro sound
+                  if (soundEnabled) introAudio.current?.play().catch(() => {})
+                  setStarted(true)
+                }}
+                className="w-full py-4 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-white font-bold text-xl rounded-xl hover:shadow-2xl transition-all shadow-lg relative overflow-hidden group"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <span className="relative">Let's Begin →</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <span className="relative">🎮 Let&apos;s Begin →</span>
               </motion.button>
             </div>
           </motion.div>
@@ -253,31 +278,38 @@ export default function QuizPlayer({ quizId }: { quizId: string }) {
   // Finished state (Results)
   if (finished) {
     const percentage = Math.round((score / questions.length) * 100)
-    const message = percentage === 100 ? '🏆 Perfect!' : percentage >= 80 ? '🎉 Excellent!' : percentage >= 60 ? '👍 Good Job!' : '💪 Keep Practicing'
-    const color = percentage === 100 ? 'from-yellow-400 to-yellow-600' : percentage >= 80 ? 'from-indigo-600 to-purple-600' : percentage >= 60 ? 'from-blue-600 to-indigo-600' : 'from-orange-600 to-red-600'
+    const message = percentage === 100 ? '🏆 Perfect! You\'re a Champion!' : percentage >= 80 ? '🎉 Excellent Performance!' : percentage >= 60 ? '👍 Great Job!' : '💪 Keep Practicing'
+    const isBig = percentage >= 60 // Show celebrations for 60% and above
     
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-200 via-indigo-500 to-indigo-800 text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
-        {/* Animated confetti-like background */}
-        <div className="absolute top-0 right-0 w-full h-full">
-          <motion.div 
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="absolute top-10 right-10 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
-          />
-          <motion.div 
-            animate={{ scale: [1, 0.8, 1] }}
-            transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-            className="absolute bottom-20 left-10 w-72 h-72 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"
-          />
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-950 text-white flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        {/* Game Show Background */}
+        <div 
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: isBig ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(2, 13, 48, 0.9)), url(/congrats.gif)' : 'linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(2, 13, 48, 0.9))',
+            backgroundPosition: 'center',
+            backgroundSize: 'cover',
+            backgroundAttachment: 'fixed',
+            backgroundRepeat: 'no-repeat'
+          }}
+        />
+
+        {/* Decorative background */}
+        <div className="absolute inset-0 opacity-5 z-0">
+          <div className="absolute top-20 right-10 w-80 h-80 border border-amber-600 rounded-full" />
+          <div className="absolute bottom-20 left-10 w-96 h-96 border border-amber-600 rounded-full" />
         </div>
 
         <motion.div 
           initial={{ scale: 0, opacity: 0, rotate: -180 }} 
           animate={{ scale: 1, opacity: 1, rotate: 0 }} 
           transition={{ duration: 0.7, ease: "easeOut" }}
-          className="bg-white/95 backdrop-blur-lg rounded-3xl p-12 max-w-3xl text-center shadow-2xl border border-white/20 relative z-10"
+          className="bg-gradient-to-b from-slate-800/95 to-slate-900/95 rounded-3xl p-12 max-w-3xl text-center shadow-2xl border-2 border-amber-600/40 relative z-10 backdrop-blur-sm"
         >
+          {/* Decorative top bar */}
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 rounded-t-3xl" />
+
           <motion.div 
             animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }} 
             transition={{ duration: 1.5, repeat: Infinity }}
@@ -290,7 +322,7 @@ export default function QuizPlayer({ quizId }: { quizId: string }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className={`text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r ${color} mb-4`}
+            className="text-5xl font-extrabold text-amber-500 mb-4"
           >
             {message}
           </motion.h2>
@@ -301,21 +333,21 @@ export default function QuizPlayer({ quizId }: { quizId: string }) {
             transition={{ delay: 0.4 }}
             className="mb-8"
           >
-            <p className="text-indigo-700 text-3xl font-extrabold mb-2">
+            <p className="text-amber-400/80 text-xl font-semibold mb-2">
               Final Score
             </p>
-            <p className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
-              {score} <span className="text-2xl text-indigo-600">/ {questions.length}</span>
+            <p className="text-5xl font-extrabold text-amber-500">
+              {score} <span className="text-2xl text-amber-400/80">/ {questions.length}</span>
             </p>
           </motion.div>
 
           {/* Progress bar */}
-          <div className="w-full bg-gray-200 rounded-full h-4 mb-6 overflow-hidden shadow-lg">
+          <div className="w-full bg-slate-700/50 rounded-full h-3 mb-6 overflow-hidden shadow-lg border border-amber-600/30">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${percentage}%` }}
               transition={{ duration: 1.2, ease: "easeOut" }}
-              className={`h-full bg-gradient-to-r ${color} rounded-full`}
+              className="h-full bg-gradient-to-r from-amber-600 to-amber-500 rounded-full shadow-lg"
             />
           </div>
 
@@ -323,9 +355,9 @@ export default function QuizPlayer({ quizId }: { quizId: string }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="text-3xl font-bold text-indigo-700 mb-10"
+            className="text-3xl font-bold text-amber-400 mb-10"
           >
-            {percentage}% <span className="text-xl text-indigo-600">Accuracy</span>
+            {percentage}% <span className="text-xl text-amber-400/70">Accuracy</span>
           </motion.p>
 
           {/* Buttons */}
@@ -337,7 +369,7 @@ export default function QuizPlayer({ quizId }: { quizId: string }) {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={restart} 
-              className="px-10 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-lg rounded-2xl hover:shadow-2xl transition-all shadow-lg"
+              className="px-10 py-4 bg-gradient-to-r from-amber-600 to-amber-500 text-white font-bold text-lg rounded-2xl hover:shadow-2xl transition-all shadow-lg border border-amber-400/20"
             >
               🔄 Try Again
             </motion.button>
@@ -348,7 +380,7 @@ export default function QuizPlayer({ quizId }: { quizId: string }) {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Link href="/quizzes" className="inline-block px-10 py-4 bg-white text-indigo-600 font-bold text-lg rounded-2xl hover:shadow-2xl transition-all shadow-lg">
+              <Link href="/quizzes" className="inline-block px-10 py-4 bg-slate-700 text-amber-400 font-bold text-lg rounded-2xl hover:shadow-2xl transition-all shadow-lg border border-amber-600/30 hover:border-amber-500/50">
                 ← Back to Quizzes
               </Link>
             </motion.div>
@@ -360,177 +392,272 @@ export default function QuizPlayer({ quizId }: { quizId: string }) {
 
   const q = questions[index]
   const progress = ((index + 1) / questions.length) * 100
+  const answerLetters = ['A', 'B', 'C', 'D']
+  const answerColors = [
+    { bg: 'from-emerald-600 to-emerald-700', border: 'border-emerald-500', hover: 'hover:from-emerald-500 hover:to-emerald-600' },
+    { bg: 'from-blue-600 to-blue-700', border: 'border-blue-500', hover: 'hover:from-blue-500 hover:to-blue-600' },
+    { bg: 'from-blue-600 to-blue-700', border: 'border-blue-500', hover: 'hover:from-blue-500 hover:to-blue-600' },
+    { bg: 'from-orange-600 to-orange-700', border: 'border-orange-500', hover: 'hover:from-orange-500 hover:to-orange-600' },
+  ]
+
+  // Dynamic prize ladder based on number of questions with reasonable scaling
+  const generatePrizeLadder = () => {
+    const stages = []
+    const totalQuestions = questions.length || 15
+    const prizeValues = [
+      100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 
+      100000, 250000, 500000, 1000000, 2500000, 5000000
+    ]
+    
+    for (let i = 1; i <= totalQuestions; i++) {
+      // Use predefined values or scale linearly if more than 15 questions
+      const points = prizeValues[i - 1] || (i * 1000000)
+      stages.push({ level: i, points })
+    }
+    return stages
+  }
+
+  const prizeStages = generatePrizeLadder()
+  const currentLevel = Math.min(score, prizeStages.length)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-4 sm:p-6 relative overflow-hidden">
-      {/* Animated background blobs */}
-      <div className="absolute top-10 right-10 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse" />
-      <div className="absolute bottom-20 left-10 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse" />
-      
-      <div className="max-w-6xl mx-auto relative z-10 flex flex-col min-h-screen">
-        {/* Header with Score */}
-        <div className="mb-8 flex items-center justify-between">
-          <Link href="/quizzes" className="flex items-center gap-2 text-white/70 hover:text-white transition font-semibold">
-            <FiArrowLeft /> Back
-          </Link>
+    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-950 text-white overflow-hidden" style={{
+      backgroundImage: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.2), rgba(2, 13, 48, 0.9)), url(/quiz-bg.jpeg)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center'
+    }}>
+      {/* MAIN QUIZ AREA - 75% */}
+      <div className="flex-1 flex flex-col p-6 md:p-8 relative z-10 overflow-y-auto">
+        {/* Top Section - Progress Bar & Timer */}
+        <div className="flex items-start justify-between mb-8">
+          {/* Center: Progress Bar (Full Width) */}
+          <div className="flex-1 flex flex-col justify-center">
+            <motion.div 
+              initial={{ scaleX: 0 }} 
+              animate={{ scaleX: 1 }} 
+              transition={{ duration: 0.5 }}
+              className="w-full h-3 bg-slate-700/50 rounded-full overflow-hidden border-2 border-amber-600/50"
+            >
+              <motion.div 
+                animate={{ width: `${progress}%` }} 
+                transition={{ duration: 0.3 }}
+                className="h-full bg-gradient-to-r from-amber-600 to-amber-500 rounded-full shadow-lg"
+              />
+            </motion.div>
+          </div>
+
+          {/* Right: Timer + Back + Sound */}
           <div className="flex items-center gap-4">
-            <div className="px-6 py-2.5 bg-gradient-to-r from-yellow-500 to-orange-500 backdrop-blur-md rounded-full text-sm font-bold text-white shadow-lg">
-              <span>🏆 Score: {score}/{questions.length}</span>
-            </div>
+            {/* Timer */}
+            <motion.div
+              animate={{ 
+                scale: timeLeft <= 5 ? [1, 1.15, 1] : 1,
+                boxShadow: timeLeft <= 5 ? ['0 0 0 0px rgba(217,119,6,0.7)', '0 0 0 25px rgba(217,119,6,0)'] : 'none'
+              }}
+              transition={{ duration: timeLeft <= 5 ? 0.6 : 0.3, repeat: timeLeft <= 5 ? Infinity : 0 }}
+              className={`w-24 h-24 rounded-full flex flex-col items-center justify-center font-extrabold shadow-2xl transition-all border-4 flex-shrink-0 ${
+                timeLeft <= 5 
+                  ? 'bg-red-600 text-white border-red-400' 
+                  : timeLeft <= 10
+                  ? 'bg-orange-500 text-white border-orange-300'
+                  : 'bg-gradient-to-br from-amber-500 to-amber-600 text-white border-amber-300'
+              }`}
+            >
+              <span className="text-3xl">{timeLeft}</span>
+              <span className="text-xs">sec</span>
+            </motion.div>
+
+            {/* Sound Toggle */}
             <motion.button
               whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className="p-3 bg-white/10 backdrop-blur-md rounded-full hover:bg-white/20 transition border border-white/20"
+              className="p-2 bg-amber-600/20 rounded-full hover:bg-amber-600/40 transition border border-amber-600/50"
             >
-              {soundEnabled ? <FiVolume2 size={20} /> : <FiVolumeX size={20} />}
+              {soundEnabled ? <FiVolume2 size={18} /> : <FiVolumeX size={18} />}
             </motion.button>
-          </div>
-          <div className="text-right font-extrabold">
-            <span className="text-lg bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Q{index + 1}</span>
-            <span className="text-white/50">/{questions.length}</span>
+
+            {/* Back Button */}
+            <Link href="/quizzes" className="flex items-center gap-1 text-white/70 hover:text-amber-400 transition font-semibold text-sm">
+              <FiArrowLeft size={16} /> Back
+            </Link>
           </div>
         </div>
 
-        {/* Progress bar with animation */}
-        <motion.div 
-          initial={{ scaleX: 0 }} 
-          animate={{ scaleX: 1 }} 
-          transition={{ duration: 0.5 }}
-          className="w-full h-1.5 bg-white/10 rounded-full mb-8 overflow-hidden origin-left shadow-lg border border-white/10"
-        >
-          <motion.div 
-            animate={{ width: `${progress}%` }} 
-            transition={{ duration: 0.3 }}
-            className="h-full bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500 rounded-full shadow-lg"
-          />
-        </motion.div>
-
-        {/* Main Quiz Container - Full Height Flex */}
-        <AnimatePresence>
-          <motion.div 
-            key={index}
-            initial={{ opacity: 0, y: 30 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            exit={{ opacity: 0, y: -30 }}
-            transition={{ duration: 0.4 }}
-            className="flex-1 flex flex-col justify-center bg-gradient-to-br from-blue-900/30 to-purple-900/30 backdrop-blur-md rounded-3xl shadow-2xl p-8 md:p-16 border border-white/10"
-          >
-            {/* Timer - Top Right */}
-            <div className="mb-12 flex justify-end">
-              <motion.div
-                animate={{ 
-                  scale: timeLeft <= 5 ? [1, 1.2, 1] : 1,
-                  boxShadow: timeLeft <= 5 ? ['0 0 0 0px rgba(239,68,68,0.7)', '0 0 0 30px rgba(239,68,68,0)'] : 'none'
-                }}
-                transition={{ duration: timeLeft <= 5 ? 0.6 : 0.3, repeat: timeLeft <= 5 ? Infinity : 0 }}
-                className={`w-28 h-28 rounded-full flex flex-col items-center justify-center font-extrabold shadow-2xl transition-all border-2 ${
-                  timeLeft <= 5 
-                    ? 'bg-red-600 text-white border-red-400' 
-                    : timeLeft <= 10
-                    ? 'bg-yellow-500 text-white border-yellow-300'
-                    : 'bg-gradient-to-br from-blue-500 to-cyan-500 text-white border-cyan-300'
-                }`}
-              >
-                <span className="text-3xl">{timeLeft}</span>
-                <span className="text-xs opacity-90">seconds</span>
-              </motion.div>
-            </div>
-
-            {/* Question Text - Centered */}
+        {/* Middle Section - Question & Options */}
+        <div className="flex-1 flex flex-col justify-center mt-8">
+          <AnimatePresence>
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1 }}
-              className="mb-16 text-center"
+              key={index}
+              initial={{ opacity: 0, y: 30 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              exit={{ opacity: 0, y: -30 }}
+              transition={{ duration: 0.4 }}
+              className="flex flex-col"
             >
-              <p className="text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-lg">
-                {q.question_text}
-              </p>
-            </motion.div>
+              {/* Question Box */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+                className="mb-12"
+              >
+                <div className="bg-gradient-to-r from-slate-800/70 to-slate-900/70 rounded-3xl border-3 border-amber-600/50 p-8 md:p-10 backdrop-blur-sm">
+                  <p className="text-3xl md:text-4xl font-bold text-white text-center leading-tight">
+                    {q.question_text}
+                  </p>
+                </div>
+              </motion.div>
 
-            {/* Options Grid - 2x2 Modern Style */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {q.options.map((opt, optIdx) => {
-                const isSelected = selectedOption === opt.id
-                const isCorrect = !!opt.is_correct
-                const showCorrect = showAnswer && isCorrect
-                const wrongSelected = showAnswer && isSelected && !isCorrect
-                const notAnsweredButWrong = showAnswer && !isSelected && !isCorrect && selectedOption === null
-                
-                return (
-                  <motion.button
-                    key={opt.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.85 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: optIdx * 0.1 }}
-                    whileHover={{ scale: showAnswer ? 1 : 1.08 }}
-                    whileTap={{ scale: showAnswer ? 1 : 0.93 }}
-                    onClick={() => !showAnswer && choose(opt.id)}
-                    disabled={showAnswer}
-                    className={`p-6 md:p-7 rounded-3xl text-center lg:text-left font-bold text-base md:text-lg transition-all duration-300 border-3 relative overflow-hidden group transform ${
-                      showCorrect
-                        ? 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-green-300 shadow-2xl scale-105'
-                        : wrongSelected
-                        ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white border-red-400 shadow-xl'
-                        : notAnsweredButWrong
-                        ? 'bg-gray-400 text-gray-600 border-gray-500 opacity-40'
-                        : isSelected
-                        ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white border-cyan-300 shadow-xl scale-102'
-                        : 'bg-white/10 text-white border-white/30 hover:bg-white/20 hover:border-white/60 hover:shadow-xl backdrop-blur-sm'
-                    }`}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="flex items-center gap-4 relative z-10">
-                      <motion.div 
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ delay: optIdx * 0.1 + 0.1 }}
-                        className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center font-extrabold text-base md:text-lg bg-white/30 flex-shrink-0 backdrop-blur-sm border border-white/50"
-                      >
-                        {String.fromCharCode(65 + optIdx)}
-                      </motion.div>
-                      <span className="flex-grow leading-relaxed text-left">{opt.option_text}</span>
+              {/* Answer Options - 2x2 GRID */}
+              <div className="grid grid-cols-2 gap-3 w-full max-w-xl mx-auto">
+                {q.options.map((opt, optIdx) => {
+                  const isSelected = selectedOption === opt.id
+                  const isCorrect = !!opt.is_correct
+                  const showCorrect = showAnswer && isCorrect
+                  const wrongSelected = showAnswer && isSelected && !isCorrect
+                  const colors = answerColors[optIdx % 4]
+                  
+                  return (
+                    <motion.button
+                      key={opt.id}
+                      initial={{ opacity: 0, scale: 0.7 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: optIdx * 0.12 }}
+                      whileHover={{ scale: showAnswer ? 1 : 1.05 }}
+                      whileTap={{ scale: showAnswer ? 1 : 0.95 }}
+                      onClick={() => !showAnswer && choose(opt.id)}
+                      disabled={showAnswer}
+                      className={`aspect-square rounded-2xl font-bold transition-all duration-300 border-3 overflow-hidden group flex flex-col items-center justify-center p-2 h-28 sm:h-32 md:h-36 ${
+                        showCorrect
+                          ? 'bg-emerald-600 border-emerald-400 shadow-2xl scale-105'
+                          : wrongSelected
+                          ? 'bg-red-600 border-red-400 shadow-xl opacity-50'
+                          : isSelected && !showAnswer
+                          ? `bg-gradient-to-br ${colors.bg} border-yellow-400 shadow-2xl scale-105`
+                          : `bg-gradient-to-br ${colors.bg} border-white/30 shadow-xl ${!showAnswer ? colors.hover : ''}`
+                      }`}
+                    >
+
+                      {/* Answer Text */}
+                      <span className="text-center text-white leading-tight font-semibold text-xs sm:text-xs md:text-sm px-1">
+                        {opt.option_text}
+                      </span>
+
+                      {/* Checkmark/X */}
                       <motion.span 
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: showAnswer ? 1 : 0, rotate: showAnswer ? 0 : -180 }}
-                        className="text-3xl flex-shrink-0"
+                        className="absolute bottom-1 right-1 text-lg sm:text-2xl"
                       >
                         {showCorrect ? '✓' : wrongSelected ? '✗' : ''}
                       </motion.span>
-                    </div>
-                  </motion.button>
-                )
-              })}
-            </div>
+                    </motion.button>
+                  )
+                })}
+              </div>
+            </motion.div>
+          </AnimatePresence>
 
-            {/* Feedback Message */}
-            <AnimatePresence>
-              {showAnswer && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 20, scale: 0.8 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="mt-8 p-6 rounded-2xl text-center font-semibold text-lg border-2"
+          {/* Feedback Message */}
+          <AnimatePresence>
+            {showAnswer && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0 }}
+                className="mt-8 p-5 rounded-2xl text-center font-semibold"
+              >
+                {q.options.find((o) => o.id === selectedOption)?.is_correct ? (
+                  <div className="bg-emerald-600/40 text-emerald-100 rounded-lg p-4 border-2 border-emerald-500/70 backdrop-blur-sm">
+                    <span className="text-2xl mr-3">✅</span>
+                    <span>Correct!</span>
+                  </div>
+                ) : (
+                  <div className="bg-red-600/40 text-red-100 rounded-lg p-4 border-2 border-red-500/70 backdrop-blur-sm">
+                    <span className="text-2xl mr-3">❌</span>
+                    <span>Incorrect. Answer: <strong>{q.options.find(o => o.is_correct)?.option_text}</strong></span>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Bottom: Score Display */}
+        <div className="mt-8 px-6 py-3 bg-gradient-to-r from-amber-600 to-amber-700 rounded-full font-bold text-white shadow-lg border-2 border-amber-500/50 w-fit">
+          <span className="text-lg">🏆 {score}/{questions.length}</span>
+        </div>
+      </div>
+
+      {/* PRIZE LADDER - 25% */}
+      <motion.div 
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="w-80 hidden md:flex flex-col relative z-10 pr-6 pb-6"
+      >
+        <div className="bg-gradient-to-b from-slate-800/90 to-slate-900/90 rounded-2xl overflow-hidden border-3 border-amber-600/40 backdrop-blur-sm shadow-2xl h-full flex flex-col">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-amber-600 to-amber-700 p-4 text-center border-b-3 border-amber-500/30">
+            <p className="text-xs font-bold text-amber-50 uppercase tracking-widest">Prize Ladder</p>
+          </div>
+
+          {/* Prize Levels - Scrollable */}
+          <div className="flex-1 p-2 space-y-1.5 overflow-y-auto">
+            {prizeStages.map((stage, idx) => {
+              const isCurrentLevel = idx + 1 === currentLevel
+              const isPassed = idx < currentLevel
+              
+              return (
+                <motion.div
+                  key={stage.level}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.03 }}
+                  whileHover={!isCurrentLevel ? { x: 5 } : {}}
+                  className={`p-2.5 rounded-lg text-xs font-bold transition-all duration-300 flex items-center justify-between border-2 flex-shrink-0 ${
+                    isCurrentLevel
+                      ? 'bg-gradient-to-r from-amber-600 to-amber-700 border-amber-300 shadow-2xl scale-105'
+                      : isPassed
+                      ? 'bg-emerald-600/40 border-emerald-500/50'
+                      : 'bg-slate-700/40 border-slate-600/40'
+                  }`}
                 >
-                  {q.options.find((o) => o.id === selectedOption)?.is_correct ? (
-                    <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-200 rounded-xl p-5 border border-green-400/50 backdrop-blur-sm">
-                      <span className="text-2xl mr-2">✅</span>
-                      <span>Correct! Well done!</span>
-                    </div>
-                  ) : (
-                    <div className="bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-200 rounded-xl p-5 border border-red-400/50 backdrop-blur-sm">
-                      <span className="text-2xl mr-2">❌</span>
-                      <span>Incorrect. The correct answer is: <strong>{q.options.find(o => o.is_correct)?.option_text}</strong></span>
-                    </div>
+                  <span className={`font-bold ${isCurrentLevel ? 'text-amber-50' : isPassed ? 'text-emerald-300' : 'text-white/70'}`}>
+                    Q{stage.level}
+                  </span>
+                  <span className={`font-bold text-right ${isCurrentLevel ? 'text-amber-50' : isPassed ? 'text-emerald-300' : 'text-white/80'}`}>
+                    ${stage.points < 1000000 
+                      ? (stage.points / 1000).toFixed(0) + 'K'
+                      : (stage.points / 1000000).toFixed(1) + 'M'
+                    }
+                  </span>
+                  {isCurrentLevel && (
+                    <motion.span
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      ▶
+                    </motion.span>
                   )}
                 </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </AnimatePresence>
-      </div>
+              )
+            })}
+          </div>
+
+          {/* Current Prize */}
+          <div className="bg-gradient-to-r from-slate-700/50 to-slate-800/50 p-4 border-t-3 border-amber-600/30">
+            <p className="text-xs text-amber-400 font-bold uppercase tracking-wide mb-2">Current Prize</p>
+            <p className="text-2xl font-extrabold text-amber-500">
+              ${prizeStages[Math.max(0, currentLevel - 1)]?.points < 1000000
+                ? '$' + (prizeStages[Math.max(0, currentLevel - 1)]?.points / 1000).toFixed(0) + 'K'
+                : '$' + (prizeStages[Math.max(0, currentLevel - 1)]?.points / 1000000).toFixed(1) + 'M'
+              }
+            </p>
+          </div>
+        </div>
+      </motion.div>
     </div>
   )
 }
