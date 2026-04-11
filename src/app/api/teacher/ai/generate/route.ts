@@ -238,7 +238,7 @@ export async function POST(request: NextRequest) {
     } // End of else block for new file uploads
 
     // Generate content using Gemini
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
     let prompt = ''
     if (contentType === 'exam') {

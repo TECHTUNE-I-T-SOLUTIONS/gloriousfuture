@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Plus, Edit2, Trash2, Eye, EyeOff, Users, BookOpen, Monitor } from "lucide-react"
+import { Plus, Edit2, Trash2, Eye, EyeOff, Users, BookOpen, Monitor, FileText, CheckSquare } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import ConfirmModal from "@/components/ConfirmModal"
 import ErrorBoundary from "@/components/ErrorBoundary"
 import ProgrammingCoursePreview from "@/components/ProgrammingCoursePreview"
+import AssessmentEditor from "@/components/teacher/AssessmentEditor"
+import StudentSubmissionReview from "@/components/teacher/StudentSubmissionReview"
 
 interface Course {
   id: string
@@ -49,6 +51,9 @@ interface Lesson {
   order_index: number
   has_assessment: boolean
   estimated_duration_minutes: number | null
+  video_url?: string
+  code_example?: string
+  code_language?: string
 }
 
 interface Toast {
@@ -91,9 +96,31 @@ export default function ProgrammingCourses() {
     content: "",
     estimated_duration_minutes: 15,
     has_assessment: false,
+    video_url: "",
+    code_example: "",
+    code_language: "javascript",
+  })
+
+  // Form state for assessment
+  const [showCreateAssessment, setShowCreateAssessment] = useState(false)
+  const [newAssessment, setNewAssessment] = useState({
+    title: "",
+    description: "",
+    assessment_type: "multiple_choice",
+    passing_score: 70,
+    max_score: 100,
+    questions: [] as any[],
+  })
+  const [currentQuestion, setCurrentQuestion] = useState({
+    text: "",
+    type: "multiple_choice",
+    options: ["", "", "", ""],
+    correct_answer: 0,
+    explanation: "",
   })
 
   const [selectedModule, setSelectedModule] = useState<Module | null>(null)
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null)
   const [lessons, setLessons] = useState<Lesson[]>([])
 
   const addToast = (message: string, type: "success" | "error" | "warning" | "info") => {
@@ -246,7 +273,15 @@ export default function ProgrammingCourses() {
       if (res.ok) {
         const lesson = await res.json()
         setLessons([...lessons, lesson])
-        setNewLesson({ title: "", content: "", estimated_duration_minutes: 15, has_assessment: false })
+        setNewLesson({ 
+          title: "", 
+          content: "", 
+          estimated_duration_minutes: 15, 
+          has_assessment: false,
+          video_url: "",
+          code_example: "",
+          code_language: "javascript",
+        })
         setShowCreateLesson(false)
         addToast("Lesson created successfully!", "success")
       } else {
@@ -332,6 +367,30 @@ export default function ProgrammingCourses() {
     } catch (error) {
       console.error("Error deleting lesson:", error)
       addToast("Error deleting lesson", "error")
+    }
+  }
+
+  const handleCreateAssessment = async (assessment: any) => {
+    if (!selectedLesson) {
+      addToast("Please select a lesson", "warning")
+      return
+    }
+
+    try {
+      const res = await fetch(`/api/teacher/programming-lessons/${selectedLesson.id}/assessments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(assessment),
+      })
+
+      if (res.ok) {
+        addToast("Assessment created successfully!", "success")
+      } else {
+        addToast("Failed to create assessment", "error")
+      }
+    } catch (error) {
+      console.error("Error creating assessment:", error)
+      addToast("Error creating assessment", "error")
     }
   }
 
@@ -692,100 +751,204 @@ export default function ProgrammingCourses() {
               </CardContent>
             </Card>
 
-            {/* Lessons Section */}
+            {/* Lessons, Assessments & Submissions Section */}
             {selectedModule && (
-              <Card>
+              <Card className="lg:col-span-2">
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Lessons in: {selectedModule.title}</CardTitle>
-                    <Button
-                      size="sm"
-                      onClick={() => setShowCreateLesson(true)}
-                      className="gap-1 bg-green-600 hover:bg-green-700"
-                    >
-                      <Plus size={16} />
-                      Add Lesson
-                    </Button>
-                  </div>
+                  <CardTitle>Lesson Management</CardTitle>
+                  <CardDescription>{selectedModule.title}</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  {showCreateLesson && (
-                    <div className="p-3 bg-green-50 rounded-lg border border-green-200 space-y-2">
-                      <Input
-                        placeholder="Lesson title"
-                        value={newLesson.title}
-                        onChange={(e) => setNewLesson({ ...newLesson, title: e.target.value })}
-                      />
-                      <Textarea
-                        placeholder="Lesson content"
-                        value={newLesson.content}
-                        onChange={(e) => setNewLesson({ ...newLesson, content: e.target.value })}
-                        rows={3}
-                      />
-                      <div className="grid grid-cols-2 gap-2">
-                        <Input
-                          type="number"
-                          placeholder="Duration (minutes)"
-                          value={newLesson.estimated_duration_minutes}
-                          onChange={(e) => setNewLesson({ ...newLesson, estimated_duration_minutes: parseInt(e.target.value) || 15 })}
-                        />
-                        <label className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={newLesson.has_assessment}
-                            onChange={(e) => setNewLesson({ ...newLesson, has_assessment: e.target.checked })}
-                          />
-                          <span className="text-sm">Has Assessment</span>
-                        </label>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" onClick={handleCreateLesson} className="bg-green-600">
-                          Create
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => setShowCreateLesson(false)}>
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                <CardContent>
+                  <Tabs defaultValue="lessons" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="lessons" className="flex items-center gap-1">
+                        <BookOpen size={14} />
+                        <span>Lessons</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="assessments" className="flex items-center gap-1">
+                        <FileText size={14} />
+                        <span>Assessments</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="submissions" className="flex items-center gap-1">
+                        <CheckSquare size={14} />
+                        <span>Submissions</span>
+                      </TabsTrigger>
+                    </TabsList>
 
-                  {lessons.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No lessons yet. Create your first lesson!</p>
-                  ) : (
-                    lessons.map((lesson) => (
-                      <div key={lesson.id} className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900">{lesson.title}</p>
-                            <p className="text-sm text-gray-600 line-clamp-2">{lesson.content}</p>
-                            <div className="flex gap-2 mt-2">
-                              {lesson.estimated_duration_minutes && (
-                                <Badge variant="outline" className="text-xs">
-                                  {lesson.estimated_duration_minutes} min
-                                </Badge>
-                              )}
-                              {lesson.has_assessment && (
-                                <Badge variant="secondary" className="text-xs">
-                                  Has Assessment
-                                </Badge>
-                              )}
-                            </div>
+                    {/* Lessons Tab */}
+                    <TabsContent value="lessons" className="space-y-3 mt-4">
+                      <Button
+                        size="sm"
+                        onClick={() => setShowCreateLesson(true)}
+                        className="gap-1 bg-green-600 hover:bg-green-700 mb-3"
+                      >
+                        <Plus size={16} />
+                        Add Lesson
+                      </Button>
+
+                      {showCreateLesson && (
+                        <div className="p-3 bg-green-50 rounded-lg border border-green-200 space-y-3 max-h-96 overflow-y-auto">
+                          <Input
+                            placeholder="Lesson title"
+                            value={newLesson.title}
+                            onChange={(e) => setNewLesson({ ...newLesson, title: e.target.value })}
+                          />
+                          <Textarea
+                            placeholder="Lesson content"
+                            value={newLesson.content}
+                            onChange={(e) => setNewLesson({ ...newLesson, content: e.target.value })}
+                            rows={3}
+                          />
+                          
+                          {/* Video URL Input */}
+                          <div>
+                            <Label className="text-xs">Video URL (YouTube or uploaded file)</Label>
+                            <Input
+                              placeholder="https://youtube.com/watch?v=... or your video URL"
+                              value={newLesson.video_url}
+                              onChange={(e) => setNewLesson({ ...newLesson, video_url: e.target.value })}
+                              className="text-xs"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Supports YouTube links or direct video file URLs (MP4, WebM)</p>
                           </div>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              setConfirmAction({ type: "lesson", id: lesson.id, name: lesson.title })
-                              setConfirmOpen(true)
-                            }}
-                            className="text-red-600"
-                          >
-                            <Trash2 size={16} />
-                          </Button>
+
+                          {/* Code Example */}
+                          <div>
+                            <Label className="text-xs">Code Example</Label>
+                            <Textarea
+                              placeholder="function example() { console.log('hello'); }"
+                              value={newLesson.code_example}
+                              onChange={(e) => setNewLesson({ ...newLesson, code_example: e.target.value })}
+                              rows={2}
+                              className="text-xs font-mono"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <Label className="text-xs">Duration (min)</Label>
+                              <Input
+                                type="number"
+                                placeholder="15"
+                                value={newLesson.estimated_duration_minutes}
+                                onChange={(e) => setNewLesson({ ...newLesson, estimated_duration_minutes: parseInt(e.target.value) || 15 })}
+                                className="text-xs"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Language</Label>
+                              <Select value={newLesson.code_language} onValueChange={(value) => setNewLesson({ ...newLesson, code_language: value })}>
+                                <SelectTrigger className="text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="javascript">JavaScript</SelectItem>
+                                  <SelectItem value="python">Python</SelectItem>
+                                  <SelectItem value="html">HTML</SelectItem>
+                                  <SelectItem value="css">CSS</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <label className="flex items-center gap-2 pt-6">
+                              <input
+                                type="checkbox"
+                                checked={newLesson.has_assessment}
+                                onChange={(e) => setNewLesson({ ...newLesson, has_assessment: e.target.checked })}
+                              />
+                              <span className="text-xs">Assessment</span>
+                            </label>
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={handleCreateLesson} className="bg-green-600 text-xs">
+                              Create
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => setShowCreateLesson(false)} className="text-xs">
+                              Cancel
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    ))
-                  )}
+                      )}
+
+                      {lessons.length === 0 ? (
+                        <p className="text-gray-500 text-sm">No lessons yet. Create your first lesson!</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {lessons.map((lesson, index) => (
+                            <div 
+                              key={lesson.id} 
+                              className={`p-3 bg-gray-50 border rounded-lg hover:border-gray-400 cursor-pointer transition-all ${
+                                selectedLesson?.id === lesson.id ? 'border-blue-500 bg-blue-50 shadow-sm' : 'border-gray-200'
+                              }`}
+                              onClick={() => setSelectedLesson(lesson)}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="inline-block w-5 h-5 bg-blue-600 text-white rounded text-xs font-bold flex items-center justify-center">
+                                      {index + 1}
+                                    </span>
+                                    <p className="font-medium text-gray-900">{lesson.title}</p>
+                                  </div>
+                                  <p className="text-sm text-gray-600 line-clamp-1 mt-1">{lesson.content}</p>
+                                  <div className="flex flex-wrap gap-1 mt-2">
+                                    {lesson.video_url && <Badge variant="secondary" className="text-xs">🎥 Video</Badge>}
+                                    {lesson.code_example && <Badge variant="outline" className="text-xs">💻 Code</Badge>}
+                                    {lesson.has_assessment && <Badge variant="secondary" className="text-xs">📝 Assessment</Badge>}
+                                    {lesson.estimated_duration_minutes && (
+                                      <Badge variant="outline" className="text-xs">
+                                        ⏱ {lesson.estimated_duration_minutes} min
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setConfirmAction({ type: "lesson", id: lesson.id, name: lesson.title })
+                                    setConfirmOpen(true)
+                                  }}
+                                  className="text-red-600"
+                                >
+                                  <Trash2 size={16} />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </TabsContent>
+
+                    {/* Assessments Tab */}
+                    <TabsContent value="assessments" className="mt-4">
+                      {!selectedLesson ? (
+                        <p className="text-gray-500 text-sm text-center py-8">Select a lesson from the Lessons tab to create assessments</p>
+                      ) : !selectedLesson.has_assessment ? (
+                        <p className="text-gray-500 text-sm text-center py-8">Enable "Has Assessment" for a lesson to create assessments</p>
+                      ) : (
+                        <AssessmentEditor
+                          lessons={lessons}
+                          selectedLesson={selectedLesson}
+                          onSave={handleCreateAssessment}
+                        />
+                      )}
+                    </TabsContent>
+
+                    {/* Submissions Tab */}
+                    <TabsContent value="submissions" className="mt-4">
+                      {!selectedLesson?.has_assessment ? (
+                        <p className="text-gray-500 text-sm text-center py-8">Select a lesson with assessment to review submissions</p>
+                      ) : (
+                        <StudentSubmissionReview
+                          course={selectedCourse}
+                          selectedModule={selectedModule}
+                          selectedLesson={selectedLesson}
+                        />
+                      )}
+                    </TabsContent>
+                  </Tabs>
                 </CardContent>
               </Card>
             )}

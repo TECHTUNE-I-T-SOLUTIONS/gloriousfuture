@@ -43,7 +43,7 @@ export default function BlogPage() {
       <CustomHeader />
 
       <main className="flex-grow container mx-auto px-6 py-24 z-10">
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 pt-8">
           <motion.h1
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}

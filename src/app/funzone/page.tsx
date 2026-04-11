@@ -922,7 +922,857 @@ export default function FunZone() {
         'Each right answer earns 25 points'
       ]
     },
+    {
+      id: 'fingerplacement',
+      title: '🖐️ Finger Placement Guide',
+      description: 'Learn proper keyboard hand positioning!',
+      icon: '🖐️',
+      fullDescription: 'Master the correct finger placement on the keyboard. Essential for touch typing! Learn hand position for home row, upper row, and bottom row keys.',
+      howToPlay: [
+        'Start with the home row lesson',
+        'Learn which finger goes on which key',
+        'Follow the tips and guidelines',
+        'Mark each lesson as completed',
+        'Progress through all positioning levels'
+      ]
+    },
+    {
+      id: 'homerowmaster',
+      title: '🏠 Home Row Master',
+      description: 'Practice home row keys!',
+      icon: '🏠',
+      fullDescription: 'Build muscle memory by typing words using only home row keys (A, S, D, F, J, K, L, ;). Perfect for beginners!',
+      howToPlay: [
+        'Click "Start Home Row Practice"',
+        'Type the displayed home row words',
+        'Earn points for accuracy',
+        'Track your WPM (Words Per Minute)',
+        'Perfect for building finger memory'
+      ]
+    },
+    {
+      id: 'accuracy',
+      title: '🎯 Typing Accuracy',
+      description: 'Focus on typing accurately!',
+      icon: '🎯',
+      fullDescription: 'Accuracy is more important than speed! Type sentences carefully and precisely to maximize your score.',
+      howToPlay: [
+        'Start an accuracy challenge',
+        'Type each sentence carefully',
+        'Errors are highlighted in red',
+        'Track your accuracy percentage',
+        'Perfect matches earn bonus points'
+      ]
+    },
+    {
+      id: 'touchlessons',
+      title: '✋ Touch Typing Lessons',
+      description: 'Structured typing lessons!',
+      icon: '✋',
+      fullDescription: 'Progress through structured lessons learning different keyboard zones. From home row to complete keyboard mastery!',
+      howToPlay: [
+        'Complete each lesson in order',
+        'Type practice text exactly',
+        'Advance to next lesson when ready',
+        'Track lessons mastered',
+        'Cover all keyboard zones'
+      ]
+    },
+    {
+      id: 'speedbuilder',
+      title: '🚀 Speed Builder',
+      description: 'Build typing speed progressively!',
+      icon: '🚀',
+      fullDescription: 'Progressive difficulty levels. Start slow and build up your typing speed gradually. Each level has a WPM target.',
+      howToPlay: [
+        'Start at Level 1 with low WPM target',
+        'Type the entire text accurately',
+        'Reach the WPM target to advance',
+        'Difficulty increases with each level',
+        'Earn points for level completion'
+      ]
+    },
+    {
+      id: 'keycombos',
+      title: '⌨️ Key Combinations',
+      description: 'Master special key combinations!',
+      icon: '⌨️',
+      fullDescription: 'Learn to use special keys including Shift, Tab, Enter, and Backspace. Master keyboard combinations for typing efficiency!',
+      howToPlay: [
+        'Press the key shown on screen',
+        'Includes uppercase, special keys, and controls',
+        'Boost your score with accuracy',
+        'Build a combo streak',
+        'Essential for complete keyboard mastery'
+      ]
+    },
   ]
+
+  // Typing Game 1: Keyboard Finger Placement Guide
+const KeyboardFingerPlacement = () => {
+  const [currentLesson, setCurrentLesson] = useState(0)
+  const [completedLessons, setCompletedLessons] = useState<boolean[]>(new Array(4).fill(false))
+
+  const lessons = [
+    {
+      title: 'Home Row - Left Hand',
+      description: 'Learn proper left hand placement on the home row',
+      keys: ['A', 'S', 'D', 'F'],
+      fingers: ['Pinky', 'Ring', 'Middle', 'Index'],
+      image: '🏠',
+      tips: [
+        'Rest your left pinky on the "A" key',
+        'Ring finger goes on "S" key',
+        'Middle finger goes on "D" key',
+        'Index finger goes on "F" key',
+        'Keep your hand relaxed and curved',
+        'Your fingers should rest lightly on these keys'
+      ]
+    },
+    {
+      title: 'Home Row - Right Hand',
+      description: 'Learn proper right hand placement on the home row',
+      keys: ['J', 'K', 'L', ';'],
+      fingers: ['Index', 'Middle', 'Ring', 'Pinky'],
+      image: '🏠',
+      tips: [
+        'Rest your right index finger on "J" key',
+        'Middle finger goes on "K" key',
+        'Ring finger goes on "L" key',
+        'Pinky finger goes on ";" key',
+        'Keep your fingers aligned with home row',
+        'This is your resting position'
+      ]
+    },
+    {
+      title: 'Upper Row Keys',
+      description: 'Extend your fingers to reach upper row keys',
+      keys: ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+      fingers: ['From home row', 'Extend upward', 'Keep wrist still', 'Return to home'],
+      image: '📍',
+      tips: [
+        'Left hand: Reach up from A, S, D, F keys',
+        'Right hand: Reach up from J, K, L, ; keys',
+        'Move fingers, not your hand',
+        'Always return to home row position',
+        'Practice reaching without looking',
+        'Your wrist should stay still'
+      ]
+    },
+    {
+      title: 'Bottom Row Keys',
+      description: 'Properly reach the bottom row keys',
+      keys: ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
+      fingers: ['Extend down', 'Keep alignment', 'Quick return', 'Home position'],
+      image: '👇',
+      tips: [
+        'Left hand: Reach down from A, S, D, F keys',
+        'Right hand: Reach down from J, K, L, ; keys',
+        'Fingers move down then return quickly',
+        'Don\'t shift your hand position',
+        'Eyes should follow the text, not keyboard',
+        'Practice blind reaching'
+      ]
+    }
+  ]
+
+  const lesson = lessons[currentLesson]
+  const isCompleted = completedLessons[currentLesson]
+
+  const markAsComplete = () => {
+    const newCompleted = [...completedLessons]
+    newCompleted[currentLesson] = true
+    setCompletedLessons(newCompleted)
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 rounded-xl mb-6">
+        <h2 className="text-2xl font-bold text-white mb-2">{lesson.title}</h2>
+        <p className="text-indigo-100">{lesson.description}</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-6 mb-8">
+        {/* Keyboard Visualization */}
+        <div className="bg-white/10 p-6 rounded-xl border border-white/20">
+          <div className="text-5xl text-center mb-4">{lesson.image}</div>
+          <h3 className="text-xl font-bold text-white mb-4 text-center">Key Layout</h3>
+          <div className="flex flex-wrap gap-2 justify-center">
+            {lesson.keys.map((key, i) => (
+              <motion.div
+                key={i}
+                className="w-12 h-12 bg-yellow-400 text-indigo-900 rounded-lg flex items-center justify-center font-bold text-lg cursor-pointer hover:bg-yellow-300 transition-all"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {key}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Finger Mapping */}
+        <div className="bg-white/10 p-6 rounded-xl border border-white/20">
+          <h3 className="text-xl font-bold text-white mb-4 text-center">Finger Placement</h3>
+          <div className="space-y-3">
+            {lesson.keys.map((key, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white">
+                  {key}
+                </div>
+                <span className="text-white font-semibold flex-1">{lesson.fingers[i]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Tips Section */}
+      <div className="bg-white/10 p-6 rounded-xl border border-white/20 mb-6">
+        <h3 className="text-xl font-bold text-white mb-4">💡 Tips & Guidelines</h3>
+        <ul className="space-y-2">
+          {lesson.tips.map((tip, i) => (
+            <li key={i} className="flex items-start gap-3 text-white">
+              <span className="flex-shrink-0 w-6 h-6 bg-yellow-400 text-indigo-900 rounded-full flex items-center justify-center font-bold text-xs mt-0.5">
+                {i + 1}
+              </span>
+              <span>{tip}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Navigation */}
+      <div className="flex gap-4 mb-6">
+        <motion.button
+          onClick={() => setCurrentLesson(Math.max(0, currentLesson - 1))}
+          disabled={currentLesson === 0}
+          className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg font-bold transition-all"
+          whileHover={{ scale: 1.05 }}
+        >
+          ← Previous
+        </motion.button>
+        <motion.button
+          onClick={markAsComplete}
+          className={`flex-1 px-6 py-3 rounded-lg font-bold transition-all ${
+            isCompleted
+              ? 'bg-green-600 hover:bg-green-700'
+              : 'bg-blue-600 hover:bg-blue-700'
+          } text-white`}
+          whileHover={{ scale: 1.05 }}
+        >
+          {isCompleted ? '✅ Completed' : 'Mark Complete'}
+        </motion.button>
+        <motion.button
+          onClick={() => setCurrentLesson(Math.min(lessons.length - 1, currentLesson + 1))}
+          disabled={currentLesson === lessons.length - 1}
+          className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg font-bold transition-all"
+          whileHover={{ scale: 1.05 }}
+        >
+          Next →
+        </motion.button>
+      </div>
+
+      {/* Progress */}
+      <div className="bg-white/10 p-4 rounded-lg border border-white/20">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-white font-semibold">Lessons Completed</span>
+          <span className="text-yellow-400 font-bold">{completedLessons.filter(Boolean).length}/{lessons.length}</span>
+        </div>
+        <div className="w-full bg-white/20 rounded-full h-2">
+          <motion.div
+            className="bg-yellow-400 h-2 rounded-full"
+            initial={{ width: 0 }}
+            animate={{ width: `${(completedLessons.filter(Boolean).length / lessons.length) * 100}%` }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Typing Game 2: Home Row Master
+const HomeRowMaster = () => {
+  const [text, setText] = useState('')
+  const [userInput, setUserInput] = useState('')
+  const [score, setScore] = useState(0)
+  const [accuracy, setAccuracy] = useState(100)
+  const [wpm, setWpm] = useState(0)
+  const [startTime, setStartTime] = useState(0)
+  const [gameActive, setGameActive] = useState(false)
+
+  const homeRowWords = [
+    'sad', 'had', 'ads', 'add', 'dad', 'flash', 'hash', 'dash', 'asked', 'grass',
+    'shall', 'salad', 'flash', 'glad', 'jazz', 'fell', 'jell', 'kale', 'lake', 'fell',
+    'folk', 'desk', 'fad', 'half', 'flask', 'ledge', 'shelf', 'skilled', 'skilled'
+  ]
+
+  const startGame = () => {
+    const randomWords = []
+    for (let i = 0; i < 5; i++) {
+      randomWords.push(homeRowWords[Math.floor(Math.random() * homeRowWords.length)])
+    }
+    setText(randomWords.join(' '))
+    setUserInput('')
+    setStartTime(Date.now())
+    setGameActive(true)
+    setAccuracy(100)
+    setWpm(0)
+  }
+
+  const handleInput = (value: string) => {
+    setUserInput(value)
+
+    if (value === text) {
+      const timeInSeconds = (Date.now() - startTime) / 1000
+      const words = value.split(' ').length
+      setWpm(Math.round((words / timeInSeconds) * 60))
+      setScore(score + 50)
+      setGameActive(false)
+    }
+
+    const correct = text.split('').filter((char, i) => char === value[i]).length
+    const acc = value.length > 0 ? Math.round((correct / value.length) * 100) : 100
+    setAccuracy(acc)
+  }
+
+  return (
+    <div className="text-center max-w-2xl mx-auto">
+      <div className="mb-6 p-4 bg-blue-500/20 border border-blue-400 rounded-lg">
+        <p className="text-white text-sm">Practice typing using only home row keys (A, S, D, F, J, K, L, ;)</p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-indigo-600 text-white p-4 rounded-lg">
+          <div className="text-sm opacity-75">Score</div>
+          <div className="text-3xl font-bold">{score}</div>
+        </div>
+        <div className="bg-purple-600 text-white p-4 rounded-lg">
+          <div className="text-sm opacity-75">Accuracy</div>
+          <div className="text-3xl font-bold">{accuracy}%</div>
+        </div>
+        <div className="bg-pink-600 text-white p-4 rounded-lg">
+          <div className="text-sm opacity-75">WPM</div>
+          <div className="text-3xl font-bold">{wpm}</div>
+        </div>
+      </div>
+
+      {text && (
+        <div className="bg-indigo-700 p-6 rounded-lg mb-6">
+          <p className="text-white font-mono text-2xl mb-6 tracking-wider">{text}</p>
+          <input
+            type="text"
+            value={userInput}
+            onChange={(e) => handleInput(e.target.value)}
+            disabled={!gameActive}
+            placeholder="Type the words here..."
+            className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/30 text-white font-mono text-lg placeholder-gray-400"
+            autoFocus
+          />
+        </div>
+      )}
+
+      <motion.button
+        onClick={startGame}
+        className="w-full px-6 py-3 bg-yellow-400 text-indigo-900 rounded-lg font-bold hover:bg-yellow-300"
+        whileHover={{ scale: 1.05 }}
+      >
+        <Play className="inline mr-2 w-4 h-4" />
+        {gameActive ? 'Typing...' : 'Start Home Row Practice'}
+      </motion.button>
+    </div>
+  )
+}
+
+// Typing Game 3: Typing Accuracy Challenge
+const TypingAccuracyChallenge = () => {
+  const texts = [
+    'The quick brown fox jumps over the lazy dog',
+    'Practice makes perfect in typing',
+    'Accuracy is more important than speed',
+    'Focus on proper finger placement while typing',
+    'Build muscle memory through consistent practice',
+    'Type each word carefully and deliberately',
+    'Your accuracy will improve with patience',
+    'Never rush when learning to type'
+  ]
+
+  const [text, setText] = useState('')
+  const [userInput, setUserInput] = useState('')
+  const [score, setScore] = useState(0)
+  const [accuracy, setAccuracy] = useState(100)
+  const [errors, setErrors] = useState(0)
+  const [gameActive, setGameActive] = useState(false)
+  const [completed, setCompleted] = useState(false)
+
+  const startGame = () => {
+    const newText = texts[Math.floor(Math.random() * texts.length)]
+    setText(newText)
+    setUserInput('')
+    setGameActive(true)
+    setAccuracy(100)
+    setErrors(0)
+    setCompleted(false)
+  }
+
+  const handleInput = (value: string) => {
+    setUserInput(value)
+
+    if (value === text) {
+      setScore(score + (accuracy >= 95 ? 100 : accuracy >= 85 ? 50 : 25))
+      setCompleted(true)
+      setGameActive(false)
+    }
+
+    let errorCount = 0
+    text.split('').forEach((char, i) => {
+      if (value[i] && char !== value[i]) {
+        errorCount++
+      }
+    })
+    setErrors(errorCount)
+
+    const correct = text.split('').filter((char, i) => char === value[i]).length
+    const acc = value.length > 0 ? Math.round((correct / value.length) * 100) : 100
+    setAccuracy(acc)
+  }
+
+  return (
+    <div className="text-center max-w-2xl mx-auto">
+      <div className="mb-6 p-4 bg-amber-500/20 border border-amber-400 rounded-lg">
+        <p className="text-white text-sm">Focus on accuracy! Type each word carefully without errors.</p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-green-600 text-white p-4 rounded-lg">
+          <div className="text-sm opacity-75">Score</div>
+          <div className="text-3xl font-bold">{score}</div>
+        </div>
+        <div className="bg-blue-600 text-white p-4 rounded-lg">
+          <div className="text-sm opacity-75">Accuracy</div>
+          <div className="text-3xl font-bold">{accuracy}%</div>
+        </div>
+        <div className="bg-red-600 text-white p-4 rounded-lg">
+          <div className="text-sm opacity-75">Errors</div>
+          <div className="text-3xl font-bold">{errors}</div>
+        </div>
+      </div>
+
+      {text && (
+        <div className="bg-indigo-700 p-6 rounded-lg mb-6">
+          <p className="text-white font-mono text-xl mb-6 leading-relaxed">{text}</p>
+          <div className="relative">
+            <input
+              type="text"
+              value={userInput}
+              onChange={(e) => handleInput(e.target.value)}
+              disabled={!gameActive}
+              placeholder="Type the text above..."
+              className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/30 text-white font-mono placeholder-gray-400"
+              autoFocus
+            />
+            {text && userInput && (
+              <div className="mt-2 p-3 bg-white/10 rounded-lg text-left">
+                <p className="text-gray-300 text-sm font-mono">
+                  {text.split('').map((char, i) => (
+                    <span
+                      key={i}
+                      className={
+                        userInput[i] === undefined
+                          ? 'text-white'
+                          : userInput[i] === char
+                          ? 'text-green-400'
+                          : 'text-red-400'
+                      }
+                    >
+                      {char}
+                    </span>
+                  ))}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {completed && (
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="mb-6 p-4 bg-green-500/20 border border-green-400 rounded-lg"
+        >
+          <p className="text-green-300 font-bold text-lg">🎉 Perfect! Great accuracy!</p>
+        </motion.div>
+      )}
+
+      <motion.button
+        onClick={startGame}
+        className="w-full px-6 py-3 bg-yellow-400 text-indigo-900 rounded-lg font-bold hover:bg-yellow-300"
+        whileHover={{ scale: 1.05 }}
+      >
+        <Play className="inline mr-2 w-4 h-4" />
+        {gameActive ? 'Typing...' : 'Start Accuracy Challenge'}
+      </motion.button>
+    </div>
+  )
+}
+
+// Typing Game 4: Touch Typing Lessons
+const TouchTypingLessons = () => {
+  const [currentLesson, setCurrentLesson] = useState(0)
+  const [userInput, setUserInput] = useState('')
+  const [lessonsCompleted, setLessonsCompleted] = useState(0)
+
+  const lessons = [
+    {
+      title: 'Lesson 1: Home Row Comfort',
+      keys: 'a s d f j k l ;',
+      practice: 'aaa sss ddd fff jjj kkk lll ;;;',
+      description: 'Get comfortable with home row keys'
+    },
+    {
+      title: 'Lesson 2: Home Row Words',
+      keys: 'a s d f j k l ;',
+      practice: 'dad had ask flask desk fell lakes fjords',
+      description: 'Type simple words using home row'
+    },
+    {
+      title: 'Lesson 3: Upper Keys Left',
+      keys: 'q w e r t y u i o p',
+      practice: 'we wet wet were were where where work work',
+      description: 'Reach to upper row with left hand'
+    },
+    {
+      title: 'Lesson 4: Upper Keys Right',
+      keys: 'y u i o p',
+      practice: 'you your type type python python popup puppy',
+      description: 'Reach to upper row with right hand'
+    },
+    {
+      title: 'Lesson 5: Bottom Row Keys',
+      keys: 'z x c v b n m',
+      practice: 'box box mix mixed comma bench bunch bunch',
+      description: 'Reach down to bottom row keys'
+    },
+    {
+      title: 'Lesson 6: Combined Practice',
+      keys: 'all keys',
+      practice: 'The lazy fox jumped over the brown bush',
+      description: 'Practice with all keys combined'
+    }
+  ]
+
+  const lesson = lessons[currentLesson]
+  const isComplete = userInput.toLowerCase() === lesson.practice.toLowerCase()
+
+  const handleNext = () => {
+    if (isComplete) {
+      setLessonsCompleted(lessonsCompleted + 1)
+      setCurrentLesson(Math.min(lessons.length - 1, currentLesson + 1))
+      setUserInput('')
+    }
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-white mb-2">{lesson.title}</h2>
+        <p className="text-indigo-200">{lesson.description}</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-6 mb-6">
+        {/* Progress */}
+        <div className="bg-indigo-600/30 p-4 rounded-lg border border-indigo-400">
+          <p className="text-indigo-200 text-sm mb-2">Progress</p>
+          <p className="text-2xl font-bold text-white">{currentLesson + 1}/{lessons.length}</p>
+        </div>
+
+        {/* Lessons Completed */}
+        <div className="bg-green-600/30 p-4 rounded-lg border border-green-400">
+          <p className="text-green-200 text-sm mb-2">Lessons Mastered</p>
+          <p className="text-2xl font-bold text-white">{lessonsCompleted}</p>
+        </div>
+      </div>
+
+      <div className="bg-indigo-700/50 p-6 rounded-lg mb-6 border border-indigo-500">
+        <div className="mb-4">
+          <p className="text-gray-400 text-sm mb-2">Target Keys: {lesson.keys}</p>
+          <p className="text-white font-mono text-lg tracking-wider">{lesson.practice}</p>
+        </div>
+
+        <input
+          type="text"
+          value={userInput}
+          onChange={(e) => setUserInput(e.target.value)}
+          placeholder="Type the practice text..."
+          className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/30 text-white font-mono placeholder-gray-400"
+          autoFocus
+        />
+
+        {isComplete && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="mt-4 p-3 bg-green-500/20 border border-green-400 rounded-lg"
+          >
+            <p className="text-green-300 font-bold">✅ Perfect! Move to next lesson</p>
+          </motion.div>
+        )}
+      </div>
+
+      <div className="flex gap-4">
+        <motion.button
+          onClick={() => setCurrentLesson(Math.max(0, currentLesson - 1))}
+          disabled={currentLesson === 0}
+          className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg font-bold"
+          whileHover={{ scale: 1.05 }}
+        >
+          ← Previous
+        </motion.button>
+        <motion.button
+          onClick={handleNext}
+          disabled={!isComplete}
+          className="flex-1 px-6 py-3 bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-indigo-900 rounded-lg font-bold"
+          whileHover={{ scale: 1.05 }}
+        >
+          {isComplete ? 'Next →' : 'Type correctly to continue'}
+        </motion.button>
+      </div>
+    </div>
+  )
+}
+
+// Typing Game 5: Speed Builder Challenge
+const SpeedBuilderChallenge = () => {
+  const difficultyLevels = [
+    { level: 1, wpm: 20, words: 15, text: 'the cat sat on the mat and fell asleep' },
+    { level: 2, wpm: 30, words: 20, text: 'practice typing every day to improve your skills' },
+    { level: 3, wpm: 40, words: 25, text: 'touch typing allows you to type without looking at the keyboard' },
+    { level: 4, wpm: 50, words: 30, text: 'proper posture and hand placement are essential for fast typing' },
+    { level: 5, wpm: 60, words: 35, text: 'consistency and dedication will help you become an excellent typist' }
+  ]
+
+  const [currentLevel, setCurrentLevel] = useState(0)
+  const [userInput, setUserInput] = useState('')
+  const [startTime, setStartTime] = useState(0)
+  const [wpm, setWpm] = useState(0)
+  const [gameActive, setGameActive] = useState(false)
+  const [levelCompleted, setLevelCompleted] = useState(false)
+
+  const difficulty = difficultyLevels[currentLevel]
+
+  const startGame = () => {
+    setUserInput('')
+    setStartTime(Date.now())
+    setGameActive(true)
+    setLevelCompleted(false)
+    setWpm(0)
+  }
+
+  const handleInput = (value: string) => {
+    setUserInput(value)
+
+    if (value === difficulty.text) {
+      const timeInSeconds = (Date.now() - startTime) / 1000
+      const words = value.split(' ').length
+      const calculatedWpm = Math.round((words / timeInSeconds) * 60)
+      setWpm(calculatedWpm)
+      setGameActive(false)
+      setLevelCompleted(true)
+    }
+
+    const timeInSeconds = (Date.now() - startTime) / 1000
+    if (timeInSeconds > 0) {
+      const words = value.split(' ').length
+      setWpm(Math.round((words / timeInSeconds) * 60))
+    }
+  }
+
+  const handleNextLevel = () => {
+    if (currentLevel < difficultyLevels.length - 1 && wpm >= difficulty.wpm) {
+      setCurrentLevel(currentLevel + 1)
+      setUserInput('')
+      setWpm(0)
+      setLevelCompleted(false)
+    }
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      <div className="mb-6 p-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg">
+        <div className="flex justify-between items-center">
+          <div>
+            <p className="text-indigo-200 text-sm">Level {currentLevel + 1}</p>
+            <h2 className="text-2xl font-bold text-white">Speed Challenge</h2>
+          </div>
+          <div className="text-right">
+            <p className="text-indigo-200 text-sm">Target WPM</p>
+            <p className="text-3xl font-bold text-yellow-300">{difficulty.wpm}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="bg-blue-600 p-4 rounded-lg">
+          <p className="text-blue-200 text-sm">Current WPM</p>
+          <p className="text-3xl font-bold text-white">{wpm}</p>
+        </div>
+        <div className="bg-purple-600 p-4 rounded-lg">
+          <p className="text-purple-200 text-sm">Progress</p>
+          <p className="text-3xl font-bold text-white">{currentLevel + 1}/{difficultyLevels.length}</p>
+        </div>
+      </div>
+
+      <div className="bg-indigo-700 p-6 rounded-lg mb-6">
+        <p className="text-white font-mono text-lg mb-4 leading-relaxed">{difficulty.text}</p>
+        <input
+          type="text"
+          value={userInput}
+          onChange={(e) => handleInput(e.target.value)}
+          disabled={!gameActive}
+          placeholder="Type the text..."
+          className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/30 text-white font-mono placeholder-gray-400"
+          autoFocus
+        />
+      </div>
+
+      {levelCompleted && wpm >= difficulty.wpm && (
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="mb-6 p-4 bg-green-500/20 border border-green-400 rounded-lg text-center"
+        >
+          <p className="text-green-300 font-bold text-lg">🎉 Level Complete! WPM: {wpm}</p>
+        </motion.div>
+      )}
+
+      {levelCompleted && wpm < difficulty.wpm && (
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="mb-6 p-4 bg-orange-500/20 border border-orange-400 rounded-lg text-center"
+        >
+          <p className="text-orange-300 font-semibold">Need {difficulty.wpm - wpm} more WPM to pass</p>
+        </motion.div>
+      )}
+
+      <div className="flex gap-4">
+        <motion.button
+          onClick={startGame}
+          className="flex-1 px-6 py-3 bg-yellow-400 hover:bg-yellow-300 text-indigo-900 rounded-lg font-bold"
+          whileHover={{ scale: 1.05 }}
+        >
+          <Play className="inline mr-2 w-4 h-4" />
+          {gameActive ? 'Typing...' : 'Start Level'}
+        </motion.button>
+        <motion.button
+          onClick={handleNextLevel}
+          disabled={!levelCompleted || wpm < difficulty.wpm || currentLevel === difficultyLevels.length - 1}
+          className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg font-bold"
+          whileHover={{ scale: 1.05 }}
+        >
+          Next Level →
+        </motion.button>
+      </div>
+    </div>
+  )
+}
+
+// Typing Game 6: Key Combination Master
+const KeyCombinationMaster = () => {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [userInput, setUserInput] = useState('')
+  const [score, setScore] = useState(0)
+  const [accuracy, setAccuracy] = useState(100)
+  const [streak, setStreak] = useState(0)
+
+  const combinations = [
+    { text: 'shift + a = A', keys: 'A' },
+    { text: 'shift + s = S', keys: 'S' },
+    { text: 'shift + d = D', keys: 'D' },
+    { text: 'shift + f = F', keys: 'F' },
+    { text: 'shift + j = J', keys: 'J' },
+    { text: 'shift + k = K', keys: 'K' },
+    { text: 'shift + l = L', keys: 'L' },
+    { text: 'shift + semicolon = :', keys: ':' },
+    { text: 'space bar', keys: ' ' },
+    { text: 'backspace', keys: 'backspace' },
+    { text: 'enter key', keys: 'enter' },
+    { text: 'tab key', keys: 'tab' }
+  ]
+
+  const current = combinations[currentIndex]
+
+  const handleInput = (e: React.KeyboardEvent) => {
+    let typedKey = ''
+    
+    if (e.key === ' ') typedKey = ' '
+    else if (e.key === 'Enter') typedKey = 'enter'
+    else if (e.key === 'Tab') { e.preventDefault(); typedKey = 'tab' }
+    else if (e.key === 'Backspace') typedKey = 'backspace'
+    else typedKey = e.key.toUpperCase()
+
+    if (typedKey === current.keys) {
+      setScore(score + 10)
+      setStreak(streak + 1)
+      if (currentIndex < combinations.length - 1) {
+        setCurrentIndex(currentIndex + 1)
+      } else {
+        setCurrentIndex(0)
+      }
+    } else {
+      setAccuracy(Math.max(0, accuracy - 5))
+      setStreak(0)
+    }
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto text-center">
+      <div className="mb-8 p-6 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl">
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div>
+            <p className="text-indigo-200 text-sm">Score</p>
+            <p className="text-3xl font-bold text-white">{score}</p>
+          </div>
+          <div>
+            <p className="text-indigo-200 text-sm">Streak</p>
+            <p className="text-3xl font-bold text-yellow-300">{streak}</p>
+          </div>
+          <div>
+            <p className="text-indigo-200 text-sm">Accuracy</p>
+            <p className="text-3xl font-bold text-green-300">{accuracy}%</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-indigo-700 p-12 rounded-xl mb-8">
+        <p className="text-white text-sm opacity-75 mb-4">Press this key:</p>
+        <p className="text-6xl font-bold text-yellow-400 font-mono mb-4">{current.text}</p>
+        <p className="text-white text-lg">{`${currentIndex + 1}/${combinations.length}`}</p>
+      </div>
+
+      <div className="bg-white/10 p-8 rounded-lg border-2 border-white/20 mb-6">
+        <input
+          type="text"
+          onKeyDown={handleInput}
+          placeholder="Press any key..."
+          className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/30 text-white text-center text-2xl font-bold placeholder-gray-400"
+          autoFocus
+        />
+      </div>
+
+      <p className="text-white text-sm opacity-75">Progress: {currentIndex + 1} of {combinations.length}</p>
+      <div className="w-full bg-white/20 rounded-full h-2 mt-3">
+        <motion.div
+          className="bg-yellow-400 h-2 rounded-full"
+          animate={{ width: `${((currentIndex + 1) / combinations.length) * 100}%` }}
+          transition={{ duration: 0.3 }}
+        />
+      </div>
+    </div>
+  )
+}
 
   const renderGame = () => {
     switch (selectedGame) {
@@ -946,6 +1796,18 @@ export default function FunZone() {
         return <TypingSpeed />
       case 'iq':
         return <IQChallenge />
+      case 'fingerplacement':
+        return <KeyboardFingerPlacement />
+      case 'homerowmaster':
+        return <HomeRowMaster />
+      case 'accuracy':
+        return <TypingAccuracyChallenge />
+      case 'touchlessons':
+        return <TouchTypingLessons />
+      case 'speedbuilder':
+        return <SpeedBuilderChallenge />
+      case 'keycombos':
+        return <KeyCombinationMaster />
       default:
         return null
     }

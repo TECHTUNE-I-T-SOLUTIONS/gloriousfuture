@@ -56,7 +56,7 @@ export default function TeacherLanding() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500/50 via-indigo-600 to-indigo-900/90">
       <CustomHeader />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
         {/* <div className="mb-4">
           <button onClick={() => router.push('/')} className="text-sm text-primary hover:underline">← Back to Home</button>
         </div> */}

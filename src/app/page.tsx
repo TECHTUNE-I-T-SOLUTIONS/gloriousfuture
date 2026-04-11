@@ -301,7 +301,7 @@ export default function Home() {
           >
             Welcome to a brighter future of learning at Glorious Future Academy! 🎉
           </motion.p>
-          <div className="mt-8 max-w-6xl mx-auto text-center text-indigo-100">
+          <div className="mt-8 max-w-6xl mx-auto text-center text-indigo-100 w-11/12">
             <h3 className="text-2xl font-semibold mb-3">What we do</h3>
             <p className="text-lg text-indigo-200 mb-4 breakwords">
               At Glorious Future Academy we combine warm, child-centered teaching with modern tools to support learning.
@@ -455,16 +455,16 @@ export default function Home() {
 
                   <div className="mt-5 flex flex-wrap gap-3">
                     <a
-                      href="#"
+                      href="/pupils/Login"
                       className="inline-flex items-center gap-2 bg-white text-[#4237C7] px-4 py-2 rounded-lg font-medium shadow-sm hover:translate-y-[-2px] transition-transform"
                     >
-                      Request Demo
+                      Enroll here
                     </a>
                     <a
-                      href="#features"
+                      href="/funzone"
                       className="inline-flex items-center gap-2 border border-white/30 text-white px-4 py-2 rounded-lg hover:bg-white/10 transition"
                     >
-                      Explore Features
+                      Explore the playground
                     </a>
                   </div>
                 </div>

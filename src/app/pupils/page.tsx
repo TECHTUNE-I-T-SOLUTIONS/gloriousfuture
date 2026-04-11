@@ -62,7 +62,7 @@ export default function PupilLanding() {
         </div>
       </div> */}
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden pt-8">
         <div className="absolute inset-0 bg-gradient-to-r from-secondary/5 to-primary/5" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-22 pb-16">
           <div className="text-center">

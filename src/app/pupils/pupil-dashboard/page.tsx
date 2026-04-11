@@ -30,8 +30,6 @@ import {
 } from "react-icons/fa"
 import { motion } from "framer-motion"
 
-// use shared PupilContext from ../pupil-context
-// ...existing code... (no local usePupil hook needed here)
 
 function ResponsiveDashboard({
   renderPage,

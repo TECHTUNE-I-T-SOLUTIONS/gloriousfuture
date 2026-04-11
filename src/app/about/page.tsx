@@ -319,7 +319,7 @@ export default function About() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">📍 Visit Us</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">Visit Us</h2>
               <motion.div
                 className="bg-gradient-to-br from-blue-50/80 to-indigo-50/80 backdrop-blur-sm rounded-2xl p-8 border-2 border-indigo-200 shadow-lg hover:shadow-xl transition-all"
                 whileHover={{ scale: 1.02 }}
@@ -329,7 +329,7 @@ export default function About() {
                     <FiMapPin className="w-6 h-6" />
                   </div>
                   <div className="text-left">
-                    <h3 className="text-xl font-bold text-primary mb-2">Our New Campus</h3>
+                    <h3 className="text-xl font-bold text-primary mb-2">Our New School</h3>
                     <p className="text-lg text-gray-800 font-semibold leading-relaxed">
                       IBA Transformer Area<br />
                       IBA Village, Ijomu Road<br />
@@ -382,7 +382,7 @@ export default function About() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">🚀 Quick Links</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-primary mb-6">Quick Links</h2>
               <motion.div
                 className="bg-gradient-to-br from-purple-50/80 to-pink-50/80 backdrop-blur-sm rounded-2xl p-6 border-2 border-purple-200 shadow-lg"
               >
@@ -451,7 +451,7 @@ export default function About() {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">🎓 Our Programs</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">Our Programs</h2>
             <p className="text-lg text-gray-100 max-w-2xl mx-auto">
               Comprehensive educational programs designed to develop well-rounded learners
             </p>
@@ -511,7 +511,7 @@ export default function About() {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">✨ Why Choose Us?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4">Why Choose Us?</h2>
             <p className="text-lg text-gray-100 max-w-2xl mx-auto">
               What sets Glorious Future Academy apart
             </p>

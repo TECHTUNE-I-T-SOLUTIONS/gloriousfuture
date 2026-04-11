@@ -151,32 +151,37 @@ export default function MainCBTExams() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       {/* Header with Timer and Progress */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-10">
+      <div className="bg-gradient-to-r from-blue-900 via-purple-900 to-blue-900 shadow-xl border-b border-white/10 sticky top-0 z-10 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900">{exam.title}</h1>
-              <p className="text-gray-600 text-sm">Subject: {exam.subject}</p>
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-200 to-cyan-200 bg-clip-text text-transparent">{exam.title}</h1>
+              <p className="text-blue-200/70 text-sm">Subject: {exam.subject}</p>
             </div>
 
             <div className="flex flex-col md:flex-row items-start md:items-center space-y-3 md:space-y-0 md:space-x-6">
               {/* Timer */}
-              <div className="flex items-center space-x-2">
-                <FaClock className={`w-5 h-5 ${timeLeft < 300 ? "text-red-500" : "text-blue-500"}`} />
-                <span className={`font-mono text-lg font-bold ${timeLeft < 300 ? "text-red-500" : "text-blue-500"}`}>
+              <div className="flex items-center space-x-3 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm border border-white/20">
+                <FaClock className={`w-5 h-5 ${timeLeft < 300 ? "text-red-400 animate-pulse" : "text-cyan-400"}`} />
+                <span className={`font-mono text-lg font-bold ${timeLeft < 300 ? "text-red-400" : "text-cyan-300"}`}>
                   {formatTime(timeLeft)}
                 </span>
               </div>
 
               {/* Progress */}
-              <div className="flex items-center space-x-3">
-                <span className="text-sm text-gray-600">Progress:</span>
+              <div className="flex items-center space-x-3 bg-white/10 px-4 py-2 rounded-full backdrop-blur-sm border border-white/20">
+                <span className="text-sm text-blue-200/70">Progress:</span>
                 <div className="w-32">
-                  <Progress value={getProgressPercentage()} className="h-2" />
+                  <div className="bg-white/10 rounded-full h-2 overflow-hidden">
+                    <div 
+                      className="bg-gradient-to-r from-yellow-300 to-orange-400 h-full transition-all duration-500"
+                      style={{ width: `${getProgressPercentage()}%` }}
+                    />
+                  </div>
                 </div>
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-bold text-white">
                   {getAnsweredCount()}/{exam.questions?.length || 0}
                 </span>
               </div>
@@ -189,133 +194,165 @@ export default function MainCBTExams() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Question Navigation Sidebar */}
           <div className="lg:col-span-1">
-            <Card className="shadow-lg border-0 sticky top-24">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center space-x-2">
-                  <FaQuestionCircle className="text-blue-500" />
-                  <span>Questions</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-5 lg:grid-cols-4 gap-2">
-                  {exam.questions?.map((_: unknown, index: number) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentQuestion(index)}
-                      className={`
-                        w-10 h-10 rounded-lg text-sm font-medium transition-all duration-200
-                        ${
-                          currentQuestion === index
-                            ? "bg-blue-500 text-white shadow-md"
-                            : answers[index]
-                              ? "bg-green-100 text-green-700 border border-green-300"
-                              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        }
-                      `}
-                    >
-                      {index + 1}
-                    </button>
-                  ))}
-                </div>
+            <div className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 border border-white/10 rounded-2xl shadow-xl p-6 sticky top-24 backdrop-blur-sm">
+              <div className="flex items-center space-x-2 mb-6">
+                <FaQuestionCircle className="text-cyan-400 text-xl" />
+                <h3 className="text-lg font-bold text-white">Questions</h3>
+              </div>
+              <div className="grid grid-cols-5 lg:grid-cols-4 gap-2">
+                {exam.questions?.map((_: unknown, index: number) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentQuestion(index)}
+                    className={`
+                      w-10 h-10 rounded-xl text-xs font-bold transition-all duration-200 transform
+                      ${
+                        currentQuestion === index
+                          ? "bg-gradient-to-br from-cyan-400 to-blue-500 text-white shadow-lg scale-110"
+                          : answers[index]
+                            ? "bg-gradient-to-br from-green-400 to-emerald-500 text-white border-0 shadow-md"
+                            : "bg-white/10 text-white/60 hover:bg-white/20 border border-white/20"
+                      }
+                    `}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+              </div>
 
-                <div className="mt-4 space-y-2 text-xs">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                    <span>Current</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-green-100 border border-green-300 rounded"></div>
-                    <span>Answered</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-gray-100 rounded"></div>
-                    <span>Not answered</span>
-                  </div>
+              <div className="mt-6 space-y-3 text-xs">
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-lg"></div>
+                  <span className="text-white/80">Current</span>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg"></div>
+                  <span className="text-white/80">Answered</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 bg-white/10 border border-white/20 rounded-lg"></div>
+                  <span className="text-white/60">Not answered</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Main Question Area */}
           <div className="lg:col-span-3">
-            <Card className="shadow-lg border-0 p-4">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <Badge variant="outline" className="text-sm">
-                    Question {currentQuestion + 1} of {exam.questions?.length || 0}
-                  </Badge>
+            <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-700 rounded-2xl shadow-2xl p-8 min-h-screen flex flex-col">
+              {/* Header with Progress */}
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
+                    <span className="text-white font-bold text-lg">
+                      Q{currentQuestion + 1}/{exam.questions?.length || 0}
+                    </span>
+                  </div>
                   {answers[currentQuestion] && (
-                    <Badge className="bg-green-100 text-green-700">
+                    <Badge className="bg-green-400 text-green-900 border-0">
                       <FaCheckCircle className="w-3 h-3 mr-1" />
                       Answered
                     </Badge>
                   )}
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {exam.questions?.[currentQuestion] && (
-                  <>
-                    <div className="prose prose-lg max-w-none">
-                      <p className="text-gray-900 font-medium leading-relaxed">
+                <div className="text-white/70 text-sm font-medium">
+                  Answered: {Object.values(answers).filter(Boolean).length}/{exam.questions?.length || 0}
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="w-full bg-white/10 rounded-full h-1.5 mb-8 backdrop-blur-sm">
+                <div 
+                  className="bg-gradient-to-r from-yellow-300 to-orange-400 h-1.5 rounded-full transition-all duration-500"
+                  style={{ width: `${((currentQuestion + 1) / (exam.questions?.length || 1)) * 100}%` }}
+                />
+              </div>
+
+              {/* Question Section */}
+              {exam.questions?.[currentQuestion] && (
+                <>
+                  <div className="mb-12 flex-grow flex flex-col justify-center">
+                    {/* Question Text */}
+                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 mb-12">
+                      <p className="text-white text-2xl md:text-3xl font-bold leading-relaxed text-center">
                         {exam.questions[currentQuestion].question}
                       </p>
                     </div>
 
-                    <RadioGroup
-                      value={answers[currentQuestion] || ""}
-                      onValueChange={(value) => handleAnswerChange(currentQuestion, value)}
-                      className="space-y-3"
-                    >
+                    {/* Options Grid - 2x2 Layout */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {exam.questions[currentQuestion].options?.map((opt: unknown, optIndex: number) => {
                         const option = String(opt ?? "")
+                        const isSelected = answers[currentQuestion] === option
+                        const optionLabel = String.fromCharCode(65 + optIndex) // A, B, C, D
+                        
                         return (
-                        <div
-                          key={optIndex}
-                          className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          <RadioGroupItem value={option} id={`option-${optIndex}`} className="text-blue-500" />
-                          <Label
-                            htmlFor={`option-${optIndex}`}
-                            className="flex-1 cursor-pointer text-gray-700 leading-relaxed"
+                          <button
+                            key={optIndex}
+                            onClick={() => handleAnswerChange(currentQuestion, option)}
+                            className={`
+                              relative group p-6 rounded-2xl font-bold text-lg transition-all duration-300 transform
+                              border-2 backdrop-blur-sm
+                              ${isSelected 
+                                ? 'bg-gradient-to-r from-yellow-300 to-orange-400 text-gray-900 border-yellow-200 shadow-lg scale-105' 
+                                : 'bg-white/10 text-white border-white/30 hover:bg-white/20 hover:border-white/50 hover:scale-102'
+                              }
+                              focus:outline-none focus:ring-2 focus:ring-white/50
+                              active:scale-95
+                            `}
                           >
-                            {/* show a), b), c), d) prefixes for clarity */}
-                            <span className="font-semibold mr-2">{String.fromCharCode(97 + optIndex)})</span>
-                            {option}
-                          </Label>
-                        </div>
+                            <div className="flex items-start gap-4">
+                              <div className={`
+                                flex-shrink-0 w-10 h-10 rounded-full font-bold text-lg
+                                flex items-center justify-center
+                                ${isSelected 
+                                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' 
+                                  : 'bg-white/20 text-white'
+                                }
+                              `}>
+                                {optionLabel}
+                              </div>
+                              <span className="text-left flex-1 leading-relaxed">
+                                {option}
+                              </span>
+                            </div>
+                          </button>
                         )
                       })}
-                    </RadioGroup>
-
-                    {/* Navigation Buttons */}
-                    <div className="flex justify-between pt-6 border-t">
-                      <Button
-                        onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
-                        disabled={currentQuestion === 0}
-                        variant="outline"
-                      >
-                        Previous
-                      </Button>
-
-                      <div className="space-x-3">
-                        {currentQuestion < (exam.questions?.length || 0) - 1 ? (
-                          <Button
-                            onClick={() => setCurrentQuestion(currentQuestion + 1)}
-                            className="bg-blue-500 hover:bg-blue-600"
-                          >
-                            Next
-                          </Button>
-                        ) : (
-                          <Button onClick={() => setShowSubmitDialog(true)} className="bg-green-500 hover:bg-green-600">
-                            Submit Exam
-                          </Button>
-                        )}
-                      </div>
                     </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+                  </div>
+
+                  {/* Navigation Buttons */}
+                  <div className="flex justify-between items-center gap-4 mt-12 pt-8 border-t border-white/20">
+                    <Button
+                      onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
+                      disabled={currentQuestion === 0}
+                      className="px-6 py-3 bg-white/20 hover:bg-white/30 text-white border border-white/50 disabled:opacity-50 disabled:cursor-not-allowed rounded-full font-semibold backdrop-blur-sm transition-all"
+                    >
+                      ← Previous
+                    </Button>
+
+                    <div className="space-x-3 flex">
+                      {currentQuestion < (exam.questions?.length || 0) - 1 ? (
+                        <Button
+                          onClick={() => setCurrentQuestion(currentQuestion + 1)}
+                          className="px-6 py-3 bg-gradient-to-r from-blue-400 to-cyan-400 hover:from-blue-300 hover:to-cyan-300 text-blue-900 rounded-full font-semibold transition-all shadow-lg"
+                        >
+                          Next →
+                        </Button>
+                      ) : (
+                        <Button 
+                          onClick={() => setShowSubmitDialog(true)} 
+                          className="px-8 py-3 bg-gradient-to-r from-green-400 to-emerald-400 hover:from-green-300 hover:to-emerald-300 text-green-900 rounded-full font-bold text-lg transition-all shadow-lg"
+                        >
+                          Submit Exam ✓
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>

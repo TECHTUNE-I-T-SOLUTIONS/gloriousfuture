@@ -96,7 +96,7 @@ export default function BlogPostPage() {
       <CustomHeader />
 
       <main className="flex-grow container items-center mx-auto px-6 py-28 z-10">
-        <article className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 md:p-12 max-w-4xl mx-auto border border-indigo-200">
+        <article className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 md:p-12 max-w-4xl mx-auto border border-indigo-200 pt-8">
           {/* Header Section */}
           <header className="text-center mb-8">
             <h1 className="text-4xl md:text-5xl font-bold text-indigo-900 mb-4 leading-tight">{blog.title}</h1>
