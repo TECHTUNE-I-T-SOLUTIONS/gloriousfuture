@@ -1,291 +1,251 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState, useMemo } from 'react'
-import { motion } from 'framer-motion'
-import Particles, { initParticlesEngine } from '@tsparticles/react'
-import { loadSlim } from '@tsparticles/slim'
-import type { RecursivePartial, IOptions } from '@tsparticles/engine'
-import CustomHeader from '@/components/CustomHeader'
-import QuizCard from '@/components/quizzes/QuizCard'
-import CustomFooter from '@/components/CustomFooter'
-import Link from 'next/link'
+import { useEffect, useMemo, useState } from "react";
+import { Check, CircleAlert, LoaderCircle, SearchX, SlidersHorizontal, Sparkles, Trophy } from "lucide-react";
+
+import CustomHeader from "@/components/CustomHeader";
+import CustomFooter from "@/components/CustomFooter";
+import PageHero from "@/components/public/PageHero";
+import SectionHeading from "@/components/public/SectionHeading";
+import QuizCard from "@/components/quizzes/QuizCard";
+
+const difficultyOptions = ["all", "easy", "medium", "hard"] as const;
+const ageOptions = ["all", "6-8", "8-10", "10-12", "12-14"] as const;
+
+function filterChipClass(active: boolean) {
+  return `gfa-chip min-h-[2.5rem] px-4 py-2 text-sm transition-colors ${
+    active
+      ? "!border-brand-indigo !bg-brand-indigo !text-white"
+      : "hover:!border-brand-indigo hover:!bg-brand-mist"
+  }`;
+}
 
 export default function PublicQuizzesPage() {
-  const [quizzes, setQuizzes] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [init, setInit] = useState(false)
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all')
-  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>('all')
+  const [quizzes, setQuizzes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>("all");
 
   useEffect(() => {
-    initParticlesEngine(async (engine) => {
-      await loadSlim(engine)
-    }).then(() => setInit(true))
-  }, [])
-
-  useEffect(() => {
-    let mounted = true
+    let mounted = true;
     const fetchList = async () => {
       try {
-        const res = await fetch('/api/public/quizzes')
-        if (!res.ok) throw new Error('Failed')
-        const data = await res.json()
-        if (mounted) setQuizzes(data || [])
+        const res = await fetch("/api/public/quizzes");
+        if (!res.ok) throw new Error("Failed");
+        const data = await res.json();
+        if (mounted) {
+          setQuizzes(data || []);
+          setError("");
+        }
       } catch (err) {
-        console.error(err)
+        console.error(err);
+        if (mounted) setError("We could not load the quizzes. Please refresh the page and try again.");
       } finally {
-        if (mounted) setLoading(false)
+        if (mounted) setLoading(false);
       }
-    }
-    fetchList()
+    };
+    fetchList();
     return () => {
-      mounted = false
-    }
-  }, [])
+      mounted = false;
+    };
+  }, []);
 
-  // Filter quizzes based on selected filters
   const filteredQuizzes = useMemo(() => {
     return quizzes.filter((q) => {
-      const difficultyMatch = selectedDifficulty === 'all' || q.difficulty_level === selectedDifficulty
-      const ageMatch = selectedAgeGroup === 'all' || q.age_group === selectedAgeGroup
-      return difficultyMatch && ageMatch
-    })
-  }, [quizzes, selectedDifficulty, selectedAgeGroup])
+      const difficultyMatch = selectedDifficulty === "all" || q.difficulty_level === selectedDifficulty;
+      const ageMatch = selectedAgeGroup === "all" || q.age_group === selectedAgeGroup;
+      return difficultyMatch && ageMatch;
+    });
+  }, [quizzes, selectedDifficulty, selectedAgeGroup]);
 
-  const particlesOptions = useMemo<RecursivePartial<IOptions>>(
-    () => ({
-      background: { color: '#4338ca' },
-      fpsLimit: 120,
-      interactivity: {
-        events: {
-          onClick: { enable: true, mode: 'push' },
-          onHover: { enable: true, mode: 'repulse' },
-        },
-        modes: {
-          push: { quantity: 4 },
-          repulse: { distance: 200, duration: 0.4 },
-        },
-      },
-      particles: {
-        color: { value: '#e0e7ff' },
-        links: {
-          color: '#e0e7ff',
-          distance: 150,
-          enable: true,
-          opacity: 0.3,
-          width: 1,
-        },
-        move: {
-          enable: true,
-          outModes: { default: 'out' as const },
-          random: false,
-          speed: 2,
-          straight: false,
-        },
-        number: { density: { enable: true }, value: 100 },
-        opacity: { value: 0.3 },
-        shape: { type: 'circle' },
-        size: { value: { min: 1, max: 5 } },
-      },
-      detectRetina: true,
-    }),
-    [],
-  )
+  const clearFilters = () => {
+    setSelectedDifficulty("all");
+    setSelectedAgeGroup("all");
+  };
 
   return (
-    <div className="relative min-h-screen w-full bg-gradient-to-br from-indigo-200 via-indigo-500 to-indigo-800 flex flex-col">
-      {init && (
-        <Particles id="particles-quizzes" options={particlesOptions} className="absolute top-0 left-0 w-full h-full z-0" />
-      )}
-
+    <div className="flex min-h-screen flex-col bg-brand-surface">
       <CustomHeader />
 
-      <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pt-30 px-6 relative z-10 flex-1">
-        {/* Hero Section */}
-        <section className="text-center mb-16">
-          <motion.h1
-            initial={{ opacity: 0, y: -30 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-6xl font-bold text-indigo-100 drop-shadow-lg mb-4"
-          >
-            Public Quizzes
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-xl text-indigo-200 mt-4 max-w-3xl mx-auto"
-          >
-            Challenge yourself with curated quizzes — enjoy interactive learning with immediate feedback and scoring.
-          </motion.p>
-        </section>
+      <main className="flex-1">
+        <PageHero
+          kicker="Practice room"
+          title="Practice quizzes"
+          description="Short, focused quizzes with immediate feedback, built to help pupils check their understanding across the curriculum."
+          icon={Trophy}
+        >
+          <span className="gfa-chip">
+            <Sparkles className="h-4 w-4 text-brand-gold" aria-hidden="true" />
+            Learn by doing
+          </span>
+        </PageHero>
 
-        {/* Main Content */}
-        <section className="max-w-7xl mx-auto mb-16">
-          {/* Filter Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-12 bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-indigo-200"
-          >
-            <h3 className="text-lg font-bold text-indigo-900 mb-4">Filter Quizzes</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Difficulty Filter */}
-              <div>
-                <label className="block text-sm font-semibold text-indigo-700 mb-3">Difficulty Level</label>
-                <div className="flex flex-wrap gap-2">
-                  {['all', 'easy', 'medium', 'hard'].map((level) => (
-                    <motion.button
-                      key={level}
-                      onClick={() => setSelectedDifficulty(level)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className={`px-4 py-2 rounded-full font-semibold transition-all ${
-                        selectedDifficulty === level
-                          ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg'
-                          : 'bg-indigo-100 text-indigo-900 hover:bg-indigo-200'
-                      }`}
-                    >
-                      {level.charAt(0).toUpperCase() + level.slice(1)}
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Age Group Filter */}
-              <div>
-                <label className="block text-sm font-semibold text-indigo-700 mb-3">Age Group</label>
-                <div className="flex flex-wrap gap-2">
-                  {['all', '6-8', '8-10', '10-12', '12-14'].map((age) => (
-                    <motion.button
-                      key={age}
-                      onClick={() => setSelectedAgeGroup(age)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className={`px-4 py-2 rounded-full font-semibold transition-all ${
-                        selectedAgeGroup === age
-                          ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg'
-                          : 'bg-indigo-100 text-indigo-900 hover:bg-indigo-200'
-                      }`}
-                    >
-                      {age === 'all' ? 'All Ages' : `${age} yrs`}
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Results count */}
-            <p className="text-sm text-indigo-600 font-semibold mt-4">
-              Showing {filteredQuizzes.length} of {quizzes.length} quizzes
-            </p>
-          </motion.div>
-
-          {/* Quizzes Grid */}
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="bg-white/90 rounded-2xl h-64 animate-pulse shadow-lg"
-                />
-              ))}
-            </div>
-          ) : filteredQuizzes.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-20"
-            >
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-12 max-w-2xl mx-auto shadow-xl border border-indigo-200">
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="text-6xl mb-6"
-                >
-                  🔍
-                </motion.div>
-                <h2 className="text-3xl font-bold text-indigo-900 mb-3">No Quizzes Found</h2>
-                <p className="text-indigo-700 text-lg mb-8">
-                  Try adjusting your filters or check back soon for more quizzes!
-                </p>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    setSelectedDifficulty('all')
-                    setSelectedAgeGroup('all')
-                  }}
-                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all"
-                >
-                  Clear Filters
-                </motion.button>
-              </div>
-            </motion.div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredQuizzes.map((q, index) => (
-                <motion.div
-                  key={q.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ y: -8 }}
-                  className="group"
-                >
-                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden border border-indigo-200 hover:shadow-2xl transition-all duration-300 h-full">
-                    <QuizCard quiz={q} />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Stats Banner (if quizzes exist) */}
-        {!loading && quizzes.length > 0 && (
-          <motion.section
-            className="max-w-7xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <div className="relative overflow-hidden rounded-2xl p-8 m-6 bg-gradient-to-r from-[#4237C7] to-[#9AA6FA] text-white shadow-2xl">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex-1">
-                  <h2 className="text-3xl md:text-4xl font-extrabold leading-tight mb-3">
-                    Challenge Yourself Today
-                  </h2>
-                  <p className="text-white/90 max-w-2xl">
-                    Pick any quiz, answer the questions, earn points, and track your progress towards mastery.
-                  </p>
-                </div>
-
-                <div className="w-full md:w-auto">
-                  <div className="bg-white/10 rounded-lg p-4 text-sm backdrop-blur-sm">
-                    <div className="text-xl font-semibold">{quizzes.length}</div>
-                    <div className="text-white/80 text-xs">Quizzes Available</div>
-                  </div>
-                </div>
-              </div>
-
-              <motion.div
-                className="pointer-events-none absolute -right-20 -bottom-20 w-48 h-48 rounded-full bg-white/6 blur-3xl"
-                animate={{ rotate: [0, 20, 0] }}
-                transition={{ duration: 12, repeat: Number.POSITIVE_INFINITY, ease: 'linear' }}
+        <section className="gfa-section" aria-labelledby="quiz-list-heading">
+          <div className="gfa-container">
+            <div id="quiz-list-heading">
+              <SectionHeading
+                title="Choose your challenge"
+                description="Filter by difficulty and age group to find the right practice for you."
               />
             </div>
-          </motion.section>
+
+            <section
+              aria-labelledby="filters-heading"
+              className="gfa-card mb-8 p-5 sm:mb-10 sm:p-7"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h3
+                  id="filters-heading"
+                  className="flex items-center gap-2 font-display text-xl text-brand-ink"
+                >
+                  <SlidersHorizontal className="h-5 w-5 text-brand-gold" aria-hidden="true" />
+                  Filter quizzes
+                </h3>
+                <p role="status" aria-live="polite" className="gfa-chip">
+                  Showing {filteredQuizzes.length} of {quizzes.length} quizzes
+                </p>
+              </div>
+
+              <div className="mt-6 grid gap-6 md:grid-cols-2">
+                <fieldset>
+                  <legend className="gfa-label">Difficulty level</legend>
+                  <div className="flex flex-wrap gap-2">
+                    {difficultyOptions.map((level) => {
+                      const active = selectedDifficulty === level;
+                      return (
+                        <button
+                          key={level}
+                          type="button"
+                          aria-pressed={active}
+                          onClick={() => setSelectedDifficulty(level)}
+                          className={filterChipClass(active)}
+                        >
+                          {active && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
+                          {level === "all" ? "All levels" : level.charAt(0).toUpperCase() + level.slice(1)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+
+                <fieldset>
+                  <legend className="gfa-label">Age group</legend>
+                  <div className="flex flex-wrap gap-2">
+                    {ageOptions.map((age) => {
+                      const active = selectedAgeGroup === age;
+                      return (
+                        <button
+                          key={age}
+                          type="button"
+                          aria-pressed={active}
+                          onClick={() => setSelectedAgeGroup(age)}
+                          className={filterChipClass(active)}
+                        >
+                          {active && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
+                          {age === "all" ? "All ages" : `${age} yrs`}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              </div>
+            </section>
+
+            {loading ? (
+              <div role="status" aria-live="polite" className="space-y-5">
+                <p className="flex items-center gap-2 text-sm font-semibold text-brand-ink/70">
+                  <LoaderCircle className="h-4 w-4 animate-spin text-brand-indigo" aria-hidden="true" />
+                  Loading quizzes…
+                </p>
+                <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3" aria-hidden="true">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <div key={index} className="gfa-card h-80 animate-pulse overflow-hidden">
+                      <div className="h-40 bg-brand-mist" />
+                      <div className="space-y-3 p-6">
+                        <div className="h-5 w-4/5 rounded bg-brand-mist" />
+                        <div className="h-3 w-full rounded bg-brand-mist" />
+                        <div className="h-3 w-2/3 rounded bg-brand-mist" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : error ? (
+              <div
+                role="alert"
+                className="gfa-card mx-auto flex max-w-2xl flex-col items-center gap-4 px-6 py-14 text-center"
+              >
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-600">
+                  <CircleAlert className="h-7 w-7" aria-hidden="true" />
+                </span>
+                <h3 className="font-display text-2xl text-brand-ink">Quizzes are unavailable</h3>
+                <p className="max-w-md text-sm leading-relaxed text-brand-ink/70">{error}</p>
+              </div>
+            ) : filteredQuizzes.length === 0 ? (
+              <div
+                role="status"
+                aria-live="polite"
+                className="gfa-card mx-auto flex max-w-2xl flex-col items-center gap-4 px-6 py-16 text-center"
+              >
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-mist text-brand-indigo">
+                  <SearchX className="h-7 w-7" aria-hidden="true" />
+                </span>
+                <h3 className="font-display text-2xl text-brand-ink">
+                  {quizzes.length > 0 ? "No quizzes match these filters" : "No quizzes available yet"}
+                </h3>
+                <p className="max-w-md text-sm leading-relaxed text-brand-ink/70">
+                  {quizzes.length > 0
+                    ? "Try a different difficulty or age group to see more practice questions."
+                    : "New quizzes are being prepared. Please check back soon."}
+                </p>
+                <button type="button" onClick={clearFilters} className="gfa-btn gfa-btn-primary mt-2">
+                  Clear filters
+                </button>
+              </div>
+            ) : (
+              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                {filteredQuizzes.map((q) => (
+                  <div
+                    key={q.id}
+                    className="gfa-card h-full overflow-hidden transition-transform duration-200 hover:-translate-y-1"
+                  >
+                    <QuizCard quiz={q} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        {!loading && quizzes.length > 0 && (
+          <section className="gfa-container pb-16 sm:pb-24" aria-label="Quiz library">
+            <div className="relative overflow-hidden rounded-[1.25rem] bg-brand-ink px-6 py-10 text-white sm:px-10">
+              <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full border border-white/10" />
+              <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="max-w-2xl">
+                  <p className="gfa-eyebrow !text-brand-gold">Keep going</p>
+                  <h2 className="mt-3 font-display text-3xl leading-tight sm:text-4xl">
+                    Challenge yourself today
+                  </h2>
+                  <p className="mt-3 text-sm leading-relaxed text-white/70 sm:text-base">
+                    Pick a quiz, answer the questions and track your progress towards mastery.
+                  </p>
+                </div>
+                <div className="inline-flex shrink-0 items-center gap-3 rounded-xl border border-white/15 bg-white/5 px-5 py-4">
+                  <Trophy className="h-8 w-8 text-brand-gold" aria-hidden="true" />
+                  <span>
+                    <span className="block text-2xl font-semibold">{quizzes.length}</span>
+                    <span className="block text-xs text-white/65">Quizzes available</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </section>
         )}
-      </motion.main>
+      </main>
 
       <CustomFooter />
     </div>
-  )
+  );
 }

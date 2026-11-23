@@ -1,172 +1,123 @@
-import { motion } from "framer-motion"
-import Image from "next/image"
-import Link from "next/link"
-import { Joystick, Heart, BookOpen, Award, Mail, Phone, Home } from "lucide-react"
-import { FiAward } from "react-icons/fi"
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowUpRight, BookOpen, GraduationCap, HeartHandshake, Mail, MapPin, Phone, Trophy } from "lucide-react";
+import { siteConfig } from "@/lib/site-config";
+
+const footerColumns = [
+  {
+    title: "School",
+    links: [
+      { href: "/", label: "Home" },
+      { href: "/about", label: "About our school" },
+      { href: "/blog", label: "News and stories" },
+    ],
+  },
+  {
+    title: "Learning",
+    links: [
+      { href: "/quizzes", label: "Practice quizzes" },
+      { href: "/funzone", label: "Fun Zone" },
+      { href: "/pupils", label: "Student portal" },
+    ],
+  },
+  {
+    title: "Community",
+    links: [
+      { href: "/teacher", label: "Staff portal" },
+      { href: "/donation", label: "Support the school" },
+      { href: "/about#visit", label: "Visit us" },
+    ],
+  },
+];
+
+const quickActions = [
+  { href: "/quizzes", label: "Take a quiz", icon: Trophy },
+  { href: "/donation", label: "Support GFA", icon: HeartHandshake },
+];
 
 export default function CustomFooter() {
-  const footerLinks = {
-    quick: [
-      { href: "/", label: "Home" },
-      { href: "/about", label: "About Us" },
-      { href: "/blog", label: "Blog" },
-    ],
-    learning: [
-      { href: "/pupils", label: "For Pupils" },
-      { href: "/teacher", label: "For Teachers" },
-      { href: "/quizzes", label: "Take a Quiz" },
-    ],
-    resources: [
-      { href: "/funzone", label: "FunZone" },
-      { href: "/donation", label: "Support Us" },
-    ],
-  }
-
-  const contactInfo = [
-    { icon: Phone, text: "+234 803 5770 623", href: "tel:+2348035770623" },
-    { icon: Mail, text: "christgloriousfuture@gmail.com", href: "mailto:christgloriousfuture@gmail.com" },
-  ]
-
   return (
-    <footer className="relative bg-indigo-900 text-primary-foreground py-12 z-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Main Footer Content */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8"
-        >
-          {/* Brand Section */}
-          <div className="lg:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <Image src="/apple-touch-icon.png" alt="Logo" width={40} height={40} className="rounded-lg" />
+    <footer className="relative overflow-hidden bg-brand-ink text-white">
+      <div className="pointer-events-none absolute -right-32 -top-40 h-96 w-96 rounded-full border border-white/5" />
+      <div className="pointer-events-none absolute -bottom-48 -left-24 h-96 w-96 rounded-full border border-white/5" />
+
+      <div className="gfa-container relative py-14 sm:py-16">
+        <div className="grid gap-10 border-b border-white/10 pb-12 lg:grid-cols-[1.5fr_repeat(3,1fr)]">
+          <div>
+            <div className="flex items-center gap-3">
+              <Image
+                src="/apple-touch-icon.png"
+                alt=""
+                width={52}
+                height={52}
+                className="rounded-full bg-white p-1"
+              />
               <div>
-                <h3 className="font-bold text-lg">Glorious</h3>
-                <p className="text-xs text-primary-foreground/70">Future Academy</p>
+                <p className="font-display text-xl leading-tight">Glorious Future Academy</p>
+                <p className="mt-1 text-xs text-brand-gold">Learn to grow</p>
               </div>
             </div>
-            <p className="text-sm text-primary-foreground/80">
-              Shaping minds, building futures, creating leaders of tomorrow.
+            <p className="mt-5 max-w-sm text-sm leading-relaxed text-white/65">
+              A close-knit school community in Oro, Kwara State, helping pupils learn with confidence and character.
             </p>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h4 className="font-bold mb-4 text-white">Quick Links</h4>
-            <ul className="space-y-2">
-              {footerLinks.quick.map(({ href, label }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className="text-sm text-primary-foreground/80 hover:text-white transition-colors duration-200"
-                  >
-                    {label}
-                  </Link>
-                </li>
+            <div className="mt-6 flex flex-wrap gap-2">
+              {quickActions.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-brand-gold hover:text-brand-gold"
+                >
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                  {label}
+                </Link>
               ))}
-            </ul>
+            </div>
           </div>
 
-          {/* Learning */}
-          <div>
-            <h4 className="font-bold mb-4 text-white">Learning</h4>
-            <ul className="space-y-2">
-              {footerLinks.learning.map(({ href, label }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className="text-sm text-primary-foreground/80 hover:text-white transition-colors duration-200"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {footerColumns.map((column) => (
+            <nav key={column.title} aria-label={`${column.title} links`}>
+              <h2 className="mb-4 text-sm font-semibold text-white">{column.title}</h2>
+              <ul className="space-y-3">
+                {column.links.map(({ href, label }) => (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      className="inline-flex items-center gap-1 text-sm text-white/65 transition-colors hover:text-brand-gold"
+                    >
+                      {label}
+                      <ArrowUpRight className="h-3 w-3 opacity-0 transition-opacity hover:opacity-100" aria-hidden="true" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
+        </div>
 
-          {/* Resources */}
-          <div>
-            <h4 className="font-bold mb-4 text-white">Resources</h4>
-            <ul className="space-y-2">
-              {footerLinks.resources.map(({ href, label }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className="text-sm text-primary-foreground/80 hover:text-white transition-colors duration-200"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div className="grid gap-6 py-8 sm:grid-cols-3">
+          <a href={`tel:${siteConfig.contact.telephone}`} className="flex items-center gap-3 text-sm text-white/75 hover:text-brand-gold">
+            <Phone className="h-4 w-4 text-brand-gold" aria-hidden="true" />
+            {siteConfig.contact.telephoneLabel}
+          </a>
+          <a href={`mailto:${siteConfig.contact.email}`} className="flex items-center gap-3 break-all text-sm text-white/75 hover:text-brand-gold">
+            <Mail className="h-4 w-4 shrink-0 text-brand-gold" aria-hidden="true" />
+            {siteConfig.contact.email}
+          </a>
+          <p className="flex items-center gap-3 text-sm text-white/75">
+            <MapPin className="h-4 w-4 shrink-0 text-brand-gold" aria-hidden="true" />
+            {siteConfig.contact.streetAddress}, {siteConfig.contact.addressLocality}
+          </p>
+        </div>
 
-          {/* Contact */}
-          <div>
-            <h4 className="font-bold mb-4 text-white">Contact</h4>
-            <ul className="space-y-3">
-              {contactInfo.map(({ icon: Icon, text, href }) => (
-                <li key={text}>
-                  <a
-                    href={href}
-                    className="flex items-center gap-2 text-sm text-primary-foreground/80 hover:text-white transition-colors duration-200"
-                  >
-                    <Icon className="w-4 h-4" />
-                    {text}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </motion.div>
-
-        {/* CTA Section */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          viewport={{ once: true }}
-          className="border-t border-primary-foreground/20 py-8"
-        >
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center justify-center">
-            {/* Quiz CTA */}
-            <Link
-              href="/quizzes"
-              className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white font-semibold py-2 px-6 rounded-lg transition-all transform hover:scale-105"
-            >
-              <Award className="w-4 h-4" />
-              Take a Quiz
-            </Link>
-
-            {/* Donation CTA */}
-            <Link
-              href="/donation"
-              className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white font-semibold py-2 px-6 rounded-lg transition-all transform hover:scale-105"
-            >
-              <Heart className="w-4 h-4" />
-              Support Us
-            </Link>
-
-            {/* FunZone CTA */}
-            <Link
-              href="/funzone"
-              className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white font-semibold py-2 px-6 rounded-lg transition-all transform hover:scale-105"
-            >
-              <Joystick className="w-4 h-4" />
-              Explore FunZone
-            </Link>
-          </div>
-        </motion.div>
-
-        {/* Copyright */}
-        <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center">
-          <p className="text-sm text-primary-foreground/60">
-            &copy; {new Date().getFullYear()} Glorious Future Academy. All Rights Reserved.
+        <div className="flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between">
+          <p>&copy; {new Date().getFullYear()} {siteConfig.name}. All rights reserved.</p>
+          <p className="flex items-center gap-2">
+            <GraduationCap className="h-4 w-4" aria-hidden="true" />
+            <BookOpen className="h-4 w-4" aria-hidden="true" />
+            Educating today for tomorrow.
           </p>
         </div>
       </div>
     </footer>
-  )
+  );
 }

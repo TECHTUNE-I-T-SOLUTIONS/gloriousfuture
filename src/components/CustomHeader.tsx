@@ -1,308 +1,200 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
-import { FiMenu, FiX, FiHome, FiUsers, FiBookOpen, FiUser, FiInfo, FiPhone, FiMail, FiAward } from "react-icons/fi"
-import { MapPin } from "lucide-react"
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { GraduationCap, Mail, MapPin, Menu, Phone, X } from "lucide-react";
+import { siteConfig } from "@/lib/site-config";
 
-const CustomHeader = () => {
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const [sessionRoles, setSessionRoles] = useState<{ pupil?: boolean; teacher?: boolean }>({})
-  const pathname = usePathname()
+const navLinks = [
+  { href: "/", label: "Home" },
+  { href: "/about", label: "About" },
+  { href: "/quizzes", label: "Quizzes" },
+  { href: "/blog", label: "News" },
+  { href: "/funzone", label: "Fun Zone" },
+  { href: "/donation", label: "Support" },
+];
+
+const portalLinks = [
+  { href: "/pupils", label: "Student portal", icon: GraduationCap },
+  { href: "/teacher", label: "Staff portal", icon: Mail },
+];
+
+export default function CustomHeader() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [sessionRoles, setSessionRoles] = useState<{ pupil?: boolean; teacher?: boolean }>({});
+  const pathname = usePathname() ?? "/";
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20)
-    }
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+    const onScroll = () => setScrolled(window.scrollY > 16);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
-    // check session once to toggle CTA
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    let active = true;
     fetch("/api/auth/session", { credentials: "include" })
-      .then((res) => res.json())
+      .then((response) => response.json())
       .then((data) => {
-        // API may return { uin, session, user }
-        const uin = data?.uin || data?.session?.uin || data?.user?.uin || data?.user?.id
-        if (typeof uin === 'string') {
-          if (uin.startsWith('GFA-P-')) setSessionRoles({ pupil: true })
-          if (uin.startsWith('GFA-T-')) setSessionRoles({ teacher: true })
-        }
+        const uin = data?.uin ?? data?.session?.uin ?? data?.user?.uin ?? data?.user?.id;
+        if (!active || typeof uin !== "string") return;
+        if (uin.startsWith("GFA-P-")) setSessionRoles({ pupil: true });
+        if (uin.startsWith("GFA-T-")) setSessionRoles({ teacher: true });
       })
-      .catch(() => {})
-  }, [])
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
-  const navLinks = [
-    { href: "/", label: "Home", icon: <FiHome className="w-4 h-4" /> },
-    { href: "/pupils", label: "Pupils", icon: <FiUsers className="w-4 h-4" /> },
-    { href: "/teacher", label: "Teachers", icon: <FiUser className="w-4 h-4" /> },
-    { href: "/quizzes", label: "Quiz", icon: <FiAward className="w-4 h-4" /> },
-    { href: "/blog", label: "Blog", icon: <FiBookOpen className="w-4 h-4" /> },
-    { href: "/about", label: "About", icon: <FiInfo className="w-4 h-4" /> },
-  ]
+  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
-  const contactLinks = [
-    { href: "tel:+2348035770623", label: "Call", icon: <FiPhone className="w-4 h-4 text-indigo-900" /> },
-    { href: "mailto:christgloriousfuture@gmail.com", label: "Email", icon: <FiMail className="w-4 h-4 text-indigo-900" /> },
-  ]
+  const dashboardHref = sessionRoles.pupil
+    ? "/pupils/pupil-dashboard"
+    : sessionRoles.teacher
+      ? "/teacher/teacher-dashboard"
+      : "/pupils";
 
   return (
-    <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="w-full fixed top-0 left-0 z-50"
-    >
-      {/* Top Notice Banner - Inside Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        className="w-full bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 text-white py-2 px-4 relative"
-      >
-        <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 flex-wrap">
-          <motion.div
-            animate={{ scale: [1, 1.1, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="flex-shrink-0"
-          >
-            <MapPin className="w-4 h-4 text-yellow-300" />
-          </motion.div>
-          <p className="text-xs md:text-sm font-semibold text-center leading-snug">
-            🎉 New Campus: IBA transformer area, Ijomu Road, Oro, Kwara State
+    <header className="fixed inset-x-0 top-0 z-50">
+      <div className="bg-brand-ink text-white">
+        <div className="gfa-container flex h-9 items-center justify-between gap-4 text-xs">
+          <p className="flex min-w-0 items-center gap-2">
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-brand-gold" aria-hidden="true" />
+            <span className="truncate">
+              {siteConfig.contact.streetAddress}, {siteConfig.contact.addressLocality}
+            </span>
           </p>
+          <a
+            href={`tel:${siteConfig.contact.telephone}`}
+            className="hidden shrink-0 items-center gap-2 transition-colors hover:text-brand-gold sm:flex"
+          >
+            <Phone className="h-3.5 w-3.5" aria-hidden="true" />
+            {siteConfig.contact.telephoneLabel}
+          </a>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Main Navigation Header */}
       <div
-        className={`w-full transition-all duration-300 ${
-        scrolled
-          ? "bg-gradient from-indigo-300/95 backdrop-blur-md shadow-lg border-b border-border"
-          : "bg-indigo-300/90 backdrop-blur-sm"
+        className={`border-b transition-all duration-200 ${
+          scrolled
+            ? "border-brand-line bg-white/95 shadow-[0_10px_30px_-24px_rgba(30,41,115,0.8)] backdrop-blur-md"
+            : "border-transparent bg-white"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16 lg:h-20">
-          <motion.div
-          className="flex items-center space-x-3"
-          whileHover={{ scale: 1.05 }}
-          transition={{ type: "spring", stiffness: 300 }}
-          >
-          <div className="relative">
+        <div className="gfa-container flex h-[4.5rem] items-center justify-between gap-4">
+          <Link href="/" className="flex shrink-0 items-center gap-3" aria-label={`${siteConfig.name} home`}>
             <Image
-            src="/apple-touch-icon.png"
-            alt="Glorious Future Academy Logo"
-            width={48}
-            height={48}
-            className="rounded-lg shadow-md"
+              src="/apple-touch-icon.png"
+              alt=""
+              width={46}
+              height={46}
+              priority
+              className="rounded-full ring-1 ring-brand-line"
             />
-            <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-indigo-500/90 to-indigo-900/90 opacity-0 hover:opacity-100 transition-opacity duration-300" />
-          </div>
-          <div className="hidden sm:block">
-            <h1 className="text-lg lg:text-xl font-bold text-primary leading-tight">
-            Glorious Future
-            <span className="block text-sm lg:text-base font-bold text-indigo-900">Academy</span>
-            </h1>
-          </div>
-          </motion.div>
+            <span className="hidden sm:block">
+              <span className="block font-display text-lg leading-none text-brand-ink">Glorious Future</span>
+              <span className="mt-1 block text-[0.68rem] font-semibold tracking-wide text-brand-bronze">
+                ACADEMY · ORO, KWARA
+              </span>
+            </span>
+          </Link>
 
-          <nav className="hidden lg:flex items-center space-x-1">
-          {navLinks.map(({ href, label, icon }, index) => (
-            <motion.div
-            key={href}
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1, duration: 0.5 }}
-            >
-            <Link
-              href={href}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-              pathname === href
-                ? "bg-indigo-500 text-primary-foreground shadow-md"
-                : "text-foreground hover:bg-accent/10 hover:text-accent"
-              }`}
-            >
-              {icon}
-              <span>{label}</span>
-            </Link>
-            </motion.div>
-          ))}
-          </nav>
-
-          <div className="flex items-center space-x-2">
-          {/* Contact links for desktop */}
-          <div className="hidden xl:flex items-center space-x-2">
-            {contactLinks.map(({ href, label, icon }) => (
-            <motion.a
-              key={href}
-              href={href}
-              className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-indigo-900 hover:text-accent transition-colors duration-200"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {icon}
-              <span className="hidden 2xl:inline">{label}</span>
-            </motion.a>
-            ))}
-          </div>
-
-          {/* CTA Button: Enroll or Dashboard when session exists */}
-          <motion.div className="hidden md:block" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            {!sessionRoles.pupil && !sessionRoles.teacher ? (
+          <nav aria-label="Primary navigation" className="hidden items-center gap-1 lg:flex">
+            {navLinks.map(({ href, label }) => (
               <Link
-                href="/pupils"
-                className="px-4 py-2 bg-indigo-700 text-white rounded-lg font-medium text-sm shadow-md hover:shadow-lg transition-all duration-200 animate-glow"
-              >
-                Enroll Now
-              </Link>
-            ) : sessionRoles.pupil && !sessionRoles.teacher ? (
-              <Link
-                href="/pupils/pupil-dashboard"
-                className="px-4 py-2 bg-indigo-700 text-white rounded-lg font-medium text-sm shadow-md hover:shadow-lg transition-all duration-200"
-              >
-                Dashboard
-              </Link>
-            ) : sessionRoles.teacher && !sessionRoles.pupil ? (
-              <Link
-                href="/teacher/teacher-dashboard"
-                className="px-4 py-2 bg-indigo-700 text-white rounded-lg font-medium text-sm shadow-md hover:shadow-lg transition-all duration-200"
-              >
-                Dashboard
-              </Link>
-            ) : (
-              // both present: show small dropdown
-              <div className="relative inline-block">
-                <button className="px-4 py-2 bg-indigo-700 text-white rounded-lg font-medium text-sm shadow-md hover:shadow-lg transition-all duration-200">
-                  Dashboard ▾
-                </button>
-                <div className="absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg py-2 z-50">
-                  <Link href="/pupils/pupil-dashboard" className="block px-4 py-2 text-sm hover:bg-slate-100">
-                    Pupil Dashboard
-                  </Link>
-                  <Link href="/teacher/teacher-dashboard" className="block px-4 py-2 text-sm hover:bg-slate-100">
-                    Teacher Dashboard
-                  </Link>
-                </div>
-              </div>
-            )}
-          </motion.div>
-
-          {/* Mobile menu button */}
-          <motion.button
-            className="lg:hidden p-2 rounded-lg text-foreground hover:bg-accent/10 transition-colors duration-200"
-            onClick={() => setMenuOpen(!menuOpen)}
-            whileTap={{ scale: 0.95 }}
-            aria-label="Toggle Menu"
-          >
-            <AnimatePresence mode="wait">
-            {menuOpen ? (
-              <motion.div
-              key="close"
-              initial={{ rotate: -90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: 90, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              >
-              <FiX className="w-6 h-6" />
-              </motion.div>
-            ) : (
-              <motion.div
-              key="menu"
-              initial={{ rotate: 90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              exit={{ rotate: -90, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              >
-              <FiMenu className="w-6 h-6" />
-              </motion.div>
-            )}
-            </AnimatePresence>
-          </motion.button>
-          </div>
-        </div>
-        </div>
-
-        <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-          className="lg:hidden bg-indigo-400/60 backdrop-blur-md border-t border-border"
-          >
-          <div className="px-4 py-6 space-y-4">
-            {/* Navigation Links */}
-            <div className="space-y-2">
-            {navLinks.map(({ href, label, icon }, index) => (
-              <motion.div
-              key={href}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1, duration: 0.3 }}
-              >
-              <Link
-                href={href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
-                pathname === href
-                  ? "bg-indigo-500 text-primary-foreground font-bold shadow-md"
-                  : "text-foreground font-bold hover:bg-accent/90 hover:text-indigo-800"
-                }`}
-                onClick={() => setMenuOpen(false)}
-              >
-                {icon}
-                <span>{label}</span>
-              </Link>
-              </motion.div>
-            ))}
-            </div>
-
-            {/* Contact Links */}
-            <div className="pt-4 border-t border-border">
-            <div className="flex justify-center space-x-4">
-              {contactLinks.map(({ href, label, icon }) => (
-              <motion.a
                 key={href}
                 href={href}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-800 hover:text-indigo-900 transition-colors duration-200"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                aria-current={isActive(href) ? "page" : undefined}
+                className={`relative rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                  isActive(href) ? "bg-brand-mist text-brand-indigo" : "text-brand-ink/75 hover:text-brand-indigo"
+                }`}
               >
-                {icon}
-                <span>{label}</span>
-              </motion.a>
-              ))}
-            </div>
-            </div>
+                {label}
+                {isActive(href) && (
+                  <span className="absolute inset-x-3 -bottom-[1.15rem] h-0.5 rounded-full bg-brand-gold" />
+                )}
+              </Link>
+            ))}
+          </nav>
 
-            {/* CTA Button */}
-            <motion.div
-            className="pt-2"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.3 }}
-            >
-            <Link
-              href="/pupils"
-              className="block w-full px-4 py-3 bg-indigo-700 text-white rounded-lg font-medium text-center shadow-md hover:shadow-lg transition-all duration-200"
-              onClick={() => setMenuOpen(false)}
-            >
-              Enroll Now
+          <div className="flex items-center gap-2">
+            <Link href="/teacher" className="gfa-btn gfa-btn-secondary hidden xl:inline-flex">
+              Staff portal
             </Link>
-            </motion.div>
+            <Link href={dashboardHref} className="gfa-btn gfa-btn-primary !min-h-[2.5rem] !px-4 !py-2">
+              {sessionRoles.pupil || sessionRoles.teacher ? "My dashboard" : "Student portal"}
+            </Link>
+            <button
+              type="button"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-brand-line text-brand-ink lg:hidden"
+              aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-navigation"
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              {menuOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
+            </button>
           </div>
-          </motion.div>
-        )}
-        </AnimatePresence>
+        </div>
       </div>
-    </motion.header>
-  )
-}
 
-export default CustomHeader
+      {menuOpen && (
+        <nav
+          id="mobile-navigation"
+          aria-label="Mobile navigation"
+          className="max-h-[calc(100vh-7rem)] overflow-y-auto border-b border-brand-line bg-white lg:hidden"
+        >
+          <div className="gfa-container space-y-5 py-5">
+            <ul className="grid gap-1">
+              {navLinks.map(({ href, label }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    aria-current={isActive(href) ? "page" : undefined}
+                    className={`flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold ${
+                      isActive(href) ? "bg-brand-mist text-brand-indigo" : "text-brand-ink"
+                    }`}
+                  >
+                    {label}
+                    {isActive(href) && <span className="h-2 w-2 rounded-full bg-brand-gold" />}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+
+            <div className="border-t border-brand-line pt-4">
+              <p className="mb-2 px-4 text-xs font-semibold text-brand-bronze">Portals</p>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {portalLinks.map(({ href, label, icon: Icon }) => (
+                  <Link key={href} href={href} className="gfa-btn gfa-btn-secondary justify-start">
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-brand-line px-4 pt-4 text-xs text-brand-ink/70">
+              <a href={`tel:${siteConfig.contact.telephone}`} className="inline-flex items-center gap-2">
+                <Phone className="h-3.5 w-3.5" aria-hidden="true" />
+                {siteConfig.contact.telephoneLabel}
+              </a>
+              <a href={`mailto:${siteConfig.contact.email}`} className="inline-flex items-center gap-2">
+                <Mail className="h-3.5 w-3.5" aria-hidden="true" />
+                Email the school
+              </a>
+            </div>
+          </div>
+        </nav>
+      )}
+    </header>
+  );
+}

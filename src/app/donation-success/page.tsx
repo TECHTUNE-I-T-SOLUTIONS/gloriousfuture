@@ -1,97 +1,126 @@
-'use client'
+"use client";
 
-import { Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { CheckCircle, Home } from 'lucide-react'
-import Link from 'next/link'
-import CustomHeader from '@/components/CustomHeader'
-import CustomFooter from '@/components/CustomFooter'
+import { Suspense } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Check, CircleCheck, Home, LoaderCircle, Mail, Phone } from "lucide-react";
+
+import CustomHeader from "@/components/CustomHeader";
+import CustomFooter from "@/components/CustomFooter";
+import PageHero from "@/components/public/PageHero";
+import { siteConfig } from "@/lib/site-config";
+
+const nextSteps = [
+  "A confirmation email will be sent to you shortly.",
+  "Your gift will support our new campus facilities.",
+  "You will receive occasional updates from the school.",
+  "Thank you for being part of our journey.",
+];
+
+function OutcomeFallback({ message }: { message: string }) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="gfa-container flex min-h-[60vh] flex-col items-center justify-center gap-4 py-20 text-center"
+    >
+      <LoaderCircle className="h-8 w-8 animate-spin text-brand-indigo" aria-hidden="true" />
+      <p className="text-sm font-semibold text-brand-ink/70">{message}</p>
+    </div>
+  );
+}
 
 function DonationSuccessContent() {
-  const searchParams = useSearchParams()
-  const reference = searchParams?.get('reference')
+  const searchParams = useSearchParams();
+  const reference = searchParams?.get("reference");
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="max-w-2xl mx-auto px-4 py-20 flex items-center justify-center"
-    >
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-        className="mt-16 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-12 text-center"
-      >
-        {/* Success Icon */}
-        <motion.div
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="mb-6 flex justify-center"
-        >
-          <CheckCircle className="w-20 h-20 text-green-500" />
-        </motion.div>
+    <>
+      <PageHero
+        kicker="Donation complete"
+        title="Thank you for giving"
+        description="Your support helps us build a stronger learning environment for pupils in Oro."
+        icon={CircleCheck}
+      />
 
-        <h1 className="text-4xl font-bold text-gray-800 dark:text-white mb-4">
-          Thank You! 🎉
-        </h1>
-
-        <p className="text-xl text-gray-600 dark:text-gray-300 mb-2">
-          Your donation has been received successfully
-        </p>
-
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
-          {reference && (
-            <>
-              Transaction Reference: <span className="font-mono font-semibold">{reference}</span>
-            </>
-          )}
-        </p>
-
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-6 mb-8 text-left">
-          <h3 className="font-bold text-green-800 dark:text-green-300 mb-3">
-            What happens next?
-          </h3>
-          <ul className="text-sm text-green-700 dark:text-green-200 space-y-2">
-            <li>✓ A confirmation email will be sent to you shortly</li>
-            <li>✓ Your donation will support our new campus facilities</li>
-            <li>✓ You&apos;ll receive periodic updates on facility improvements</li>
-            <li>✓ Thank you for being part of our journey!</li>
-          </ul>
-        </div>
-
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="inline-block"
-        >
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 px-8 rounded-lg transition-all shadow-lg"
+      <section className="gfa-section">
+        <div className="gfa-container">
+          <div
+            role="status"
+            aria-live="polite"
+            className="gfa-card mx-auto max-w-3xl p-6 text-center sm:p-10"
           >
-            <Home className="w-5 h-5" />
-            Back to Home
-          </Link>
-        </motion.div>
+            <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
+              <CircleCheck className="h-8 w-8" aria-hidden="true" />
+            </span>
+            <h2 className="mt-6 font-display text-3xl leading-tight text-brand-ink sm:text-4xl">
+              Your donation is confirmed
+            </h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-brand-ink/70 sm:text-base">
+              We are grateful for your generosity. Your gift is already being directed towards learning
+              resources, facilities and opportunities for our pupils.
+            </p>
 
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-8">
-          For any questions, please contact us at christgloriousfutureacademy@gmail.com
-        </p>
-      </motion.div>
-    </motion.div>
-  )
+            <div className="mx-auto mt-7 max-w-md rounded-xl border border-brand-line bg-brand-surface px-5 py-4 text-left">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-bronze">
+                Transaction reference
+              </p>
+              <p className="mt-2 break-all font-mono text-sm font-semibold text-brand-ink">
+                {reference || "No reference was supplied"}
+              </p>
+            </div>
+
+            <div className="mt-8 rounded-xl bg-brand-mist p-5 text-left sm:p-6">
+              <h3 className="font-display text-xl text-brand-ink">What happens next</h3>
+              <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                {nextSteps.map((step) => (
+                  <li key={step} className="flex gap-2 text-sm leading-relaxed text-brand-ink/75">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand-indigo" aria-hidden="true" />
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+              <Link href="/" className="gfa-btn gfa-btn-primary">
+                <Home className="h-4 w-4" aria-hidden="true" />
+                Back to home
+              </Link>
+              <a href={`mailto:${siteConfig.contact.email}`} className="gfa-btn gfa-btn-secondary">
+                <Mail className="h-4 w-4" aria-hidden="true" />
+                Email the school
+              </a>
+            </div>
+
+            <p className="mt-8 text-xs leading-relaxed text-brand-ink/55">
+              Need help? Call{" "}
+              <a
+                href={`tel:${siteConfig.contact.telephone}`}
+                className="inline-flex items-center gap-1 font-semibold text-brand-indigo hover:underline"
+              >
+                <Phone className="h-3 w-3" aria-hidden="true" />
+                {siteConfig.contact.telephoneLabel}
+              </a>
+              .
+            </p>
+          </div>
+        </div>
+      </section>
+    </>
+  );
 }
 
 export default function DonationSuccessPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-slate-900 dark:to-slate-800">
+    <div className="flex min-h-screen flex-col bg-brand-surface">
       <CustomHeader />
-      <Suspense fallback={<div className="h-screen flex items-center justify-center">Loading...</div>}>
-        <DonationSuccessContent />
-      </Suspense>
+      <main className="flex-1">
+        <Suspense fallback={<OutcomeFallback message="Confirming your donation…" />}>
+          <DonationSuccessContent />
+        </Suspense>
+      </main>
       <CustomFooter />
     </div>
-  )
+  );
 }

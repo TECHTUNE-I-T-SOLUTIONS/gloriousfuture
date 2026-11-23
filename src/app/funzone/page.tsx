@@ -2,9 +2,38 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Gamepad2, Volume2, VolumeX, Home, Play, RotateCcw, X, BookOpen } from 'lucide-react'
+import {
+ ArrowLeft,
+ ArrowRight,
+ BookOpen,
+ Brain,
+ Calculator,
+ Check,
+ Gamepad2,
+ Gauge,
+ GraduationCap,
+ Hand,
+ Home,
+ KeyRound,
+ Keyboard,
+ Palette,
+ PenLine,
+ Play,
+ Puzzle,
+ RotateCcw,
+ Search,
+ Sparkles,
+ Target,
+ Trophy,
+ Volume2,
+ VolumeX,
+ X,
+ Zap,
+ XCircle,
+} from 'lucide-react'
 import Link from 'next/link'
 import CustomHeader from '@/components/CustomHeader'
+import CustomFooter from '@/components/CustomFooter'
 
 // Game 1: Memory Game
 const MemoryGame = () => {
@@ -19,7 +48,7 @@ const MemoryGame = () => {
   }, [])
 
   const initializeGame = () => {
-    const symbols = ['🎨', '🎭', '🎪', '🎬', '🎸', '🎺', '🎻', '🎲']
+    const symbols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
     const shuffled = [...symbols, ...symbols].sort(() => Math.random() - 0.5)
     setCards(shuffled)
     setFlipped([])
@@ -74,7 +103,7 @@ const MemoryGame = () => {
           animate={{ scale: 1 }}
           className="text-2xl font-bold text-yellow-300 mb-4"
         >
-          🎉 You Won in {moves} moves!
+          You won in {moves} moves!
         </motion.div>
       )}
       <motion.button
@@ -105,11 +134,11 @@ const QuickMath = () => {
     if (parseInt(answer) === correctAnswer) {
       setScore(score + 10)
       setStreak(streak + 1)
-      setFeedback('✅ Correct!')
+      setFeedback('Correct!')
       generateNewQuestion()
       setAnswer('')
     } else {
-      setFeedback('❌ Try again!')
+      setFeedback('Try again.')
       setStreak(0)
     }
   }
@@ -208,14 +237,14 @@ const ColorMatch = () => {
     flashColor(index)
 
     if (newPlayerSeq[newPlayerSeq.length - 1] !== sequence[newPlayerSeq.length - 1]) {
-      setFeedback('❌ Wrong! Game Over!')
+      setFeedback('Wrong. Game over.')
       setGameActive(false)
       return
     }
 
     if (newPlayerSeq.length === sequence.length) {
       setScore(score + 10)
-      setFeedback('✅ Correct! Next round...')
+      setFeedback('Correct! Next round...')
       setTimeout(() => addToSequence(), 1000)
     }
   }
@@ -290,10 +319,10 @@ const WordScramble = () => {
   const handleSubmit = () => {
     if (answer.toUpperCase() === word) {
       setScore(score + 15)
-      setFeedback('✅ Correct!')
+      setFeedback('Correct!')
       setTimeout(generateWord, 1500)
     } else {
-      setFeedback('❌ Try again!')
+      setFeedback('Try again.')
     }
   }
 
@@ -434,11 +463,11 @@ const NumberMemory = () => {
   const handleSubmit = () => {
     if (userInput === numbers.join('')) {
       setScore(score + round * 10)
-      setFeedback(`✅ Correct! Moving to round ${round + 1}`)
+      setFeedback(`Correct! Moving to round ${round + 1}`)
       setRound(round + 1)
       setTimeout(generateNumbers, 1500)
     } else {
-      setFeedback('❌ Wrong! Game Over!')
+      setFeedback('Wrong. Game over.')
     }
   }
 
@@ -513,11 +542,11 @@ const PatternRecognition = () => {
   const handleSubmit = () => {
     if (answer === pattern.answer) {
       setScore(score + 20)
-      setFeedback(`✅ Correct! It was ${pattern.description}`)
+      setFeedback(`Correct! It was ${pattern.description}`)
       setRound(round + 1)
       setTimeout(generatePattern, 1500)
     } else {
-      setFeedback(`❌ Wrong! Answer: ${pattern.answer}`)
+      setFeedback(`Wrong. Answer: ${pattern.answer}`)
     }
   }
 
@@ -579,9 +608,9 @@ const SudokuMini = () => {
     const isFull = grid.every(row => row.every(cell => cell !== ''))
     if (isFull) {
       setScore(score + 50)
-      setFeedback('✅ Grid Complete!')
+      setFeedback('Grid complete!')
     } else {
-      setFeedback('❌ Fill all cells!')
+      setFeedback('Fill all cells first.')
     }
   }
 
@@ -734,10 +763,10 @@ const IQChallenge = () => {
     setSelected(option)
     if (option === question.answer) {
       setScore(score + 25)
-      setFeedback('✅ Correct!')
+      setFeedback('Correct!')
       setTimeout(generateQuestion, 1500)
     } else {
-      setFeedback(`❌ Wrong! Answer: ${question.answer}`)
+      setFeedback(`Wrong. Answer: ${question.answer}`)
     }
   }
 
@@ -784,9 +813,9 @@ export default function FunZone() {
   const games = [
     {
       id: 'memory',
-      title: '🧠 Memory Match',
+      title: 'Memory Match',
       description: 'Test your memory skills!',
-      icon: '🧠',
+      icon: Brain,
       fullDescription: 'Match pairs of symbols by flipping cards. The fewer moves you make, the better your score!',
       howToPlay: [
         'Click on cards to flip them over',
@@ -798,9 +827,9 @@ export default function FunZone() {
     },
     {
       id: 'math',
-      title: '🔢 Quick Math',
+      title: 'Quick Math',
       description: 'Solve math problems fast!',
-      icon: '🔢',
+      icon: Calculator,
       fullDescription: 'Solve random math problems as quickly as you can. Speed and accuracy matter!',
       howToPlay: [
         'A math problem will appear on screen',
@@ -812,9 +841,9 @@ export default function FunZone() {
     },
     {
       id: 'colors',
-      title: '🎨 Color Sequence',
+      title: 'Color Sequence',
       description: 'Repeat the color pattern!',
-      icon: '🎨',
+      icon: Palette,
       fullDescription: 'Watch and repeat increasingly complex color sequences. Memory and focus required!',
       howToPlay: [
         'Watch the colored squares light up',
@@ -826,9 +855,9 @@ export default function FunZone() {
     },
     {
       id: 'words',
-      title: '📝 Word Scramble',
+      title: 'Word Scramble',
       description: 'Unscramble the letters!',
-      icon: '📝',
+      icon: PenLine,
       fullDescription: 'Rearrange scrambled letters to form the correct word. Great for vocabulary!',
       howToPlay: [
         'Letters will be shown in random order',
@@ -840,9 +869,9 @@ export default function FunZone() {
     },
     {
       id: 'reaction',
-      title: '⚡ Reaction Time',
+      title: 'Reaction Time',
       description: 'Test your reflexes!',
-      icon: '⚡',
+      icon: Zap,
       fullDescription: 'React as fast as possible when the square turns green. Test your reflexes!',
       howToPlay: [
         'Click "Start Test" to begin',
@@ -854,9 +883,9 @@ export default function FunZone() {
     },
     {
       id: 'numbers',
-      title: '🔐 Number Memory',
+      title: 'Number Memory',
       description: 'Memorize number sequences!',
-      icon: '🔐',
+      icon: KeyRound,
       fullDescription: 'Numbers appear briefly, then disappear. Memorize and type them back!',
       howToPlay: [
         'Numbers will be displayed briefly',
@@ -868,9 +897,9 @@ export default function FunZone() {
     },
     {
       id: 'pattern',
-      title: '🔍 Pattern Recognition',
+      title: 'Pattern Recognition',
       description: 'Find the pattern!',
-      icon: '🔍',
+      icon: Search,
       fullDescription: 'Identify mathematical patterns and predict the next number in the sequence.',
       howToPlay: [
         'Look at the number sequence',
@@ -882,9 +911,9 @@ export default function FunZone() {
     },
     {
       id: 'sudoku',
-      title: '🎯 Sudoku Mini',
+      title: 'Sudoku Mini',
       description: 'Fill the grid!',
-      icon: '🎯',
+      icon: Target,
       fullDescription: 'Classic Sudoku puzzle. Fill each cell with numbers 1-9.',
       howToPlay: [
         'Fill each 3x3 box with numbers 1-9',
@@ -896,9 +925,9 @@ export default function FunZone() {
     },
     {
       id: 'typing',
-      title: '⌨️ Typing Speed',
+      title: 'Typing Speed',
       description: 'Test your typing speed!',
-      icon: '⌨️',
+      icon: Keyboard,
       fullDescription: 'Type the given text as quickly and accurately as possible. Measures WPM and accuracy!',
       howToPlay: [
         'Click "Start Typing Test"',
@@ -910,9 +939,9 @@ export default function FunZone() {
     },
     {
       id: 'iq',
-      title: '🧩 IQ Challenge',
+      title: 'IQ Challenge',
       description: 'Solve tricky problems!',
-      icon: '🧩',
+      icon: Puzzle,
       fullDescription: 'Logic and reasoning questions. Each correct answer tests your intelligence!',
       howToPlay: [
         'Read the question carefully',
@@ -924,9 +953,9 @@ export default function FunZone() {
     },
     {
       id: 'fingerplacement',
-      title: '🖐️ Finger Placement Guide',
+      title: 'Finger Placement Guide',
       description: 'Learn proper keyboard hand positioning!',
-      icon: '🖐️',
+      icon: Hand,
       fullDescription: 'Master the correct finger placement on the keyboard. Essential for touch typing! Learn hand position for home row, upper row, and bottom row keys.',
       howToPlay: [
         'Start with the home row lesson',
@@ -938,9 +967,9 @@ export default function FunZone() {
     },
     {
       id: 'homerowmaster',
-      title: '🏠 Home Row Master',
+      title: 'Home Row Master',
       description: 'Practice home row keys!',
-      icon: '🏠',
+      icon: Home,
       fullDescription: 'Build muscle memory by typing words using only home row keys (A, S, D, F, J, K, L, ;). Perfect for beginners!',
       howToPlay: [
         'Click "Start Home Row Practice"',
@@ -952,9 +981,9 @@ export default function FunZone() {
     },
     {
       id: 'accuracy',
-      title: '🎯 Typing Accuracy',
+      title: 'Typing Accuracy',
       description: 'Focus on typing accurately!',
-      icon: '🎯',
+      icon: Target,
       fullDescription: 'Accuracy is more important than speed! Type sentences carefully and precisely to maximize your score.',
       howToPlay: [
         'Start an accuracy challenge',
@@ -966,9 +995,9 @@ export default function FunZone() {
     },
     {
       id: 'touchlessons',
-      title: '✋ Touch Typing Lessons',
+      title: 'Touch Typing Lessons',
       description: 'Structured typing lessons!',
-      icon: '✋',
+      icon: GraduationCap,
       fullDescription: 'Progress through structured lessons learning different keyboard zones. From home row to complete keyboard mastery!',
       howToPlay: [
         'Complete each lesson in order',
@@ -980,9 +1009,9 @@ export default function FunZone() {
     },
     {
       id: 'speedbuilder',
-      title: '🚀 Speed Builder',
+      title: 'Speed Builder',
       description: 'Build typing speed progressively!',
-      icon: '🚀',
+      icon: Gauge,
       fullDescription: 'Progressive difficulty levels. Start slow and build up your typing speed gradually. Each level has a WPM target.',
       howToPlay: [
         'Start at Level 1 with low WPM target',
@@ -994,9 +1023,9 @@ export default function FunZone() {
     },
     {
       id: 'keycombos',
-      title: '⌨️ Key Combinations',
+      title: 'Key Combinations',
       description: 'Master special key combinations!',
-      icon: '⌨️',
+      icon: Keyboard,
       fullDescription: 'Learn to use special keys including Shift, Tab, Enter, and Backspace. Master keyboard combinations for typing efficiency!',
       howToPlay: [
         'Press the key shown on screen',
@@ -1019,7 +1048,7 @@ const KeyboardFingerPlacement = () => {
       description: 'Learn proper left hand placement on the home row',
       keys: ['A', 'S', 'D', 'F'],
       fingers: ['Pinky', 'Ring', 'Middle', 'Index'],
-      image: '🏠',
+      image: 'Home row',
       tips: [
         'Rest your left pinky on the "A" key',
         'Ring finger goes on "S" key',
@@ -1034,7 +1063,7 @@ const KeyboardFingerPlacement = () => {
       description: 'Learn proper right hand placement on the home row',
       keys: ['J', 'K', 'L', ';'],
       fingers: ['Index', 'Middle', 'Ring', 'Pinky'],
-      image: '🏠',
+      image: 'Home row',
       tips: [
         'Rest your right index finger on "J" key',
         'Middle finger goes on "K" key',
@@ -1049,7 +1078,7 @@ const KeyboardFingerPlacement = () => {
       description: 'Extend your fingers to reach upper row keys',
       keys: ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
       fingers: ['From home row', 'Extend upward', 'Keep wrist still', 'Return to home'],
-      image: '📍',
+      image: 'Reach up',
       tips: [
         'Left hand: Reach up from A, S, D, F keys',
         'Right hand: Reach up from J, K, L, ; keys',
@@ -1064,7 +1093,7 @@ const KeyboardFingerPlacement = () => {
       description: 'Properly reach the bottom row keys',
       keys: ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
       fingers: ['Extend down', 'Keep alignment', 'Quick return', 'Home position'],
-      image: '👇',
+      image: 'Reach down',
       tips: [
         'Left hand: Reach down from A, S, D, F keys',
         'Right hand: Reach down from J, K, L, ; keys',
@@ -1129,7 +1158,7 @@ const KeyboardFingerPlacement = () => {
 
       {/* Tips Section */}
       <div className="bg-white/10 p-6 rounded-xl border border-white/20 mb-6">
-        <h3 className="text-xl font-bold text-white mb-4">💡 Tips & Guidelines</h3>
+        <h3 className="text-xl font-bold text-white mb-4">Tips & Guidelines</h3>
         <ul className="space-y-2">
           {lesson.tips.map((tip, i) => (
             <li key={i} className="flex items-start gap-3 text-white">
@@ -1161,7 +1190,7 @@ const KeyboardFingerPlacement = () => {
           } text-white`}
           whileHover={{ scale: 1.05 }}
         >
-          {isCompleted ? '✅ Completed' : 'Mark Complete'}
+          {isCompleted ? 'Completed' : 'Mark Complete'}
         </motion.button>
         <motion.button
           onClick={() => setCurrentLesson(Math.min(lessons.length - 1, currentLesson + 1))}
@@ -1402,7 +1431,7 @@ const TypingAccuracyChallenge = () => {
           animate={{ scale: 1 }}
           className="mb-6 p-4 bg-green-500/20 border border-green-400 rounded-lg"
         >
-          <p className="text-green-300 font-bold text-lg">🎉 Perfect! Great accuracy!</p>
+          <p className="text-green-300 font-bold text-lg">Perfect! Great accuracy!</p>
         </motion.div>
       )}
 
@@ -1516,7 +1545,7 @@ const TouchTypingLessons = () => {
             animate={{ scale: 1 }}
             className="mt-4 p-3 bg-green-500/20 border border-green-400 rounded-lg"
           >
-            <p className="text-green-300 font-bold">✅ Perfect! Move to next lesson</p>
+            <p className="text-green-300 font-bold">Perfect! Move to next lesson</p>
           </motion.div>
         )}
       </div>
@@ -1643,7 +1672,7 @@ const SpeedBuilderChallenge = () => {
           animate={{ scale: 1 }}
           className="mb-6 p-4 bg-green-500/20 border border-green-400 rounded-lg text-center"
         >
-          <p className="text-green-300 font-bold text-lg">🎉 Level Complete! WPM: {wpm}</p>
+          <p className="text-green-300 font-bold text-lg">Level complete! WPM: {wpm}</p>
         </motion.div>
       )}
 
@@ -1774,7 +1803,20 @@ const KeyCombinationMaster = () => {
   )
 }
 
-  const renderGame = () => {
+  useEffect(() => {
+ if (!showGameInfo) return;
+ const onKeyDown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') setShowGameInfo(null);
+ };
+ window.addEventListener('keydown', onKeyDown);
+ return () => window.removeEventListener('keydown', onKeyDown);
+}, [showGameInfo])
+
+const activeGame = games.find((game) => game.id === selectedGame)
+const infoGame = games.find((game) => game.id === showGameInfo)
+const InfoIcon = infoGame?.icon
+
+const renderGame = () => {
     switch (selectedGame) {
       case 'memory':
         return <MemoryGame />
@@ -1814,229 +1856,189 @@ const KeyCombinationMaster = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-blue-300 via-purple-600 to-blue-900">
-      <CustomHeader />
+ <div className="min-h-screen bg-brand-surface text-brand-ink">
+  <CustomHeader />
 
-      <div className="relative z-10 pt-30 pb-10">
-        {/* Header */}
-        <motion.div
-          className="text-center mb-12 px-4"
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <motion.div
-            className="inline-flex items-center gap-3 mb-4 bg-white/10 px-6 py-3 rounded-full backdrop-blur-sm"
-            whileHover={{ scale: 1.05 }}
-          >
-            <Gamepad2 className="w-6 h-6 text-yellow-300" />
-            <span className="text-white font-bold">Fun Zone</span>
-          </motion.div>
+  <main className="pt-32 pb-16 sm:pt-40">
+   <section className="gfa-container mb-12">
+    <p className="gfa-eyebrow mb-4">
+     <Sparkles aria-hidden="true" className="h-4 w-4" />
+     Fun Zone
+    </p>
+    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+     <div>
+      <h1 className="gfa-display max-w-2xl">Play, practise, progress.</h1>
+      <p className="mt-5 max-w-2xl text-base leading-relaxed text-brand-ink/70 sm:text-lg">
+       Short, focused games that help pupils sharpen memory, numeracy, language and keyboard skills — one round at a time.
+      </p>
+     </div>
+     <div className="flex flex-wrap gap-3">
+      <Link href="/quizzes" className="gfa-btn gfa-btn-secondary">
+       Browse quizzes
+       <ArrowRight aria-hidden="true" className="h-4 w-4" />
+      </Link>
+      <Link href="/" className="gfa-btn gfa-btn-primary">
+       Back to home
+      </Link>
+     </div>
+    </div>
+   </section>
 
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-4">
-            🎮 Welcome to Fun Zone! 🎉
-          </h1>
-          <p className="text-indigo-100 text-lg max-w-2xl mx-auto">
-            Train your brain while having fun! Play intellectual games and challenge yourself.
-          </p>
-        </motion.div>
-
-        <div className="max-w-6xl mx-auto px-4">
-          {!selectedGame ? (
-            <>
-              {/* Games Grid */}
-              <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ staggerChildren: 0.1 }}
-              >
-                {games.map((game) => (
-                  <motion.div key={game.id} className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-2xl blur-lg opacity-0 group-hover:opacity-75 transition-opacity" />
-                    <motion.div className="relative bg-white/10 backdrop-blur-md rounded-2xl p-8 border-2 border-white/20 group-hover:border-white/50 transition-all text-white h-full flex flex-col justify-between">
-                      <div>
-                        <div className="text-5xl mb-4">{game.icon}</div>
-                        <h3 className="text-2xl font-bold mb-2">{game.title}</h3>
-                        <p className="text-indigo-100 mb-4">{game.description}</p>
-                      </div>
-                      <div className="flex gap-3 pt-4 border-t border-white/20">
-                        <motion.button
-                          onClick={() => setShowGameInfo(game.id)}
-                          className="flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-sm font-semibold flex items-center justify-center gap-1 transition-all"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <BookOpen className="w-4 h-4" />
-                          Info
-                        </motion.button>
-                        <motion.button
-                          onClick={() => setSelectedGame(game.id)}
-                          className="flex-1 px-3 py-2 bg-yellow-400 hover:bg-yellow-300 text-indigo-900 rounded-lg text-sm font-semibold flex items-center justify-center gap-1 transition-all"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <Play className="w-4 h-4" />
-                          Play
-                        </motion.button>
-                      </div>
-                    </motion.div>
-                  </motion.div>
-                ))}
-              </motion.div>
-
-              {/* Features Section */}
-              <motion.div
-                className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border-2 border-white/20 text-white"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <h2 className="text-2xl font-bold mb-6">✨ Why Play?</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {['🧠 Brain Training', '⚡ Quick Games', '🏆 Score Points', '🎯 Improve Skills'].map((item) => (
-                    <div key={item} className="text-center">
-                      <p className="font-semibold">{item}</p>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            </>
-          ) : (
-            <>
-              {/* Game Header */}
-              <motion.div
-                className="mb-8"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <div className="flex items-center justify-between bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
-                  <h2 className="text-2xl md:text-3xl font-bold text-white">
-                    {games.find((g) => g.id === selectedGame)?.title}
-                  </h2>
-                  <div className="flex gap-3">
-                    <motion.button
-                      onClick={() => setSoundEnabled(!soundEnabled)}
-                      className="p-3 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-all"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-                    </motion.button>
-                    <motion.button
-                      onClick={() => setSelectedGame(null)}
-                      className="p-3 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-all flex items-center gap-2"
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      <Home className="w-5 h-5" />
-                      Back
-                    </motion.button>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Game Container */}
-              <motion.div
-                className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border-2 border-white/20 min-h-96"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-              >
-                {renderGame()}
-              </motion.div>
-            </>
-          )}
-        </div>
+   <div className="gfa-container">
+    {!selectedGame ? (
+     <>
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+       {games.map((game) => {
+        const Icon = game.icon;
+        return (
+         <article key={game.id} className="gfa-card flex flex-col p-6">
+          <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-ink text-brand-gold">
+           <Icon aria-hidden="true" className="h-5 w-5" />
+          </div>
+          <h2 className="font-display text-xl font-semibold text-brand-ink">{game.title}</h2>
+          <p className="mt-2 flex-1 text-sm leading-relaxed text-brand-ink/65">{game.description}</p>
+          <div className="mt-6 flex flex-wrap gap-2 border-t border-brand-line pt-4">
+           <button type="button" onClick={() => setShowGameInfo(game.id)} className="gfa-btn gfa-btn-secondary">
+            <BookOpen aria-hidden="true" className="h-4 w-4" />
+            How to play
+           </button>
+           <button type="button" onClick={() => setSelectedGame(game.id)} className="gfa-btn gfa-btn-primary">
+            <Play aria-hidden="true" className="h-4 w-4" />
+            Play now
+           </button>
+          </div>
+         </article>
+        );
+       })}
       </div>
 
-      {/* Footer CTA */}
-      {!selectedGame && (
-        <motion.section
-          className="relative py-16 px-4 z-10 text-center"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <div className="max-w-2xl mx-auto bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-            <h3 className="text-2xl font-bold text-white mb-3">Have Fun & Learn! 🚀</h3>
-            <p className="text-indigo-100 mb-6">
-              These games are designed to challenge your mind and improve your cognitive skills while having fun!
-            </p>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-yellow-400 hover:bg-yellow-300 text-indigo-900 rounded-lg font-bold transition-all"
-            >
-              <Home className="w-4 h-4" />
-              Back to Home
-            </Link>
+      <section className="gfa-card mt-12 bg-brand-ink p-6 text-white sm:p-8" aria-labelledby="why-play-title">
+       <h2 id="why-play-title" className="font-display text-2xl font-semibold text-white">Why play?</h2>
+       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+         { label: "Brain training", icon: Brain },
+         { label: "Quick games", icon: Zap },
+         { label: "Score points", icon: Trophy },
+         { label: "Improve skills", icon: Target },
+        ].map((item) => {
+         const ItemIcon = item.icon;
+         return (
+          <div key={item.label} className="flex items-center gap-3 rounded-xl bg-white/10 p-4">
+           <ItemIcon aria-hidden="true" className="h-5 w-5 shrink-0 text-brand-gold" />
+           <span className="text-sm font-semibold">{item.label}</span>
           </div>
-        </motion.section>
-      )}
+         );
+        })}
+       </div>
+      </section>
+     </>
+    ) : (
+     <>
+      <div className="gfa-card mb-6 flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+       <div>
+        <p className="gfa-eyebrow mb-1">Now playing</p>
+        <h2 className="font-display text-2xl font-semibold text-brand-ink">{activeGame?.title}</h2>
+       </div>
+       <div className="flex flex-wrap gap-2">
+        <button
+         type="button"
+         onClick={() => setSoundEnabled(!soundEnabled)}
+         aria-label={soundEnabled ? "Turn sound off" : "Turn sound on"}
+         aria-pressed={soundEnabled}
+         className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-brand-line bg-white text-brand-ink transition hover:border-brand-indigo"
+        >
+         {soundEnabled ? <Volume2 aria-hidden="true" className="h-5 w-5" /> : <VolumeX aria-hidden="true" className="h-5 w-5" />}
+        </button>
+        <button type="button" onClick={() => setSelectedGame(null)} className="gfa-btn gfa-btn-secondary">
+         <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+         All games
+        </button>
+       </div>
+      </div>
+      <div className="gfa-card p-4 sm:p-8">
+       {renderGame()}
+      </div>
+     </>
+    )}
+   </div>
 
-      {/* Game Info Modal */}
-      <AnimatePresence>
-        {showGameInfo && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowGameInfo(null)}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl p-8 max-w-md w-full border-2 border-white/20 shadow-2xl"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-5xl">{games.find((g) => g.id === showGameInfo)?.icon}</div>
-                <motion.button
-                  onClick={() => setShowGameInfo(null)}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-all"
-                  whileHover={{ scale: 1.1 }}
-                >
-                  <X className="w-6 h-6 text-white" />
-                </motion.button>
-              </div>
+   {!selectedGame && (
+    <section className="gfa-container mt-16">
+     <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-brand-indigo to-brand-violet px-6 py-12 text-center text-white sm:px-12">
+      <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full border border-white/15" />
+      <h2 className="mx-auto max-w-2xl font-display text-3xl font-semibold sm:text-4xl">Ready for a bigger challenge?</h2>
+      <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-indigo-100/80 sm:text-base">
+       Move from brain teasers to curriculum-aligned quizzes and see how much you have learned.
+      </p>
+      <Link href="/quizzes" className="gfa-btn mt-8 bg-white text-brand-indigo hover:bg-indigo-50">
+       Explore quizzes
+       <ArrowRight aria-hidden="true" className="h-4 w-4" />
+      </Link>
+     </div>
+    </section>
+   )}
+  </main>
 
-              <h3 className="text-3xl font-bold text-white mb-2">
-                {games.find((g) => g.id === showGameInfo)?.title}
-              </h3>
+  <CustomFooter />
 
-              <p className="text-indigo-100 mb-6 text-lg">
-                {games.find((g) => g.id === showGameInfo)?.fullDescription}
-              </p>
+  <AnimatePresence>
+   {infoGame && (
+    <motion.div
+     initial={{ opacity: 0 }}
+     animate={{ opacity: 1 }}
+     exit={{ opacity: 0 }}
+     onClick={() => setShowGameInfo(null)}
+     className="fixed inset-0 z-[60] flex items-center justify-center bg-brand-ink/70 p-4 backdrop-blur-sm"
+    >
+     <motion.div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="game-info-title"
+      initial={{ scale: 0.95, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0.95, opacity: 0 }}
+      onClick={(event) => event.stopPropagation()}
+      className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[1.5rem] border border-brand-line bg-white p-6 shadow-2xl sm:p-8"
+     >
+      <div className="mb-5 flex items-start justify-between gap-4">
+       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-ink text-brand-gold">
+        {InfoIcon && <InfoIcon aria-hidden="true" className="h-5 w-5" />}
+       </div>
+       <button type="button" onClick={() => setShowGameInfo(null)} aria-label="Close game details" autoFocus className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-brand-line text-brand-ink hover:bg-brand-mist">
+        <X aria-hidden="true" className="h-5 w-5" />
+       </button>
+      </div>
 
-              <div className="bg-white/10 rounded-xl p-4 mb-6">
-                <h4 className="text-xl font-bold text-yellow-300 mb-3">How to Play:</h4>
-                <ul className="text-white space-y-2">
-                  {games
-                    .find((g) => g.id === showGameInfo)
-                    ?.howToPlay.map((step, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="flex-shrink-0 w-6 h-6 bg-yellow-400 text-indigo-900 rounded-full flex items-center justify-center font-bold text-sm">
-                          {i + 1}
-                        </span>
-                        <span className="pt-0.5">{step}</span>
-                      </li>
-                    ))}
-                </ul>
-              </div>
+      <h3 id="game-info-title" className="font-display text-2xl font-semibold text-brand-ink">{infoGame.title}</h3>
+      <p className="mt-3 text-sm leading-relaxed text-brand-ink/70">{infoGame.fullDescription}</p>
 
-              <motion.button
-                onClick={() => {
-                  setSelectedGame(showGameInfo)
-                  setShowGameInfo(null)
-                }}
-                className="w-full px-6 py-3 bg-yellow-400 hover:bg-yellow-300 text-indigo-900 rounded-lg font-bold transition-all flex items-center justify-center gap-2"
-                whileHover={{ scale: 1.05 }}
-              >
-                <Play className="w-5 h-5" />
-                Play Now
-              </motion.button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  )
+      <div className="mt-6 rounded-2xl border border-brand-line bg-brand-surface p-5">
+       <h4 className="mb-3 font-semibold text-brand-ink">How to play</h4>
+       <ul className="space-y-2">
+        {infoGame.howToPlay.map((step, index) => (
+         <li key={index} className="flex items-start gap-3 text-sm text-brand-ink/70">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-ink text-xs font-bold text-brand-gold">{index + 1}</span>
+          <span>{step}</span>
+         </li>
+        ))}
+       </ul>
+      </div>
+
+      <button
+       type="button"
+       onClick={() => {
+        setSelectedGame(infoGame.id);
+        setShowGameInfo(null);
+       }}
+       className="gfa-btn gfa-btn-primary mt-6 w-full"
+      >
+       <Play aria-hidden="true" className="h-4 w-4" />
+       Play now
+      </button>
+     </motion.div>
+    </motion.div>
+   )}
+  </AnimatePresence>
+ </div>
+)
 }

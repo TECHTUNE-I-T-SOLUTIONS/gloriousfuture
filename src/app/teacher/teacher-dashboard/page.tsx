@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { DashboardPageIntro, DashboardStatStrip } from "@/components/dashboard/primitives"
 import { useRouter } from "next/navigation"
 import {
   BookOpen,
@@ -228,127 +229,19 @@ export default function TeacherDashboard() {
   }
 
   const renderDashboardOverview = () => (
-    <div className="space-y-8 animate-fade-in-up">
+    <div className="space-y-8" data-dashboard>
       {/* Welcome Section */}
-      <div className="gradient-card rounded-xl p-6 border border-border">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">Welcome back, {teacher?.full_name}! 👋</h1>
-            <p className="text-black text-lg">Here&apos;s what&apos;s happening in your classroom today</p>
-          </div>
-          <div className="hidden md:block">
-            <div className="w-20 h-20 rounded-full bg-gradient-primary animate-float"></div>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="hover-lift border-border bg-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-card-foreground">Total Assignments</CardTitle>
-            <BookOpen className="h-4 w-4 text-black" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">{dashboardStats.totalAssignments}</div>
-            <p className="text-xs text-black">
-              <TrendingUp className="inline h-3 w-3 mr-1" />
-              +2 from last week
-            </p>
-          </CardContent>
-        </Card>
-
-    <Card className="hover-lift border-border bg-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium text-card-foreground">Total Tests</CardTitle>
-            <Clock className="h-4 w-4 text-black" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">{dashboardStats.pendingGrades}</div>
-            <p className="text-xs text-black">Requires attention</p>
-          </CardContent>
-        </Card>
-
-        <Card className="hover-lift border-border bg-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-card-foreground">Upcoming Exams</CardTitle>
-            <FileText className="h-4 w-4 text-black" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">{dashboardStats.upcomingExams}</div>
-            <p className="text-xs text-black">Next 7 days</p>
-          </CardContent>
-        </Card>
-
-    <Card className="hover-lift border-border bg-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium text-card-foreground">Notifications</CardTitle>
-            <MessageSquare className="h-4 w-4 text-black" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">{dashboardStats.unreadMessages}</div>
-            <p className="text-xs text-black">
-              {dashboardStats.unreadMessages > 0 && (
-                <Badge variant="accent" className="text-xs">
-                  New
-                </Badge>
-              )}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <TeacherDashboardCard
-          title="Assignments"
-          icon={<BookOpen className="h-6 w-6" />}
-          onClick={() => setActivePage("assignments")}
-        />
-        <TeacherDashboardCard
-          title="CBT Exams"
-          icon={<FileText className="h-6 w-6" />}
-          onClick={() => setActivePage("cbt-exams")}
-        />
-        <TeacherDashboardCard
-          title="Exam Results"
-          icon={<BarChart3 className="h-6 w-6" />}
-          onClick={() => setActivePage("exam-results")}
-        />
-        <TeacherDashboardCard
-          title="Timetable"
-          icon={<Calendar className="h-6 w-6" />}
-          onClick={() => setActivePage("timetable")}
-        />
-        <TeacherDashboardCard
-          title="Messages"
-          icon={<MessageSquare className="h-6 w-6" />}
-          onClick={() => setActivePage("messages")}
-        />
-        <TeacherDashboardCard
-          title="Tests & Quizzes"
-          icon={<CheckCircle className="h-6 w-6" />}
-          onClick={() => setActivePage("tests")}
-        />
-         <TeacherDashboardCard
-           title="Notifications"
-           icon={<MessageSquare className="h-6 w-6" />}
-           onClick={() => setActivePage('notifications')}
-         />
-        <TeacherDashboardCard
-          title="School Fees"
-          icon={<FileText className="h-6 w-6" />}
-          onClick={() => setActivePage('school-fees')}
-        />
-        <TeacherDashboardCard
-          title="Payments"
-          icon={<FileText className="h-6 w-6" />}
-          onClick={() => setActivePage('payments')}
-        />
-       </div>
-
-
-      {/* Recent Activity */}
+      <DashboardPageIntro
+  title={`Welcome back, ${teacher?.full_name}`}
+  description={`Here's what's happening in your classroom today`}
+/>
+<DashboardStatStrip
+  items={[
+   { label: "Total Assignments", value: dashboardStats.totalAssignments, detail: "+2 from last week" },
+   { label: "Total Tests", value: dashboardStats.pendingGrades, detail: "Requires attention" },
+   { label: "Upcoming Exams", value: dashboardStats.upcomingExams, detail: "Next 7 days" },
+   { label: "Notifications", value: dashboardStats.unreadMessages, detail: "Unread messages" },
+  ]} />
       <Card className="border-border bg-card">
         <CardHeader>
           <CardTitle className="text-foreground">Recent Activity</CardTitle>
@@ -419,7 +312,7 @@ export default function TeacherDashboard() {
 
       <div className="flex bg-background min-h-screen">
         {/* Header */}
-        <div className="fixed top-0 left-0 w-full z-50 animate-slide-in-top">
+        <div className="fixed top-0 left-0 w-full z-50 animate-slide-in-top" data-dashboard>
           <TeacherHeader text="Teacher Dashboard" setIsSidebarOpen={setIsSidebarOpen} />
         </div>
 
@@ -434,7 +327,7 @@ export default function TeacherDashboard() {
         />
 
         {/* Main Content */}
-  <div className={`transition-all duration-300 flex-1 p-6 pt-[120px] ${isSidebarOpen ? "md:ml-[280px]" : "md:ml-[70px]"}`}>
+  <div className={`transition-all duration-300 flex-1 p-6 pt-[72px] ${isSidebarOpen ? "md:ml-[280px]" : "md:ml-[70px]"}`}>
           <div className="max-w-7xl mx-auto">{renderPage()}</div>
         </div>
       </div>

@@ -1,217 +1,190 @@
-"use client"
+"use client";
 
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react"
-import { motion } from "framer-motion"
-import { User, Settings, LogOut, Menu } from "lucide-react"
-import Image from "next/image"
-import NotificationsDropdown from "../NotificationsDropdown"
-import { useRouter } from "next/navigation"
-import ConfirmModal from "@/components/ConfirmModal"
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { ChevronDown, LogOut, Menu, Settings, UserRound } from "lucide-react";
+import ConfirmModal from "@/components/ConfirmModal";
+import NotificationsDropdown from "../NotificationsDropdown";
+
 export default function TeacherHeader({
-  text,
-  setIsSidebarOpen,
+ text,
+ setIsSidebarOpen,
 }: {
-  text: string
-  setIsSidebarOpen: Dispatch<SetStateAction<boolean>>
+ text: string;
+ setIsSidebarOpen: Dispatch<SetStateAction<boolean>>;
 }) {
-  const [teacherName, setTeacherName] = useState("Loading...")
-  const [profilePicture, setProfilePicture] = useState("/default-profile.png")
-  const [uin, setUIN] = useState("N/A")
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [showLogoutModal, setShowLogoutModal] = useState(false)
-  const router = useRouter()
-  const [, setUnreadCount] = useState<number>(0) // only using the setter; omit unreadCount to avoid unused var
+ const router = useRouter();
+ const [teacherName, setTeacherName] = useState("Loading…");
+ const [profilePicture, setProfilePicture] = useState("/default-profile.png");
+ const [uin, setUIN] = useState("N/A");
+ const [showDropdown, setShowDropdown] = useState(false);
+ const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  useEffect(() => {
-  const fetchSessionAndTeacherDetails = async () => {
-      try {
-  const sessionRes = await fetch("/api/auth/session", { credentials: "include" })
-        if (!sessionRes.ok) throw new Error("Unauthorized session")
+ useEffect(() => {
+  let active = true;
 
-        const sessionData = await sessionRes.json()
-        if (!sessionData.session || !sessionData.session.uin) {
-          throw new Error("Session missing UIN")
-        }
+  const fetchDetails = async () => {
+   try {
+    const sessionRes = await fetch("/api/auth/session", { credentials: "include" });
+    if (!sessionRes.ok) throw new Error("Unauthorized session");
+    const sessionData = await sessionRes.json();
+    const sessionUin = sessionData?.session?.uin;
+    if (!sessionUin) throw new Error("Session missing UIN");
 
-  const teacherRes = await fetch(`/api/teacher/details?uin=${sessionData.session.uin}`, { credentials: "include" })
-        if (!teacherRes.ok) throw new Error("Failed to fetch teacher details")
+    const teacherRes = await fetch(`/api/teacher/details?uin=${sessionUin}`, { credentials: "include" });
+    if (!teacherRes.ok) throw new Error("Failed to fetch teacher details");
+    const teacherData = await teacherRes.json();
+    if (!active || !teacherData.success) return;
 
-        const teacherData = await teacherRes.json()
-        if (teacherData.success) {
-          setTeacherName(teacherData.name || "Teacher")
-          setUIN(teacherData.uin || "N/A")
-          setProfilePicture(teacherData.profile_picture || "/default-profile.png")
-        }
-        // fetch unread notifications count (no-store) and tolerate non-OK
-        try {
-          const notifRes = await fetch('/api/notifications', { credentials: 'include', cache: 'no-store' })
-          if (notifRes.ok) {
-            const nb = await notifRes.json().catch(() => ({}))
-            setUnreadCount(nb.unread_count || 0)
-          } else {
-            setUnreadCount(0)
-          }
-        } catch {
-          setUnreadCount(0)
-        }
-      } catch (error) {
-        console.error("Error fetching teacher details:", error)
-      }
-    }
+    setTeacherName(teacherData.name || "Teacher");
+    setUIN(teacherData.uin || "N/A");
+    setProfilePicture(teacherData.profile_picture || "/default-profile.png");
+   } catch (error) {
+    console.error("Error fetching teacher details:", error);
+   }
+  };
 
-    fetchSessionAndTeacherDetails()
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') fetchSessionAndTeacherDetails()
-    }
-    document.addEventListener('visibilitychange', onVisibility)
-    // listen for optimistic mark-read events to update unread count immediately
-    const handler = (e: Event) => {
-      try {
-        const detail = (e as CustomEvent).detail
-        if (detail && Array.isArray(detail.ids)) {
-          setUnreadCount((c) => Math.max(0, c - detail.ids.length))
-        }
-  } catch { }
-    }
-    window.addEventListener('notifications-mark-read', handler)
-    return () => {
-      window.removeEventListener('notifications-mark-read', handler)
-      document.removeEventListener('visibilitychange', onVisibility)
-    }
-  }, [])
+  fetchDetails();
+  const onVisibility = () => {
+   if (document.visibilityState === "visible") fetchDetails();
+  };
+  document.addEventListener("visibilitychange", onVisibility);
+  return () => {
+   active = false;
+   document.removeEventListener("visibilitychange", onVisibility);
+  };
+ }, []);
 
-  return (
-    <motion.header
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="fixed top-0 left-0 right-0 h-20 bg-indigo-800 border-b border-border shadow-sm z-50"
-    >
-      <div className="h-full px-6 flex items-center justify-between">
-        {/* Left Section - Logo and Title */}
-        <div className="flex items-center space-x-4">
-          {/* Hamburger for mobile */}
-          <button
-            aria-label="Toggle sidebar"
-            onClick={() => setIsSidebarOpen((s) => !s)}
-            className="mr-2 p-2 md:hidden rounded-md hover:bg-muted transition-colors"
-          >
-            <Menu className="w-6 h-6 text-white" />
-          </button>
-          <motion.div whileHover={{ scale: 1.05 }} className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-indigo-700 rounded-full flex items-center justify-center">
-              <Image src="/logo.png" alt="School Logo" width={32} height={32} className="rounded-full" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold text-foreground text-orange-400">Glorious Future Academy</h1>
-              <p className="text-sm text-stone-100">{text}</p>
-            </div>
-          </motion.div>
+ useEffect(() => {
+  if (!showDropdown) return;
+  const onKeyDown = (event: KeyboardEvent) => {
+   if (event.key === "Escape") setShowDropdown(false);
+  };
+  document.addEventListener("keydown", onKeyDown);
+  return () => document.removeEventListener("keydown", onKeyDown);
+ }, [showDropdown]);
+
+ return (
+  <header className="fixed inset-x-0 top-0 z-50 flex h-[72px] items-center border-b border-brand-line bg-white/95 backdrop-blur md:h-20">
+   <div className="flex w-full items-center justify-between gap-3 px-4 sm:px-6">
+    <div className="flex min-w-0 items-center gap-3">
+     <button
+      type="button"
+      aria-label="Toggle navigation"
+      aria-expanded={undefined}
+      onClick={() => setIsSidebarOpen((open) => !open)}
+      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-brand-line text-brand-ink transition-colors hover:bg-brand-mist md:hidden"
+     >
+      <Menu aria-hidden="true" className="h-5 w-5" />
+     </button>
+     <Link href="/" className="flex min-w-0 items-center gap-3" aria-label="Glorious Future Academy home">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-ink">
+       <Image src="/apple-touch-icon.png" alt="" width={30} height={30} className="rounded-lg bg-white p-0.5" />
+      </span>
+      <span className="min-w-0">
+       <span className="block truncate font-display text-base leading-tight text-brand-ink sm:text-lg">Glorious Future Academy</span>
+       <span className="hidden truncate text-xs text-brand-ink/55 sm:block">{text}</span>
+      </span>
+     </Link>
+    </div>
+
+    <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+     <NotificationsDropdown />
+     <div className="relative">
+      <button
+       type="button"
+       onClick={() => setShowDropdown((open) => !open)}
+       aria-expanded={showDropdown}
+       aria-haspopup="menu"
+       className="flex items-center gap-2 rounded-xl border border-transparent p-1.5 transition-colors hover:border-brand-line hover:bg-brand-mist"
+      >
+       <span className="hidden text-right lg:block">
+        <span className="block max-w-[160px] truncate text-sm font-semibold text-brand-ink">{teacherName}</span>
+        <span className="block text-[11px] text-brand-ink/50">{uin}</span>
+       </span>
+       <Image
+        src={profilePicture || "/default-profile.png"}
+        alt=""
+        width={36}
+        height={36}
+        className="h-9 w-9 rounded-full border border-brand-line object-cover"
+       />
+       <ChevronDown aria-hidden="true" className={`h-4 w-4 text-brand-ink/50 transition-transform ${showDropdown ? "rotate-180" : ""}`} />
+      </button>
+
+      {showDropdown && (
+       <div role="menu" className="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-2xl border border-brand-line bg-white p-2 shadow-xl">
+        <div className="border-b border-brand-line px-3 py-3">
+         <p className="truncate text-sm font-semibold text-brand-ink">{teacherName}</p>
+         <p className="truncate text-xs text-brand-ink/55">{uin}</p>
         </div>
-
-        {/* Right Section - User Info and Actions */}
-        <div className="flex items-center space-x-4">
-          <NotificationsDropdown />
-
-          {/* User Profile Dropdown */}
-          <div className="relative">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              onClick={() => setShowDropdown(!showDropdown)}
-              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted transition-colors"
-            >
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-semibold text-orange-400">{teacherName}</p>
-                <p className="text-xs text-stone-100">UIN: {uin}</p>
-              </div>
-              <div className="relative">
-                <Image
-                  src={profilePicture || "/placeholder.svg"}
-                  alt="Profile Picture"
-                  width={40}
-                  height={40}
-                  className="rounded-full border-2 border-primary/20 shadow-sm"
-                />
-                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-background"></div>
-              </div>
-            </motion.button>
-
-            {/* Dropdown Menu */}
-            {showDropdown && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="absolute right-0 top-full mt-2 w-64 bg-popover border border-border rounded-lg shadow-lg py-2 z-50"
-              >
-                <div className="px-4 py-3 border-b border-border">
-                  <p className="font-semibold text-foreground">{teacherName}</p>
-                  <p className="text-sm text-stone-800">{uin}</p>
-                </div>
-
-                <div className="py-2">
-                  <button
-                    onClick={() => {
-                      setShowDropdown(false)
-                      router.push("/teacher/teacher-dashboard/Profile")
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-muted transition-colors flex items-center space-x-2"
-                  >
-                    <User className="w-4 h-4" />
-                    <span>Profile Settings</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowDropdown(false)
-                      router.push("/teacher/preferences")
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm text-foreground hover:bg-muted transition-colors flex items-center space-x-2"
-                  >
-                    <Settings className="w-4 h-4" />
-                    <span>Preferences</span>
-                  </button>
-                  <hr className="my-2 border-border" />
-                  <button
-                    onClick={() => setShowLogoutModal(true)}
-                    className="w-full px-4 py-2 text-left text-sm text-destructive hover:bg-destructive/10 transition-colors flex items-center space-x-2"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Sign Out</span>
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </div>
+        <div className="py-2">
+         <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+           setShowDropdown(false);
+           router.push("/teacher/teacher-dashboard/Profile");
+          }}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-brand-ink hover:bg-brand-mist"
+         >
+          <UserRound aria-hidden="true" className="h-4 w-4 text-brand-indigo" />
+          Profile settings
+         </button>
+         <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+           setShowDropdown(false);
+           router.push("/teacher/preferences");
+          }}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-brand-ink hover:bg-brand-mist"
+         >
+          <Settings aria-hidden="true" className="h-4 w-4 text-brand-indigo" />
+          Preferences
+         </button>
         </div>
-      </div>
+        <button
+         type="button"
+         role="menuitem"
+         onClick={() => {
+          setShowDropdown(false);
+          setShowLogoutModal(true);
+         }}
+         className="flex w-full items-center gap-3 border-t border-brand-line px-3 py-2.5 text-left text-sm font-semibold text-rose-700 hover:bg-rose-50"
+        >
+         <LogOut aria-hidden="true" className="h-4 w-4" />
+         Sign out
+        </button>
+       </div>
+      )}
+     </div>
+    </div>
+   </div>
 
-      {/* Click outside to close dropdown */}
-      {showDropdown && <div className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)} />}
+   {showDropdown && <button type="button" aria-label="Close menu" className="fixed inset-0 z-40" onClick={() => setShowDropdown(false)} />}
 
-      {/* Logout confirmation modal */}
-      <ConfirmModal
-        open={showLogoutModal}
-        title="Sign Out"
-        description="Are you sure you want to sign out of your account?"
-        confirmText="Sign Out"
-        cancelText="Cancel"
-        busy={false}
-        onConfirm={async () => {
-          try {
-            const res = await fetch("/api/teacher/logout", { method: "POST", credentials: "include" })
-            if (res.ok) {
-              setShowLogoutModal(false)
-              // redirect to teacher landing (login) page
-              router.push("/teacher")
-            } else {
-              console.error("Logout failed")
-            }
-          } catch (err) {
-            console.error("Error during logout", err)
-          }
-        }}
-        onCancel={() => setShowLogoutModal(false)}
-      />
-    </motion.header>
-  )
+   <ConfirmModal
+    open={showLogoutModal}
+    title="Sign out"
+    description="Are you sure you want to sign out of your account?"
+    confirmText="Sign out"
+    cancelText="Cancel"
+    onCancel={() => setShowLogoutModal(false)}
+    onConfirm={async () => {
+     try {
+      const response = await fetch("/api/teacher/logout", { method: "POST", credentials: "include" });
+      if (!response.ok) throw new Error("Logout failed");
+     } catch (error) {
+      console.error("Error during logout", error);
+     } finally {
+      setShowLogoutModal(false);
+      router.push("/teacher");
+     }
+    }}
+   />
+  </header>
+ );
 }

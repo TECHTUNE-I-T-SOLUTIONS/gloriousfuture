@@ -1,188 +1,128 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useRouter } from 'next/navigation'
-import { motion } from "framer-motion"
-import Image from "next/image"
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { Bell, Menu } from "lucide-react";
 
 interface AnimatedHeaderProps {
-  text: string
+ text: string;
 }
 
 export default function AnimatedHeader({ text }: AnimatedHeaderProps) {
-  const [pupilName, setPupilName] = useState("")
-  const [profilePicture, setProfilePicture] = useState("/default-profile.png")
-  const [uin, setUIN] = useState("")
-  const [unreadCount, setUnreadCount] = useState<number>(0)
-  const router = useRouter()
+ const [pupilName, setPupilName] = useState("");
+ const [profilePicture, setProfilePicture] = useState("/default-profile.png");
+ const [uin, setUIN] = useState("");
+ const [unreadCount, setUnreadCount] = useState(0);
 
-  useEffect(() => {
-    fetch("/api/pupils/details?self=1", { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => {
-        setPupilName(data.full_name)
-        setProfilePicture(data.profile_picture || "/default-profile.png")
-        setUIN(data.uin || "")
-      })
-      .catch(() => {})
-  }, [])
+ useEffect(() => {
+  let active = true;
+  fetch("/api/pupils/details?self=1", { credentials: "include" })
+   .then((response) => response.json())
+   .then((data) => {
+    if (!active) return;
+    setPupilName(data.full_name || "Student");
+    setProfilePicture(data.profile_picture || "/default-profile.png");
+    setUIN(data.uin || "");
+   })
+   .catch(() => {});
+  return () => {
+   active = false;
+  };
+ }, []);
 
-  useEffect(() => {
-    // fetch unread notifications count for pupil header and poll periodically
-    let mounted = true
-    const fetchCount = async () => {
-      try {
-        const res = await fetch('/api/notifications', { credentials: 'include', cache: 'no-store' })
-        if (!mounted) return
-        if (!res.ok) {
-          // non-200 — treat as zero
-          setUnreadCount(0)
-          return
-        }
-        const body = await res.json().catch(() => ({}))
-        const n = body && body.unread_count != null ? Number(body.unread_count) : 0
-        if (!Number.isNaN(n) && n >= 0) setUnreadCount(n)
-      } catch {
-        // ignore network errors
-      }
+ useEffect(() => {
+  let mounted = true;
+  const fetchCount = async () => {
+   try {
+    const response = await fetch("/api/notifications", { credentials: "include", cache: "no-store" });
+    if (!mounted) return;
+    if (!response.ok) {
+     setUnreadCount(0);
+     return;
     }
-    fetchCount()
-    const id = setInterval(fetchCount, 15000)
+    const body = await response.json().catch(() => ({}));
+    const count = Number(body?.unread_count ?? 0);
+    setUnreadCount(Number.isNaN(count) || count < 0 ? 0 : count);
+   } catch {
+    // Notifications are optional; keep the last known count.
+   }
+  };
 
-    const onVisibility = () => {
-      if (document.visibilityState === 'visible') fetchCount()
-    }
-    document.addEventListener('visibilitychange', onVisibility)
+  fetchCount();
+  const interval = setInterval(fetchCount, 15000);
+  const onVisibility = () => {
+   if (document.visibilityState === "visible") fetchCount();
+  };
+  const onMarkRead = (event: Event) => {
+   const ids = (event as CustomEvent<{ ids?: unknown }>).detail?.ids;
+   if (Array.isArray(ids)) setUnreadCount((count) => Math.max(0, count - ids.length));
+  };
 
-    return () => {
-      mounted = false
-      clearInterval(id)
-      document.removeEventListener('visibilitychange', onVisibility)
-    }
-  }, [])
+  document.addEventListener("visibilitychange", onVisibility);
+  window.addEventListener("notifications-mark-read", onMarkRead);
+  return () => {
+   mounted = false;
+   clearInterval(interval);
+   document.removeEventListener("visibilitychange", onVisibility);
+   window.removeEventListener("notifications-mark-read", onMarkRead);
+  };
+ }, []);
 
-  useEffect(() => {
-    const handler = (e: Event) => {
-      try {
-        const detail = (e as CustomEvent).detail
-        if (detail && Array.isArray(detail.ids)) {
-          setUnreadCount((c) => Math.max(0, c - detail.ids.length))
-        }
-      } catch {}
-    }
-    window.addEventListener('notifications-mark-read', handler)
-    return () => window.removeEventListener('notifications-mark-read', handler)
-  }, [])
+ const openNotifications = () => {
+  window.dispatchEvent(new CustomEvent("pupil-set-active-page", { detail: { page: "notifications" } }));
+ };
 
-  return (
-    <motion.header
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
-      className="fixed top-0 left-0 w-full h-16 md:h-20 bg-white/95 backdrop-blur-md border-b border-slate-200/50 shadow-sm z-50"
-    >
-      <div className="h-full px-4 md:px-6 flex items-center justify-between">
-        {/* Left Section - Logo and School Info */}
-        <motion.div
-          className="flex items-center space-x-3"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
-        >
-          <div className="relative">
-            <Image
-              src="/logo.png"
-              alt="School Logo"
-              width={40}
-              height={40}
-              className="rounded-xl shadow-md md:w-12 md:h-12"
-            />
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-teal-500 rounded-xl opacity-20 blur-sm" />
-          </div>
+ return (
+  <header className="fixed inset-x-0 top-0 z-50 flex h-[72px] items-center border-b border-brand-line bg-white/95 backdrop-blur md:h-20">
+   <div className="flex w-full items-center justify-between gap-3 px-4 sm:px-6">
+    <div className="flex min-w-0 items-center gap-3">
+     <button
+      type="button"
+      aria-label="Toggle navigation"
+      onClick={() => window.dispatchEvent(new CustomEvent("pupil-sidebar-toggle", { detail: { toggle: true } }))}
+      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-brand-line text-brand-ink transition-colors hover:bg-brand-mist md:hidden"
+     >
+      <Menu aria-hidden="true" className="h-5 w-5" />
+     </button>
+     <Link href="/" className="flex min-w-0 items-center gap-3" aria-label="Glorious Future Academy home">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-ink">
+       <Image src="/apple-touch-icon.png" alt="" width={30} height={30} className="rounded-lg bg-white p-0.5" />
+      </span>
+      <span className="min-w-0">
+       <span className="block truncate font-display text-base leading-tight text-brand-ink sm:text-lg">Glorious Future Academy</span>
+       <span className="hidden truncate text-xs text-brand-ink/55 sm:block">{text}</span>
+      </span>
+     </Link>
+    </div>
 
-          <div className="hidden sm:block">
-            <h1 className="text-lg md:text-xl font-bold text-slate-800 leading-tight">Glorious Future Academy</h1>
-            <p className="text-xs md:text-sm text-slate-600 font-medium">{text}</p>
-          </div>
-
-          {/* Mobile - Show only school name */}
-          <div className="sm:hidden">
-            <h1 className="text-base font-bold text-slate-800">GFA</h1>
-          </div>
-        </motion.div>
-
-        {/* Right Section - User Profile */}
-        <motion.div
-          className="flex items-center space-x-3"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-        >
-          {/* User Info - Hidden on mobile */}
-          <div className="hidden md:block text-right">
-            <p className="text-sm font-semibold text-slate-800 leading-tight">{pupilName || "Student"}</p>
-            {uin && <p className="text-xs text-slate-500 font-medium">UIN: {uin}</p>}
-          </div>
-
-          {/* Profile Picture */}
-          <div className="relative">
-            <Image
-              src={profilePicture || "/placeholder.svg"}
-              alt="Profile Picture"
-              width={36}
-              height={36}
-              className="rounded-full border-2 border-white shadow-md md:w-10 md:h-10"
-            />
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full opacity-60 blur-sm" />
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full md:w-3.5 md:h-3.5" />
-          </div>
-
-            {/* Notifications Bell */}
-            <button
-              aria-label="Notifications"
-              className="relative ml-2 p-2 rounded-lg hover:bg-slate-100 transition-colors"
-              onClick={() => {
-                try {
-                  window.dispatchEvent(new CustomEvent('pupil-set-active-page', { detail: { page: 'notifications' } }))
-                } catch {
-                  router.push('/pupils/pupil-dashboard/notifications')
-                }
-              }}
-            >
-              <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              {unreadCount > 0 && (
-                <span
-                  role="status"
-                  aria-live="polite"
-                  title={`${unreadCount} unread notifications`}
-                  className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-                >
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </button>
-
-          {/* Mobile Menu Button */}
-          <button
-            aria-label="Open navigation menu"
-            className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors"
-            onClick={() => {
-              // dispatch event so sidebar can open on mobile
-              try {
-                window.dispatchEvent(new CustomEvent("pupil-sidebar-toggle", { detail: { toggle: true } }))
-              } catch {
-                // ignore
-              }
-            }}
-          >
-            <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-        </motion.div>
-      </div>
-    </motion.header>
-  )
+    <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+     <div className="hidden text-right lg:block">
+      <p className="max-w-[160px] truncate text-sm font-semibold text-brand-ink">{pupilName || "Student"}</p>
+      {uin && <p className="text-[11px] text-brand-ink/50">{uin}</p>}
+     </div>
+     <Image
+      src={profilePicture || "/default-profile.png"}
+      alt=""
+      width={36}
+      height={36}
+      className="h-9 w-9 rounded-full border border-brand-line object-cover"
+     />
+     <button
+      type="button"
+      aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
+      onClick={openNotifications}
+      className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-brand-line text-brand-ink transition-colors hover:bg-brand-mist"
+     >
+      <Bell aria-hidden="true" className="h-[18px] w-[18px]" />
+      {unreadCount > 0 && (
+       <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-violet px-1 text-[10px] font-semibold text-white" role="status" aria-live="polite">
+        {unreadCount > 9 ? "9+" : unreadCount}
+       </span>
+      )}
+     </button>
+    </div>
+   </div>
+  </header>
+ );
 }

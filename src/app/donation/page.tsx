@@ -1,496 +1,435 @@
-'use client'
+"use client";
 
-import { useState, ChangeEvent, FormEvent } from 'react'
-import { motion, Variants } from 'framer-motion'
-import { Heart, ArrowLeft, Loader, ArrowRight } from 'lucide-react'
-import Link from 'next/link'
-import CustomHeader from '@/components/CustomHeader'
-import CustomFooter from '@/components/CustomFooter'
+import { useState, type ChangeEvent, type FormEvent } from "react";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  Building2,
+  CircleCheck,
+  GraduationCap,
+  HeartHandshake,
+  LoaderCircle,
+  Mail,
+  MapPin,
+  MessageSquareText,
+  Phone,
+  ShieldCheck,
+  Sparkles,
+  TriangleAlert,
+  Wallet,
+} from "lucide-react";
+
+import CustomHeader from "@/components/CustomHeader";
+import CustomFooter from "@/components/CustomFooter";
+import PageHero from "@/components/public/PageHero";
+import { siteConfig } from "@/lib/site-config";
 
 interface DonationFormData {
-  fullName: string
-  email: string
-  phone: string
-  amount: string
-  donationType: 'one-time' | 'recurring'
-  message: string
+  fullName: string;
+  email: string;
+  phone: string;
+  amount: string;
+  donationType: "one-time" | "recurring";
+  message: string;
 }
+
+const impactAreas = [
+  {
+    icon: BookOpen,
+    title: "Learning resources",
+    description: "Textbooks and digital tools for every classroom.",
+  },
+  {
+    icon: Building2,
+    title: "Campus facilities",
+    description: "Modern spaces where pupils can learn with confidence.",
+  },
+  {
+    icon: GraduationCap,
+    title: "Scholarships",
+    description: "Places for deserving students who need support.",
+  },
+  {
+    icon: Sparkles,
+    title: "Student programmes",
+    description: "Clubs, competitions and creative activities.",
+  },
+];
 
 export default function DonationPage() {
   const [formData, setFormData] = useState<DonationFormData>({
-    fullName: '',
-    email: '',
-    phone: '',
-    amount: '',
-    donationType: 'one-time',
-    message: '',
-  })
+    fullName: "",
+    email: "",
+    phone: "",
+    amount: "",
+    donationType: "one-time",
+    message: "",
+  });
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [successMessage, setSuccessMessage] = useState('')
-  const [errorMessage, setErrorMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setErrorMessage('')
-    setSuccessMessage('')
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
 
     try {
-      const response = await fetch('/api/donations', {
-        method: 'POST',
+      const response = await fetch("/api/donations", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to process donation')
+        throw new Error(data.error || "Failed to process donation");
       }
 
-      // Redirect to Paystack payment page
       if (data.authorizationUrl) {
-        window.location.href = data.authorizationUrl
+        window.location.href = data.authorizationUrl;
       } else {
-        setSuccessMessage('Donation processed successfully!')
+        setSuccessMessage("Donation processed successfully!");
         setFormData({
-          fullName: '',
-          email: '',
-          phone: '',
-          amount: '',
-          donationType: 'one-time',
-          message: '',
-        })
+          fullName: "",
+          email: "",
+          phone: "",
+          amount: "",
+          donationType: "one-time",
+          message: "",
+        });
       }
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'An error occurred'
-      )
+      setErrorMessage(error instanceof Error ? error.message : "An error occurred");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
-
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  }
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-    },
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800">
+    <div className="flex min-h-screen flex-col bg-brand-surface">
       <CustomHeader />
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="w-full"
-      >
-        {/* Hero Section */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="relative bg-gradient-to-r from-blue-300 via-purple-600 to-blue-500 text-white py-12 sm:py-16 overflow-hidden"
+      <main className="flex-1">
+        <PageHero
+          kicker="Support our school"
+          title="Give a brighter future"
+          description="Help us build a stronger learning environment at our new campus in Oro, Kwara State. Every gift supports a pupil’s next step."
+          icon={HeartHandshake}
         >
-          {/* Animated background elements */}
-          <motion.div
-            className="absolute -top-20 -left-20 w-40 h-40 bg-indigo-400/20 rounded-full blur-3xl"
-            animate={{ x: [0, 30, 0], y: [0, 20, 0] }}
-            transition={{ duration: 10, repeat: Infinity }}
-          />
-          <motion.div
-            className="absolute -bottom-20 -right-20 w-40 h-40 bg-pink-400/20 rounded-full blur-3xl"
-            animate={{ x: [0, -30, 0], y: [0, -20, 0] }}
-            transition={{ duration: 10, repeat: Infinity, delay: 1 }}
-          />
+          <Link href="/" className="gfa-btn gfa-btn-secondary">
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            Back to home
+          </Link>
+          <span className="gfa-chip">
+            <ShieldCheck className="h-4 w-4 text-brand-gold" aria-hidden="true" />
+            Secure Paystack checkout
+          </span>
+        </PageHero>
 
-          <div className="mt-26 max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
-            <div className="flex items-center gap-3 mb-4 sm:mb-6 justify-center">
-              <motion.div
-                animate={{ scale: [1, 1.15, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <Heart className="w-8 h-8 text-red-300 fill-red-300 drop-shadow-lg" />
-              </motion.div>
-              <span className="text-indigo-100 font-semibold text-sm sm:text-base">Make A Difference Today</span>
-            </div>
-
-            <h1 className="text-center text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 drop-shadow-lg">
-              Support Our Mission
-            </h1>
-
-            <p className="text-center text-indigo-50 text-base sm:text-lg mb-6 drop-shadow-md max-w-2xl leading-relaxed">
-              Help us build a world-class educational facility at our new campus in Oro, Kwara State. Your generous donation directly impacts students&apos; futures.
-            </p>
-
-            {/* Quick stats */}
-            <motion.div
-              className="grid grid-cols-3 gap-3 sm:gap-4 pt-4 border-t border-indigo-400/50"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <motion.div variants={itemVariants} className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">📚</div>
-                <p className="text-xs sm:text-sm text-indigo-100 mt-1">Learning Resources</p>
-              </motion.div>
-              <motion.div variants={itemVariants} className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">🏗️</div>
-                <p className="text-xs sm:text-sm text-indigo-100 mt-1">Infrastructure</p>
-              </motion.div>
-              <motion.div variants={itemVariants} className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">🎓</div>
-                <p className="text-xs sm:text-sm text-indigo-100 mt-1">Scholarships</p>
-              </motion.div>
-            </motion.div>
-          </div>
-        </motion.div>
-
-        {/* Main Content */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-          {/* Back button */}
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="mb-8">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-semibold transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Home
-            </Link>
-          </motion.div>
-
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="grid md:grid-cols-3 gap-6 sm:gap-8"
-          >
-            {/* Left side - Info Panel */}
-            <motion.div variants={itemVariants} className="md:col-span-1">
-              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 sm:p-8 sticky top-24 border border-indigo-100 dark:border-indigo-900/30">
-                <div className="flex items-center justify-center w-full">
-                    <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full mb-5">
-                        <Heart className="w-7 h-7 text-white fill-white" />
-                    </div>
-                </div>
-
-                <h2 className="text-center text-xl sm:text-2xl font-bold mb-6 text-gray-800 dark:text-white">
-                  Your Impact
+        <section className="gfa-section" aria-label="Donation details">
+          <div className="gfa-container grid gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.25fr)] lg:items-start">
+            <aside className="lg:sticky lg:top-32">
+              <div className="gfa-card p-6 sm:p-8">
+                <p className="gfa-eyebrow">Your giving at work</p>
+                <h2 className="mt-3 font-display text-3xl leading-tight text-brand-ink">
+                  Every gift has a place
                 </h2>
+                <p className="mt-3 text-sm leading-relaxed text-brand-ink/65">
+                  Your support helps us provide the tools, spaces and opportunities pupils need to thrive.
+                </p>
 
-                {/* Impact items */}
-                <div className="space-y-5">
-                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-700/50 hover:shadow-md transition-shadow">
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl">📚</span>
-                      <div>
-                        <h3 className="font-bold text-gray-800 dark:text-white text-sm">Learning Resources</h3>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Quality textbooks and digital tools</p>
-                      </div>
-                    </div>
-                  </div>
+                <ul className="mt-7 space-y-4">
+                  {impactAreas.map(({ icon: Icon, title, description }) => (
+                    <li key={title} className="flex gap-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-mist text-brand-indigo">
+                        <Icon className="h-5 w-5" aria-hidden="true" />
+                      </span>
+                      <span>
+                        <span className="block text-sm font-semibold text-brand-ink">{title}</span>
+                        <span className="mt-1 block text-xs leading-relaxed text-brand-ink/65">
+                          {description}
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
 
-                  <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-700/50 hover:shadow-md transition-shadow">
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl">🏗️</span>
-                      <div>
-                        <h3 className="font-bold text-gray-800 dark:text-white text-sm">Infrastructure</h3>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Modern facilities & labs</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-700/50 hover:shadow-md transition-shadow">
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl">🎓</span>
-                      <div>
-                        <h3 className="font-bold text-gray-800 dark:text-white text-sm">Scholarships</h3>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Supporting deserving students</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-700/50 hover:shadow-md transition-shadow">
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl">🌟</span>
-                      <div>
-                        <h3 className="font-bold text-gray-800 dark:text-white text-sm">Student Programs</h3>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Extra-curricular activities</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Campus Info */}
-                <div className="mt-6 p-4 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-xl border border-indigo-200 dark:border-indigo-700/50">
-                  <h3 className="font-bold text-gray-800 dark:text-white mb-2 flex items-center gap-2">
-                    📍 New Campus Location
+                <div className="mt-7 border-t border-brand-line pt-6">
+                  <h3 className="flex items-center gap-2 text-sm font-semibold text-brand-ink">
+                    <MapPin className="h-4 w-4 text-brand-gold" aria-hidden="true" />
+                    New campus
                   </h3>
-                  <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    IBA transformer area, IBA village, Ijomu Road, Oro, Kwara State
+                  <p className="mt-2 text-sm leading-relaxed text-brand-ink/70">
+                    {siteConfig.contact.streetAddress}, {siteConfig.contact.addressLocality},{" "}
+                    {siteConfig.contact.addressRegion}
                   </p>
-                </div>
-
-                {/* Security badge */}
-                <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700/50 flex items-center gap-2">
-                  <span className="text-lg">🔒</span>
-                  <p className="text-xs text-green-700 dark:text-green-300 font-semibold">
-                    Secure Paystack Payment
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Right side - Form */}
-            <motion.div variants={itemVariants} className="md:col-span-2">
-              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 sm:p-10 border border-indigo-100 dark:border-indigo-900/30">
-                <div className="mb-8 text-center">
-                  <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-2">
-                    Make Your Donation
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    Fill in your details below. All information is safe and secure.
-                  </p>
-                </div>
-
-                {successMessage && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-6 p-4 sm:p-5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border-l-4 border-green-500 dark:border-green-600 rounded-lg text-green-700 dark:text-green-300 flex items-start gap-3"
-                  >
-                    <Heart className="w-5 h-5 fill-green-500 text-green-500 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-sm">{successMessage}</p>
-                    </div>
-                  </motion.div>
-                )}
-
-                {errorMessage && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-6 p-4 sm:p-5 bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/30 dark:to-pink-900/30 border-l-4 border-red-500 dark:border-red-600 rounded-lg text-red-700 dark:text-red-300 flex items-start gap-3"
-                  >
-                    <span className="text-xl flex-shrink-0">⚠️</span>
-                    <div>
-                      <p className="font-semibold text-sm">{errorMessage}</p>
-                    </div>
-                  </motion.div>
-                )}
-
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  {/* Full Name */}
-                  <motion.div variants={itemVariants}>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2.5 flex items-center gap-2">
-                      <span>👤 Full Name</span>
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleChange}
-                      required
-                      placeholder="Enter your full name"
-                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                    />
-                  </motion.div>
-
-                  {/* Email */}
-                  <motion.div variants={itemVariants}>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2.5 flex items-center gap-2">
-                      <span>📧 Email Address</span>
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      placeholder="your.email@example.com"
-                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                    />
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">We&apos;ll send a confirmation receipt</p>
-                  </motion.div>
-
-                  {/* Phone */}
-                  <motion.div variants={itemVariants}>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2.5 flex items-center gap-2">
-                      <span>📱 Phone Number</span>
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      required
-                      placeholder="+234 XXX XXX XXXX"
-                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                    />
-                  </motion.div>
-
-                  {/* Amount */}
-                  <motion.div variants={itemVariants}>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2.5 flex items-center gap-2">
-                      <span>💵 Donation Amount</span>
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-3.5 text-gray-600 dark:text-gray-400 text-lg">₦</span>
-                      <input
-                        type="number"
-                        name="amount"
-                        value={formData.amount}
-                        onChange={handleChange}
-                        required
-                        min="1000"
-                        placeholder="Enter amount in Naira"
-                        className="w-full pl-8 pr-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
-                      Minimum: ₦1,000 | No maximum limit
-                    </p>
-                  </motion.div>
-
-                  {/* Donation Type */}
-                  <motion.div variants={itemVariants}>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2.5 flex items-center gap-2">
-                      <span>Donation Type</span>
-                      <span className="text-red-500">*</span>
-                    </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <label className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                        formData.donationType === 'one-time'
-                          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30'
-                          : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-slate-700 hover:border-indigo-300'
-                      }`}>
-                        <input
-                          type="radio"
-                          name="donationType"
-                          value="one-time"
-                          checked={formData.donationType === 'one-time'}
-                          onChange={handleChange}
-                          className="mr-2"
-                        />
-                        <span className="font-semibold text-sm text-gray-800 dark:text-white">One-time</span>
-                      </label>
-                      <label className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                        formData.donationType === 'recurring'
-                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30'
-                          : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-slate-700 hover:border-purple-300'
-                      }`}>
-                        <input
-                          type="radio"
-                          name="donationType"
-                          value="recurring"
-                          checked={formData.donationType === 'recurring'}
-                          onChange={handleChange}
-                          className="mr-2"
-                        />
-                        <span className="font-semibold text-sm text-gray-800 dark:text-white">Monthly</span>
-                      </label>
-                    </div>
-                  </motion.div>
-
-                  {/* Message */}
-                  <motion.div variants={itemVariants}>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2.5 flex items-center gap-2">
-                      <span>💬 Message (Optional)</span>
-                    </label>
-                    <textarea
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      placeholder="Share why you're supporting us... (e.g., In memory of... or Supporting education...)"
-                      rows={3}
-                      maxLength={500}
-                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-slate-700 text-gray-800 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none transition-all"
-                    />
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 text-right">
-                      {formData.message.length}/500
-                    </p>
-                  </motion.div>
-
-                  {/* Submit Button */}
-                  <motion.div variants={itemVariants}>
-                    <motion.button
-                      whileHover={{ scale: 1.02, y: -2 }}
-                      whileTap={{ scale: 0.98 }}
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-blue-300 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-600 disabled:from-gray-400 disabled:via-gray-400 disabled:to-gray-500 text-white font-bold py-3.5 px-6 rounded-lg transition-all flex items-center justify-center gap-3 shadow-lg hover:shadow-xl"
+                  <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs font-semibold text-brand-indigo">
+                    <a
+                      href={`tel:${siteConfig.contact.telephone}`}
+                      className="inline-flex items-center gap-1.5 hover:text-brand-ink"
                     >
-                      {isLoading ? (
-                        <>
-                          <Loader className="w-5 h-5 animate-spin" />
-                          <span>Processing...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Heart className="w-5 h-5 fill-white" />
-                          <span>Donate Now</span>
-                          <ArrowRight className="w-4 h-4 hidden sm:inline" />
-                        </>
-                      )}
-                    </motion.button>
-                  </motion.div>
-
-                  {/* Security & Privacy */}
-                  <motion.div
-                    variants={itemVariants}
-                    className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-700/50"
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="text-lg flex-shrink-0">🔒</span>
-                      <div>
-                        <p className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-white mb-1">
-                          Your donation is 100% secure
-                        </p>
-                        <p className="text-xs text-gray-700 dark:text-gray-300">
-                          Processed through Paystack with industry-leading encryption. No sensitive data is stored on our servers.
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                </form>
+                      <Phone className="h-3.5 w-3.5" aria-hidden="true" />
+                      {siteConfig.contact.telephoneLabel}
+                    </a>
+                    <a
+                      href={`mailto:${siteConfig.contact.email}`}
+                      className="inline-flex items-center gap-1.5 break-all hover:text-brand-ink"
+                    >
+                      <Mail className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                      {siteConfig.contact.email}
+                    </a>
+                  </div>
+                </div>
               </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </motion.div>
+
+              <p className="mt-4 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+                <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden="true" />
+                Payments are processed securely through Paystack.
+              </p>
+            </aside>
+
+            <div className="gfa-card p-6 sm:p-8 lg:p-10">
+              <p className="gfa-eyebrow">Make a donation</p>
+              <h2 className="mt-3 font-display text-3xl leading-tight text-brand-ink">
+                Choose your gift
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-brand-ink/65">
+                Complete the details below. You will be taken to Paystack to finish payment securely.
+              </p>
+              <p className="mt-5 rounded-xl bg-brand-mist px-4 py-3 text-sm text-brand-ink/75">
+                Fields marked <strong className="font-semibold text-brand-ink">Required</strong> must be completed.
+              </p>
+
+              {successMessage && (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="mt-6 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"
+                >
+                  <CircleCheck className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                  <p className="font-semibold">{successMessage}</p>
+                </div>
+              )}
+
+              {errorMessage && (
+                <div
+                  role="alert"
+                  className="mt-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
+                >
+                  <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                  <p className="font-semibold">{errorMessage}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="mt-7 space-y-5" aria-busy={isLoading}>
+                <div>
+                  <label htmlFor="donation-name" className="gfa-label">
+                    Full name <span className="ml-1 text-xs font-medium text-brand-bronze">Required</span>
+                  </label>
+                  <input
+                    id="donation-name"
+                    type="text"
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    required
+                    autoComplete="name"
+                    placeholder="Enter your full name"
+                    className="gfa-input"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="donation-email" className="gfa-label">
+                    Email address <span className="ml-1 text-xs font-medium text-brand-bronze">Required</span>
+                  </label>
+                  <input
+                    id="donation-email"
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    autoComplete="email"
+                    placeholder="your.email@example.com"
+                    aria-describedby="donation-email-hint"
+                    className="gfa-input"
+                  />
+                  <p id="donation-email-hint" className="mt-1.5 text-xs text-brand-ink/55">
+                    We will send a confirmation receipt here.
+                  </p>
+                </div>
+
+                <div>
+                  <label htmlFor="donation-phone" className="gfa-label">
+                    Phone number <span className="ml-1 text-xs font-medium text-brand-bronze">Required</span>
+                  </label>
+                  <input
+                    id="donation-phone"
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                    autoComplete="tel"
+                    placeholder="+234 XXX XXX XXXX"
+                    className="gfa-input"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="donation-amount" className="gfa-label">
+                    Donation amount <span className="ml-1 text-xs font-medium text-brand-bronze">Required</span>
+                  </label>
+                  <div className="relative">
+                    <Wallet
+                      className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-ink/55"
+                      aria-hidden="true"
+                    />
+                    <input
+                      id="donation-amount"
+                      type="number"
+                      name="amount"
+                      value={formData.amount}
+                      onChange={handleChange}
+                      required
+                      min="1000"
+                      placeholder="Enter amount in Naira"
+                      aria-describedby="donation-amount-hint"
+                      className="gfa-input pl-11"
+                    />
+                  </div>
+                  <p id="donation-amount-hint" className="mt-1.5 text-xs text-brand-ink/55">
+                    Minimum: ₦1,000. There is no maximum.
+                  </p>
+                </div>
+
+                <fieldset>
+                  <legend className="gfa-label">
+                    Donation type <span className="ml-1 text-xs font-medium text-brand-bronze">Required</span>
+                  </legend>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label
+                      htmlFor="donation-one-time"
+                      className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 text-sm font-semibold transition-colors ${
+                        formData.donationType === "one-time"
+                          ? "border-brand-indigo bg-brand-mist text-brand-ink"
+                          : "border-brand-line bg-white text-brand-ink/75 hover:border-brand-indigo"
+                      }`}
+                    >
+                      <input
+                        id="donation-one-time"
+                        type="radio"
+                        name="donationType"
+                        value="one-time"
+                        checked={formData.donationType === "one-time"}
+                        onChange={handleChange}
+                        className="h-4 w-4 shrink-0 accent-indigo-700"
+                      />
+                      One-time
+                    </label>
+                    <label
+                      htmlFor="donation-monthly"
+                      className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 text-sm font-semibold transition-colors ${
+                        formData.donationType === "recurring"
+                          ? "border-brand-indigo bg-brand-mist text-brand-ink"
+                          : "border-brand-line bg-white text-brand-ink/75 hover:border-brand-indigo"
+                      }`}
+                    >
+                      <input
+                        id="donation-monthly"
+                        type="radio"
+                        name="donationType"
+                        value="recurring"
+                        checked={formData.donationType === "recurring"}
+                        onChange={handleChange}
+                        className="h-4 w-4 shrink-0 accent-indigo-700"
+                      />
+                      Monthly
+                    </label>
+                  </div>
+                </fieldset>
+
+                <div>
+                  <label htmlFor="donation-message" className="gfa-label flex items-center gap-2">
+                    <MessageSquareText className="h-4 w-4 text-brand-gold" aria-hidden="true" />
+                    Message <span className="text-xs font-medium text-brand-ink/55">(optional)</span>
+                  </label>
+                  <textarea
+                    id="donation-message"
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    placeholder="Share why you are supporting us…"
+                    rows={3}
+                    maxLength={500}
+                    aria-describedby="donation-message-count"
+                    className="gfa-input min-h-[6rem] resize-y"
+                  />
+                  <p
+                    id="donation-message-count"
+                    role="status"
+                    aria-live="polite"
+                    className="mt-1.5 text-right text-xs text-brand-ink/55"
+                  >
+                    {formData.message.length}/500
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="gfa-btn gfa-btn-primary w-full !min-h-[3.25rem] !text-base disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isLoading ? (
+                    <>
+                      <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden="true" />
+                      Processing donation…
+                    </>
+                  ) : (
+                    <>
+                      <HeartHandshake className="h-5 w-5" aria-hidden="true" />
+                      Donate now
+                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </>
+                  )}
+                </button>
+                {isLoading && (
+                  <p role="status" aria-live="polite" className="sr-only">
+                    Redirecting you to the secure payment page.
+                  </p>
+                )}
+
+                <p className="flex items-start gap-2 rounded-xl border border-brand-line bg-brand-surface p-4 text-xs leading-relaxed text-brand-ink/65">
+                  <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-indigo" aria-hidden="true" />
+                  Your donation is processed through Paystack with industry-leading encryption. We do not store
+                  sensitive payment details on our servers.
+                </p>
+              </form>
+            </div>
+          </div>
+        </section>
+      </main>
 
       <CustomFooter />
     </div>
-  )
+  );
 }
