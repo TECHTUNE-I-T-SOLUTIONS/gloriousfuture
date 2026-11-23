@@ -3,7 +3,7 @@ export const siteConfig = {
   shortName: "GFA",
   url: (process.env.NEXT_PUBLIC_SITE_URL ?? "https://gloriousfutureacademy.vercel.app").replace(/\/$/, ""),
   title: {
-    default: "Glorious Future Academy - Official School Portal",
+    default: "Glorious Future Academy - The Official School Portal",
     template: "%s | Glorious Future Academy",
   },
   description:
