@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { motion, AnimatePresence } from "framer-motion"
-import ParticlesBg from "@/components/ParticlesBg"
 import CustomAlert from "@/components/CustomAlert"
 import CustomLoader from "@/components/CustomLoader"
 // icons intentionally minimal here
@@ -109,8 +108,7 @@ export default function PupilSignup() {
   }
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen p-4">
-      <ParticlesBg />
+    <div className="relative flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-indigo-100 via-indigo-200 to-indigo-300">
       {alert && <CustomAlert message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
       {loading && <CustomLoader />}
 

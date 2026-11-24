@@ -8,7 +8,6 @@ import { motion } from "framer-motion"
 import { Eye, EyeOff, User, Lock, LogIn } from "lucide-react"
 import CustomAlert from "@/components/CustomAlert"
 import CustomLoader from "@/components/CustomLoader"
-import ParticlesBg from "@/components/ParticlesBg"
 
 export default function TeacherLogin() {
   const [uin, setUIN] = useState("")
@@ -79,8 +78,7 @@ export default function TeacherLogin() {
   }
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen p-4">
-      <ParticlesBg />
+    <div className="relative flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-indigo-100 via-indigo-200 to-indigo-300">
       {alert && <CustomAlert message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
       {loading && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
