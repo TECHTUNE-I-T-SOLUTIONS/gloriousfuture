@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { parse, serialize } from "cookie";
+import { parseCookie, stringifyCookie } from "cookie";
 
 // Initialize Supabase with Service Role Key for storage access
 const supabase = createClient(
@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       // Try fallback for older Next.js
       const cookieHeader = req.headers.get("cookie");
       if (cookieHeader) {
-        const cookies = parse(cookieHeader);
+        const cookies = parseCookie(cookieHeader);
         sessionCookie = cookies.session;
       }
     }
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
         // If session UIN belongs to a teacher, invalidate session and force re-login
         if (typeof sessionData.uin === 'string' && sessionData.uin.startsWith('GFA-T-')) {
           // expire cookie
-          const expired = serialize("session", "", {
+          const expired = stringifyCookie("session", "", {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict",

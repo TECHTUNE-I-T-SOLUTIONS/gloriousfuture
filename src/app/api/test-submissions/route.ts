@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { parse } from "cookie";
+import { parseCookie } from "cookie";
 import { getSupabaseClient } from "@/lib/supabase";
 
 export async function POST(req: Request) {
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     // If no pupil_id in body, try to resolve from session cookie. Be permissive: session.uin may be a uin or uuid or email.
     if (!pupil_id) {
       const cookieHeader = req.headers.get('cookie') || '';
-      const cookies = parse(cookieHeader);
+      const cookies = parseCookie(cookieHeader);
       if (!cookies.session) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
       let session = null;
       try { session = JSON.parse(cookies.session); } catch { return NextResponse.json({ success: false, error: 'Invalid session' }, { status: 400 }); }
@@ -72,7 +72,7 @@ export async function GET(req: Request) {
     // If caller wants only the current pupil's submission, resolve pupil and return a single record
     if (mine === '1' || mine === 'true') {
       const cookieHeader = req.headers.get('cookie') || '';
-      const cookies = parse(cookieHeader);
+      const cookies = parseCookie(cookieHeader);
       if (!cookies.session) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
       let session = null;
       try { session = JSON.parse(cookies.session); } catch { return NextResponse.json({ success: false, error: 'Invalid session' }, { status: 400 }); }

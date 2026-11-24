@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { parse } from 'cookie'
+import { parseCookie } from 'cookie'
 
 const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
@@ -8,7 +8,7 @@ export async function GET(req: Request) {
   try {
     // resolve pupil from session cookie
     const cookieHeader = req.headers.get('cookie') || ''
-    const cookies = parse(cookieHeader)
+    const cookies = parseCookie(cookieHeader)
     if (!cookies.session) return NextResponse.json([], { status: 200 })
     let session = null
     try { session = JSON.parse(cookies.session) } catch { return NextResponse.json([], { status: 200 }) }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { parse } from "cookie";
+import { parseCookie } from "cookie";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,7 +9,7 @@ const supabase = createClient(
 
 export async function PUT(req: Request) {
   try {
-    const cookies = parse(req.headers.get("cookie") || "");
+    const cookies = parseCookie(req.headers.get("cookie") || "");
     if (!cookies.session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const session = JSON.parse(cookies.session);
     const uin = session.uin;

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { parse } from "cookie";
+import { parseCookie } from "cookie";
 
 // Initialize Supabase
 const supabase = createClient(
@@ -10,7 +10,7 @@ const supabase = createClient(
 
 // **GET: Retrieve Teacher Details**
 export async function GET(req: NextRequest) {
-  const cookies = parse(req.headers.get("cookie") || "");
+  const cookies = parseCookie(req.headers.get("cookie") || "");
   if (!cookies.session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const session = JSON.parse(cookies.session);

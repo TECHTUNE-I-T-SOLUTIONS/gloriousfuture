@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
-import { serialize } from "cookie";
+import { stringifyCookie } from "cookie";
 
 // Initialize Supabase
 const supabase = createClient(
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Create HTTP-only session cookie
-    const sessionCookie = serialize("session", sessionData, {
+    const sessionCookie = stringifyCookie("session", sessionData, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",

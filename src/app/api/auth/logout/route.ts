@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { serialize } from "cookie";
+import { stringifyCookie } from "cookie";
 
 export async function POST() {
-  const expired = serialize("session", "", {
+  const expired = stringifyCookie("session", "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",

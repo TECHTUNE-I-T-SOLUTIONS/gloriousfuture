@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { parse } from "cookie";
+import { parseCookie } from "cookie";
 import { getSupabaseClient } from "@/lib/supabase";
 
 // Use the server-side Supabase helper so we can read the session cookie and
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
     // Read session cookie to identify the teacher
     const cookieHeader = req.headers.get("cookie") || "";
-    const cookies = parse(cookieHeader);
+    const cookies = parseCookie(cookieHeader);
     if (!cookies.session) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
     let sessCookie: { uin?: string; role?: string } | null = null;

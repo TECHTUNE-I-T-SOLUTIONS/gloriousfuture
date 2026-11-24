@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from '@supabase/supabase-js'
-import { parse } from "cookie";
+import { parseCookie } from "cookie";
 
 type UploadedFile = {
   name?: string
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 
     // resolve pupil from session cookie (mandatory for tracking who submitted)
     const cookieHeader = req.headers.get("cookie") || ""
-    const cookies = parse(cookieHeader)
+    const cookies = parseCookie(cookieHeader)
     let pupilId: string | null = null
     let pupilMeta: Record<string, unknown> | null = null
     if (cookies.session) {

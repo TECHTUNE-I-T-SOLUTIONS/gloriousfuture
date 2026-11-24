@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSupabaseClient } from "@/lib/supabase";
-import { parse } from "cookie";
+import { parseCookie } from "cookie";
 
 // POST: Create a new assignment
 export async function POST(req: Request) {
@@ -10,7 +10,7 @@ export async function POST(req: Request) {
 
     // Extract session from cookies to determine the authenticated teacher
     const cookieHeader = req.headers.get("cookie") || ""
-    const cookies = parse(cookieHeader)
+    const cookies = parseCookie(cookieHeader)
     if (!cookies.session) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
 
   type SessionLike = { uin?: string; role?: string }
@@ -149,7 +149,7 @@ export async function PUT(req: Request) {
     if (!supabase) return NextResponse.json({ success: false, error: "Supabase not configured" }, { status: 500 })
 
     const cookieHeader = req.headers.get("cookie") || ""
-    const cookies = parse(cookieHeader)
+    const cookies = parseCookie(cookieHeader)
     if (!cookies.session) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
 
     let session: { uin?: string; role?: string } | null = null
@@ -198,7 +198,7 @@ export async function DELETE(req: Request) {
     if (!supabase) return NextResponse.json({ success: false, error: "Supabase not configured" }, { status: 500 })
 
     const cookieHeader = req.headers.get("cookie") || ""
-    const cookies = parse(cookieHeader)
+    const cookies = parseCookie(cookieHeader)
     if (!cookies.session) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
 
     let session: { uin?: string; role?: string } | null = null

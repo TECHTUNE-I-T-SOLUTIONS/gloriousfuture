@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { parse } from "cookie";
+import { parseCookie } from "cookie";
 import { getSupabaseClient } from "@/lib/supabase";
 
 export async function POST(req: Request) {
   try {
-    const cookies = parse(req.headers.get("cookie") || "");
+    const cookies = parseCookie(req.headers.get("cookie") || "");
     if (!cookies.session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const session = JSON.parse(cookies.session);
